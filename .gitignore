@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+build/
+dist/
+
+# Publisher supplementary files are never committed.
+# Commit derived extracts under tests/fixtures/ instead.
+*.xlsx
+*.xls
+~$*
+
+# Generated — site/ is derived from registry/ + datasets/ at build time
+site/_build/
+
+.DS_Store

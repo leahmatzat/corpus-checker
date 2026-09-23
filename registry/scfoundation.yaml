@@ -1,0 +1,123 @@
+# Worked example. Every claim carries a source quote — see docs/ADDING_A_MODEL.md.
+
+model: scFoundation
+version: "100M parameters, checkpoint 01B-resolution"
+
+paper:
+  doi: 10.1038/s41592-024-02305-7
+  pmid: 38844628
+  journal: Nature Methods
+  published: 2024-06
+  note: >
+    Scored against this published version. The bioRxiv v4 preprint (2023.05.29.542705)
+    does NOT contain the dataset list — it describes sources in prose only, which would
+    classify as Type C-vague. The manifest exists only in the published version.
+
+manifest:
+  type: A
+  quote: >
+    "The pretraining datasets were mainly downloaded from GEO, Single Cell Portal,
+    HCA and EMBL-EBI, and the detailed dataset list we used is in
+    Supplementary Data 1 and 2."
+  as_of: 2026-09-08
+  resolver: xlsx_two_table
+  sources:
+    # sha256 is what makes "as_of" verifiable: a URL can serve different bytes later.
+    # Anyone can re-download and confirm they are looking at the file we scored.
+    - name: Supplementary Data 1
+      url: https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41592-024-02305-7/MediaObjects/41592_2024_2305_MOESM4_ESM.xlsx
+      format: xlsx
+      level: sample
+      records: 10747
+      columns: [project_ID, sample_ID, cell_number_reserved]
+      bytes: 280312
+      sha256: 786c6962d01bbeeffcc88335d2e2e762f333daf399c649bec3916bc4ef2209d0
+    - name: Supplementary Data 2
+      url: https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41592-024-02305-7/MediaObjects/41592_2024_2305_MOESM5_ESM.xlsx
+      format: xlsx
+      level: study
+      records: 522
+      columns: [Project ID, Study Title, pubmed ID]
+      bytes: 44723
+      sha256: 681c1d8827145730200755cb558462813e5c2562bac75361c7208ff35ecf6e4b
+  totals:
+    cells: 55040785
+    samples: 10747
+    projects: 656
+  # Why dual-key matching is mandatory for this model:
+  gaps:
+    blank_pmids_in_study_table: 161   # of 522
+    projects_absent_from_study_table: 134  # of 656 — accession only, no title, no PMID
+
+evaluation_datasets:
+  - name: Norman 2019
+    accession: GSE133344
+    doi: 10.1126/science.aax4438
+    pmid: 31395745
+    task: perturbation prediction (2-gene)
+    obtained_from: GEARS repo
+  - name: Adamson 2016
+    accession: GSE90546
+    doi: 10.1016/j.cell.2016.11.048
+    pmid: 27984733
+    task: perturbation prediction (1-gene)
+    obtained_from: GEARS repo
+  - name: Dixit 2016
+    accession: GSE90063
+    doi: 10.1016/j.cell.2016.11.038
+    pmid: 27984732
+    task: perturbation prediction (1-gene)
+    obtained_from: GEARS repo
+  - name: Baron 2016
+    accession: GSE84133
+    pmid: 27667365
+    task: read-depth enhancement / clustering
+  - name: Zheng68K
+    pmid: 28091601
+    task: clustering
+  - name: Segerstolpe 2016
+    accession: E-MTAB-5061
+    pmid: 27667667
+    task: published-version evaluation
+
+result:
+  checked: 2026-09-08
+  sources_searched: [Supplementary Data 1, Supplementary Data 2]
+  match_keys: [accession, pmid]
+  findings:
+    - dataset: Norman 2019
+      verdict: PRESENT
+      matched_on: [accession, pmid]
+      samples: 8
+      sample_ids: [GSM3906020, GSM3906021, GSM3906022, GSM3906023, GSM3906024, GSM3906025, GSM3906026, GSM3906027]
+      cells: 125081
+      note: >
+        GEO lists 16 samples for GSE133344; the corpus contains the 8 that are
+        "sgRNA perturb-seq experiment" files. The other 8 are guide-barcode files,
+        correctly excluded. The expression data was ingested, deliberately processed.
+    - dataset: Adamson 2016
+      verdict: NOT PRESENT
+    - dataset: Dixit 2016
+      verdict: NOT PRESENT
+    - dataset: Baron 2016
+      verdict: NOT PRESENT
+    - dataset: Zheng68K
+      verdict: NOT PRESENT
+    - dataset: Segerstolpe 2016
+      verdict: NOT PRESENT
+
+  caveats:
+    - >
+      The paper's prose describes the corpus as organs, tissues, diseases and cancer
+      regions and names no perturbation screens — but 9 of 522 documented studies are
+      CRISPR/screen studies.
+    - >
+      Exposure, not effect. Geneformer's own in/out experiment found "essentially
+      equivalent" downstream results for cells included vs excluded from pretraining,
+      so overlap does not by itself imply an inflated number.
+
+provenance:
+  verified_by: LM
+  verified_date: 2026-09-08
+  method: original audit script (2026-09-08)
+  reproducible: true
