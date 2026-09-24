@@ -75,7 +75,7 @@ ENTRY = {
             "sources_searched": ["S1", "S2"],
             "findings": [
                 {"dataset": "alpha2020", "verdict": "PRESENT", "keys_attempted": ["accession", "pmid"],
-                 "matched_on": ["accession"], "overlap_level": "sample", "samples": 1},
+                 "matched_on": ["accession"], "match_level": "dataset", "overlap_level": "sample", "samples": 1},
                 {"dataset": "gamma2022", "verdict": "NOT PRESENT", "keys_attempted": ["accession", "pmid"]},
             ],
         },

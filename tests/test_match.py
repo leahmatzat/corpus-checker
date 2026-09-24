@@ -91,3 +91,20 @@ def test_unconfirmed_source_caps_both_directions():
     empty = match(RecordIndex([]), _dataset(("geo", "GSE1", True)), ["accession"])
     assert decide(manifest_type="A", can_prove_presence=True, match=empty,
                   unconfirmed_sources=("S1",)).verdict == "INCONCLUSIVE"
+
+
+def test_a_paper_level_match_is_not_presence():
+    """Same paper, different dataset: the manifest lists GSE2, the query is GSE1, both under PMID 7."""
+    index = RecordIndex([CanonicalRecord(accessions=("GSE2",), pmids=("7",), project="GEO-GSE2", source="study", row=1)])
+    m = match(index, _dataset(("geo", "GSE1", True), ("pmid", "7", True)), ["accession", "pmid"])
+    assert m.match_level == "publication" and m.listed_accessions == ("GSE2",)
+    d = decide(manifest_type="A", can_prove_presence=True, match=m)
+    assert (d.verdict, d.code) == ("INCONCLUSIVE", "same_publication")
+    assert "GSE2" in d.reason
+
+
+def test_an_accession_match_is_dataset_level():
+    index = RecordIndex([CanonicalRecord(accessions=("GSE1",), pmids=("7",), project="GEO-GSE1", source="study", row=1)])
+    m = match(index, _dataset(("geo", "GSE1", True), ("pmid", "7", True)), ["accession", "pmid"])
+    assert m.match_level == "dataset"
+    assert decide(manifest_type="A", can_prove_presence=True, match=m).verdict == "PRESENT"

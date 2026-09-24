@@ -125,6 +125,12 @@ CASES = [
     # --- G20: committed snapshot must exist and match
     ("G20", "committed snapshot missing",
      lambda e: corpus(e)["manifest"]["sources"][0].update(snapshot="snapshots/missing.csv")),
+    # --- G21: a PMID or DOI names a paper, not a dataset
+    ("G21", "PRESENT on a PMID-only match",
+     lambda e: finding(e, 0).update(matched_on=["pmid"], match_level="publication")),
+    ("G21", "match_level dataset claimed without an accession hit",
+     lambda e: finding(e, 0).update(matched_on=["pmid"])),
+    ("G00", "PRESENT without match_level", lambda e: finding(e, 0).pop("match_level")),
     # --- G15 via accession_types: a GEO accession is not an attempt against a UUID-keyed manifest
     ("G15", "accession attempt with the wrong kind of accession",
      lambda e: corpus(e)["manifest"].update(accession_types=["cellxgene_collection"], requires_keys=["pmid"])),
@@ -173,6 +179,12 @@ def test_type_b_can_still_prove_absence(toy_repo, entry):
     corpus(entry)["result"]["sources_searched"] = ["census 2023-05-15"]
     entry["evaluated_on"] = [{"dataset": "gamma2022", "task": "x"}]
     assert codes(run(toy_repo, entry)) == set()
+
+
+def test_identity_note_lets_a_verifier_accept_a_paper_level_match(toy_repo, entry):
+    finding(entry, 0).update(matched_on=["pmid"], match_level="publication",
+                             identity_note="The paper published a single dataset, GSE1 (checked on GEO).")
+    assert "G21" not in codes(run(toy_repo, entry))
 
 
 def test_totals_confirmation_allows_definite_verdicts(toy_repo, entry):

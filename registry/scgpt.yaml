@@ -135,6 +135,7 @@ corpora:
           matched_on:
           - accession
           - doi
+          match_level: dataset
           reason: found in the pointed-to corpus, which the model trained on a subset of — a superset cannot prove
             presence
         - dataset: luecken2021-bmmc

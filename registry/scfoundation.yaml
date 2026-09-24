@@ -110,6 +110,7 @@ corpora:
           verdict: PRESENT
           keys_attempted: [accession, pmid]
           matched_on: [accession, pmid]
+          match_level: dataset
           overlap_level: sample
           samples: 8
           sample_ids: [GSM3906020, GSM3906021, GSM3906022, GSM3906023, GSM3906024, GSM3906025, GSM3906026, GSM3906027]

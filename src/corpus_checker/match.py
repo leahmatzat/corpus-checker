@@ -73,6 +73,29 @@ class Match:
             return None
         return "sample" if self.evidence else "study"
 
+    @property
+    def match_level(self) -> str | None:
+        """'dataset' when an accession hit; 'publication' when only a PMID or DOI did.
+
+        A PMID or DOI names a paper, and one paper can publish several datasets, so a
+        publication-level hit alone cannot say which of them the model trained on.
+        """
+        hit = set(self.keys_hit)
+        if "accession" in hit:
+            return "dataset"
+        if hit & {"pmid", "doi"}:
+            return "publication"
+        return None
+
+    @property
+    def listed_accessions(self) -> tuple[str, ...]:
+        """Accessions the manifest lists on the rows that hit — what a verifier compares against."""
+        seen: dict[str, None] = {}
+        for records in self.hits.values():
+            for r in records:
+                seen.update(dict.fromkeys(r.accessions[:1]))   # the row's own (project-level) accession
+        return tuple(sorted(seen))
+
 
 def targets(dataset: dict, accession_types: list[str] | None = None) -> dict[str, set[str]]:
     """The dataset's usable identifier values, grouped by match key."""

@@ -1018,6 +1018,18 @@
           ],
           "description": "How fine-grained the overlap is. Study-level PRESENT does not mean the evaluated samples are in the corpus."
         },
+        "match_level": {
+          "enum": [
+            "dataset",
+            "publication"
+          ],
+          "description": "dataset = an accession matched. publication = only the paper's PMID or DOI matched; a paper can publish several datasets, so this alone cannot identify the dataset (G21)."
+        },
+        "identity_note": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A verifier's statement that a publication-level match is the same dataset, with the evidence (e.g. the paper published only this dataset). Lets a publication-level match support PRESENT."
+        },
         "samples": {
           "type": "integer",
           "minimum": 0
@@ -1057,7 +1069,8 @@
             "required": [
               "matched_on",
               "keys_attempted",
-              "overlap_level"
+              "overlap_level",
+              "match_level"
             ],
             "anyOf": [
               {

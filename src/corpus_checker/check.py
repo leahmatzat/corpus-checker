@@ -84,6 +84,7 @@ class FindingResult:
     overlap_level: str | None
     sample_ids: tuple[str, ...]
     cells: int | None
+    match_level: str | None = None
 
     @property
     def verdict(self) -> str:
@@ -96,6 +97,8 @@ class FindingResult:
             f["keys_attempted"] = list(self.keys_attempted)
         if self.matched_on:
             f["matched_on"] = list(self.matched_on)
+        if self.match_level:
+            f["match_level"] = self.match_level
         if self.verdict == "PRESENT":
             f["overlap_level"] = self.overlap_level
             f["samples"] = len(self.sample_ids)
@@ -148,7 +151,7 @@ def check_corpus(entry: dict, corpus: dict, catalog: dict[str, dict], locate: Lo
         results.append(FindingResult(
             dataset=d, relation=relation(entry, d), decision=decision,
             keys_attempted=tuple(keys), matched_on=m.keys_hit, overlap_level=m.overlap_level,
-            sample_ids=m.sample_ids, cells=m.cells,
+            sample_ids=m.sample_ids, cells=m.cells, match_level=m.match_level,
         ))
     return CorpusCheck(corpus["stage"], tuple(searched), index, tuple(results))
 

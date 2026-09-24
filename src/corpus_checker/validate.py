@@ -24,6 +24,7 @@ tests, so a guard cannot be dropped without a visible diff.
     G18  NOT PRESENT while discovery is incomplete                             [warning]
     G19  a manifest source's roles name a column not in its `columns`
     G20  a committed snapshot is missing or no longer matches its sha256
+    G21  PRESENT on a publication-level match (PMID/DOI only) without a verifier's identity_note
 """
 from __future__ import annotations
 
@@ -231,6 +232,14 @@ def check_entry(path: Path, doc: object, root: Path, catalog: dict[str, dict],
                 if mtype in ("A", "A+") and (missing_src := [n for n in source_names if n not in searched]):
                     add("G08", where, f"NOT PRESENT but these manifest sources were not searched: {missing_src}")
                 any_not_present = True
+
+            # G21 — a PMID or DOI names a paper, not a dataset
+            if verdict == "PRESENT" and not f.get("identity_note"):
+                if f.get("match_level") == "publication":
+                    add("G21", where, "PRESENT on a publication-level match (PMID/DOI only) needs an identity_note "
+                                      "from a verifier saying why it is the same dataset — otherwise INCONCLUSIVE")
+                elif f.get("match_level") == "dataset" and "accession" not in matched:
+                    add("G21", where, "match_level: dataset requires an accession in matched_on (or an identity_note)")
 
             # G09 — an unconfirmed file cannot support a definite verdict
             if unconfirmed and verdict in ("PRESENT", "NOT PRESENT"):
