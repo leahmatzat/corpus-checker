@@ -45,21 +45,24 @@ def locate_in_dir(directory: Path) -> Locator:
     return locate
 
 
-def locate_extracts(extracts: dict[str, Path]) -> Locator:
-    """Derived CSV extracts (tests/fixtures), matched to sources by the parent hash in their header."""
-    def locate(source: dict) -> Path:
-        path = extracts.get(source["name"])
-        if path is None:
-            raise SourceError(f"no extract for {source['name']!r}")
-        header = [line for line in Path(path).read_text(encoding="utf-8").splitlines()[:5] if line.startswith("#")]
-        if not any(f"derived-from-sha256: {source['sha256']}" in line for line in header):
-            raise SourceError(f"{path} does not declare derived-from-sha256: {source['sha256']}")
-        return Path(path)
-    return locate
+def extract_parent_sha256(path: Path) -> str | None:
+    """The publisher file's sha256, as declared in a derived extract's header."""
+    for line in Path(path).read_text(encoding="utf-8").splitlines()[:10]:
+        if not line.startswith("#"):
+            break
+        if "derived-from-sha256:" in line:
+            return line.split("derived-from-sha256:", 1)[1].strip()
+    return None
 
 
-def with_snapshots(root: Path, fallback: Locator | None = None) -> Locator:
-    """Sources with a committed `snapshot` are read from the repo (sha256-verified); others go to `fallback`."""
+def locate_committed(root: Path, fallback: Locator | None = None) -> Locator:
+    """Find each source in the repo, never a silent substitute.
+
+    A committed `snapshot` IS the source (sha256 of the file itself). Otherwise a
+    `fallback` (usually --manifests DIR with the publisher files) wins over the committed
+    `extract`, because re-running from the original is the stronger check. An extract
+    is accepted only if its header declares the source's sha256.
+    """
     def locate(source: dict) -> Path:
         if snap := source.get("snapshot"):
             path = Path(root) / snap
@@ -68,9 +71,16 @@ def with_snapshots(root: Path, fallback: Locator | None = None) -> Locator:
             if (digest := sha256_file(path)) != source["sha256"]:
                 raise SourceError(f"{source['name']}: {snap} has sha256 {digest[:12]}…, the registry scored {source['sha256'][:12]}…")
             return path
-        if fallback is None:
-            raise SourceError(f"{source['name']}: not committed — pass --manifests DIR holding {source['url']}")
-        return fallback(source)
+        if fallback is not None:
+            return fallback(source)
+        if ext := source.get("extract"):
+            path = Path(root) / ext
+            if not path.is_file():
+                raise SourceError(f"{source['name']}: committed extract {ext} is missing")
+            if extract_parent_sha256(path) != source["sha256"]:
+                raise SourceError(f"{source['name']}: {ext} does not declare derived-from-sha256: {source['sha256']}")
+            return path
+        raise SourceError(f"{source['name']}: not committed — pass --manifests DIR holding {source['url']}")
     return locate
 
 

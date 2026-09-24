@@ -125,6 +125,9 @@ CASES = [
     # --- G20: committed snapshot must exist and match
     ("G20", "committed snapshot missing",
      lambda e: corpus(e)["manifest"]["sources"][0].update(snapshot="snapshots/missing.csv")),
+    # --- G22: committed extract must exist and name its parent file
+    ("G22", "committed extract missing",
+     lambda e: corpus(e)["manifest"]["sources"][0].update(extract="extracts/missing.csv")),
     # --- G21: a PMID or DOI names a paper, not a dataset
     ("G21", "PRESENT on a PMID-only match",
      lambda e: finding(e, 0).update(matched_on=["pmid"], match_level="publication")),

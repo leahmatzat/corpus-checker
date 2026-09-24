@@ -5,7 +5,7 @@ import shutil
 
 import pytest
 
-from corpus_checker.check import SourceError, check_corpus, compare, with_snapshots
+from corpus_checker.check import SourceError, check_corpus, compare, locate_committed
 from corpus_checker.registry import load_catalog, load_yaml
 from corpus_checker.validate import ERROR, Options, validate
 
@@ -18,7 +18,7 @@ CATALOG = load_catalog(REPO)
 
 @pytest.fixture(scope="module")
 def run():
-    return check_corpus(ENTRY, CORPUS, CATALOG, with_snapshots(REPO))
+    return check_corpus(ENTRY, CORPUS, CATALOG, locate_committed(REPO))
 
 
 @pytest.fixture(scope="module")
@@ -81,4 +81,4 @@ def test_an_edited_snapshot_is_caught(tmp_path):
     errors = {i.code for i in validate(tmp_path, opts=Options(today=TODAY, allow_draft=True)) if i.severity == ERROR}
     assert "G20" in errors
     with pytest.raises(SourceError):
-        check_corpus(ENTRY, CORPUS, CATALOG, with_snapshots(tmp_path))
+        check_corpus(ENTRY, CORPUS, CATALOG, locate_committed(tmp_path))

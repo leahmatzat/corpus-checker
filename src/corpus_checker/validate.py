@@ -25,6 +25,7 @@ tests, so a guard cannot be dropped without a visible diff.
     G19  a manifest source's roles name a column not in its `columns`
     G20  a committed snapshot is missing or no longer matches its sha256
     G21  PRESENT on a publication-level match (PMID/DOI only) without a verifier's identity_note
+    G22  a committed extract is missing or does not declare its source's sha256
 """
 from __future__ import annotations
 
@@ -40,6 +41,7 @@ from typing import Callable, Iterable
 
 from jsonschema import Draft202012Validator
 
+from .check import extract_parent_sha256
 from .registry import (
     EXACT_KEYS,
     WEAK_KEYS,
@@ -169,6 +171,16 @@ def check_entry(path: Path, doc: object, root: Path, catalog: dict[str, dict],
                 elif (digest := hashlib.sha256(snap_path.read_bytes()).hexdigest()) != src["sha256"]:
                     add("G20", f"corpora[{ci}].manifest.sources[{si}].snapshot",
                         f"{snap} has sha256 {digest[:12]}…, the registry recorded {src['sha256'][:12]}…")
+
+        # G22 — an extract stands in for a publisher file only if it says which one
+        for si, src in enumerate(sources):
+            if ext := src.get("extract"):
+                ext_path = root / ext
+                if not ext_path.is_file():
+                    add("G22", f"corpora[{ci}].manifest.sources[{si}].extract", f"{ext} does not exist")
+                elif extract_parent_sha256(ext_path) != src["sha256"]:
+                    add("G22", f"corpora[{ci}].manifest.sources[{si}].extract",
+                        f"{ext} does not declare derived-from-sha256: {src['sha256'][:12]}…")
 
         # G19 — a role pointing at a missing column would silently read nothing
         for si, src in enumerate(sources):

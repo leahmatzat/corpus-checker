@@ -48,7 +48,7 @@ def _build_parser() -> argparse.ArgumentParser:
                    help="directory holding the manifest files (matched by URL file name and sha256). "
                         "Re-runs every catalog dataset and compares with the registry.")
     c.add_argument("--rerun", action="store_true",
-                   help="re-run from committed snapshots (Type B) and --manifests, instead of showing recorded findings")
+                   help="re-run from committed snapshots/extracts (or --manifests), instead of showing recorded findings")
     c.add_argument("--dataset", action="append", help="limit to these datasets/ ids (repeatable)")
 
     lg = sub.add_parser("ledger", help="every dataset × model: who trained on it, who evaluated on it")
@@ -108,7 +108,7 @@ def _evidence(verdict: str, samples: int | None, cells: int | None, reason: str 
 
 
 def _cmd_check(args, root: Path) -> int:
-    from .check import SourceError, check_corpus, compare, locate_in_dir, with_snapshots
+    from .check import SourceError, check_corpus, compare, locate_in_dir, locate_committed
     from .registry import load_catalog, load_yaml, relation
 
     path = root / "registry" / f"{args.model}.yaml"
@@ -127,7 +127,7 @@ def _cmd_check(args, root: Path) -> int:
         header = (f"{entry['model']} · {corpus['stage']} · manifest type {m['type']}"
                   + (f" ({m['identifier_type']}-keyed)" if m.get("identifier_type") else ""))
         if args.manifests or args.rerun:
-            locate = with_snapshots(root, locate_in_dir(args.manifests) if args.manifests else None)
+            locate = locate_committed(root, locate_in_dir(args.manifests) if args.manifests else None)
             try:
                 run = check_corpus(entry, corpus, catalog, locate, args.dataset)
             except SourceError as exc:
@@ -144,7 +144,7 @@ def _cmd_check(args, root: Path) -> int:
                                 "matched_on": list(r.matched_on), "samples": len(r.sample_ids) or None,
                                 "cells": r.cells, "reason": r.decision.reason, "registry": agree,
                                 "registry_verdict": recorded.get(r.dataset, {}).get("verdict")})
-            origin = f"re-run from {args.manifests}" if args.manifests else "re-run from committed snapshots"
+            origin = f"re-run from {args.manifests}" if args.manifests else "re-run from committed snapshots and extracts"
             sections.append((header, f"{origin} · searched: {', '.join(run.sources_searched)}", section))
         else:
             section = []

@@ -72,6 +72,7 @@ corpora:
         # Anyone can re-download and confirm they are looking at the file we scored.
         - name: Supplementary Data 1
           url: https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41592-024-02305-7/MediaObjects/41592_2024_2305_MOESM4_ESM.xlsx
+          extract: extracts/scfoundation/data1.csv
           format: xlsx
           level: sample
           records: 10747
@@ -83,6 +84,7 @@ corpora:
           confirmation: {method: url_hash, date: 2026-09-08}
         - name: Supplementary Data 2
           url: https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41592-024-02305-7/MediaObjects/41592_2024_2305_MOESM5_ESM.xlsx
+          extract: extracts/scfoundation/data2.csv
           format: xlsx
           level: study
           records: 522

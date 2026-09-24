@@ -1,7 +1,7 @@
 """G06 — the canary. scFoundation's registry entry must reproduce from its manifest.
 
-Runs the real resolver over derived extracts of Supplementary Data 1 and 2
-(tests/fixtures/scfoundation/, each tied to its parent file by sha256). If this goes
+Runs the real resolver over the committed derived extracts of Supplementary Data 1 and 2
+(extracts/scfoundation/, each tied to its parent file by sha256 — see the registry's `extract:`). If this goes
 red, nothing downstream can be trusted.
 """
 from __future__ import annotations
@@ -11,14 +11,13 @@ from pathlib import Path
 
 import pytest
 
-from corpus_checker.check import SourceError, check_corpus, compare, locate_extracts, locate_in_dir
+from corpus_checker.check import SourceError, check_corpus, compare, locate_committed, locate_in_dir
 from corpus_checker.registry import load_catalog, load_yaml
 from corpus_checker.validate import ERROR, Options, validate
 
 from conftest import REPO, TODAY, write_yaml
 
-FIXTURES = REPO / "tests" / "fixtures" / "scfoundation"
-EXTRACTS = {"Supplementary Data 1": FIXTURES / "data1.csv", "Supplementary Data 2": FIXTURES / "data2.csv"}
+EXTRACTS = REPO / "extracts" / "scfoundation"
 DOWNLOADS = Path.home() / "Downloads"
 
 ENTRY = load_yaml(REPO / "registry" / "scfoundation.yaml")
@@ -28,7 +27,7 @@ CATALOG = load_catalog(REPO)
 
 @pytest.fixture(scope="module")
 def run():
-    return check_corpus(ENTRY, CORPUS, CATALOG, locate_extracts(EXTRACTS))
+    return check_corpus(ENTRY, CORPUS, CATALOG, locate_committed(REPO))
 
 
 @pytest.fixture(scope="module")
@@ -83,7 +82,7 @@ def test_manifest_gaps_match_the_registry(run):
     gaps = CORPUS["manifest"]["gaps"]
     assert sum(1 for r in study_rows if not r.pmids and not r.dois) == gaps["blank_pmids_in_study_table"] == 161
     assert len(sample_projects - {r.project for r in study_rows}) == gaps["projects_absent_from_study_table"] == 134
-    raw = [line.rsplit(",", 1)[-1] for line in (FIXTURES / "data2.csv").read_text(encoding="utf-8").splitlines()
+    raw = [line.rsplit(",", 1)[-1] for line in (EXTRACTS / "data2.csv").read_text(encoding="utf-8").splitlines()
            if not line.startswith("#")][1:]
     assert sum(1 for cell in raw if cell and not cell.strip().isdigit()) == gaps["multi_id_pmid_cells"] == 21
 
@@ -92,6 +91,7 @@ def test_engine_output_always_passes_the_validator(run, tmp_path):
     """The engine must never produce a finding the validator rejects."""
     shutil.copytree(REPO / "schema", tmp_path / "schema")
     shutil.copytree(REPO / "datasets", tmp_path / "datasets")
+    shutil.copytree(REPO / "extracts", tmp_path / "extracts")
     shutil.copy(REPO / "verifiers.yaml", tmp_path / "verifiers.yaml")
     entry = load_yaml(REPO / "registry" / "scfoundation.yaml")
     entry["corpora"][0]["result"]["findings"] = [r.as_finding() for r in run.results]
@@ -100,16 +100,27 @@ def test_engine_output_always_passes_the_validator(run, tmp_path):
     assert errors == []
 
 
-def test_a_file_with_the_wrong_hash_is_refused(tmp_path):
-    fake = tmp_path / "data1.csv"
-    fake.write_text("# derived-from-sha256: " + "0" * 64 + "\nproject_ID,sample_ID,cell_number_reserved\n")
-    with pytest.raises(SourceError):
-        check_corpus(ENTRY, CORPUS, CATALOG, locate_extracts({**EXTRACTS, "Supplementary Data 1": fake}))
+def _repo_copy(tmp_path):
+    for d in ("schema", "datasets", "registry", "extracts"):
+        shutil.copytree(REPO / d, tmp_path / d)
+    shutil.copy(REPO / "verifiers.yaml", tmp_path / "verifiers.yaml")
+    return tmp_path
 
 
-def test_a_missing_source_is_an_error_not_a_partial_search():
+def test_an_extract_for_a_different_file_is_refused(tmp_path):
+    root = _repo_copy(tmp_path)
+    ext = root / "extracts" / "scfoundation" / "data1.csv"
+    ext.write_text(ext.read_text().replace(CORPUS["manifest"]["sources"][0]["sha256"], "0" * 64))
     with pytest.raises(SourceError):
-        check_corpus(ENTRY, CORPUS, CATALOG, locate_extracts({"Supplementary Data 1": EXTRACTS["Supplementary Data 1"]}))
+        check_corpus(ENTRY, CORPUS, CATALOG, locate_committed(root))
+    assert "G22" in {i.code for i in validate(root, opts=Options(today=TODAY)) if i.severity == ERROR}
+
+
+def test_a_missing_source_is_an_error_not_a_partial_search(tmp_path):
+    root = _repo_copy(tmp_path)
+    (root / "extracts" / "scfoundation" / "data2.csv").unlink()
+    with pytest.raises(SourceError):
+        check_corpus(ENTRY, CORPUS, CATALOG, locate_committed(root))
 
 
 _ORIGINALS = [DOWNLOADS / "41592_2024_2305_MOESM4_ESM.xlsx", DOWNLOADS / "41592_2024_2305_MOESM5_ESM.xlsx"]
@@ -118,7 +129,7 @@ _ORIGINALS = [DOWNLOADS / "41592_2024_2305_MOESM4_ESM.xlsx", DOWNLOADS / "41592_
 @pytest.mark.skipif(not all(p.is_file() for p in _ORIGINALS), reason="publisher XLSX files not present locally")
 def test_original_xlsx_gives_the_same_answer(by_dataset):
     """Reading the publisher files directly must agree with the committed extracts."""
-    direct = check_corpus(ENTRY, CORPUS, CATALOG, locate_in_dir(DOWNLOADS))
+    direct = check_corpus(ENTRY, CORPUS, CATALOG, locate_committed(REPO, locate_in_dir(DOWNLOADS)))
     for r in direct.results:
         e = by_dataset[r.dataset]
         assert (r.verdict, r.keys_attempted, r.matched_on, r.sample_ids, r.cells) == \

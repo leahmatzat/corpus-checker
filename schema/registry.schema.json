@@ -711,6 +711,11 @@
           "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/-]+$",
           "description": "Repo-relative path of a COMMITTED snapshot of this source (Type B: a versioned public corpus's dataset table). Its sha256 is checked on every validate run (G20). Only for openly licensed metadata — publisher supplementary files are never committed."
         },
+        "extract": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/-]+$",
+          "description": "Repo-relative path of a COMMITTED derived extract of this source: identifier columns only, every row, with a '# derived-from-sha256: <sha256>' header tying it to the publisher file (G22). What the lookup index and offline re-runs read; the publisher file itself is never committed."
+        },
         "format": {
           "enum": [
             "xlsx",
