@@ -6,8 +6,23 @@ organism: [human]
 identifiers:
   - {type: pmid, value: "28091601",           confirmed: true, via: "registry/scfoundation.yaml (verified LM 2026-09-08)"}
   - {type: doi,  value: 10.1038/ncomms14049,  confirmed: true, via: "NCBI esummary db=pubmed id=28091601, 2026-09-23"}
+  - type: sra
+    value: SRX1723926
+    confirmed: provisional
+    basis: &zheng_basis >-
+      SRA experiment titled "Fresh 68k PBMCs (Donor A)", Homo sapiens, submitted by 10X Genomics
+      with contact Grace Zheng (the paper's first author). NCBI has no link between this record
+      and PMID 28091601 in either direction (checked 2026-09-24), so the identification rests on
+      title and submitter.
+    via: "NCBI esummary db=sra id=2468009, 2026-09-24"
+  - type: sra
+    value: SRR3561754
+    confirmed: provisional
+    basis: *zheng_basis
+    via: "run of SRX1723926 (NCBI esummary db=sra id=2468009, 2026-09-24)"
 note: >
-  No confirmed repository accession yet. The PBMC data is distributed from the
-  10x Genomics website and SRA. The original scFoundation audit searched GSE93421
-  for this dataset, but GSE93421 is the same paper's 1.3M E18 MOUSE BRAIN dataset
-  (NCBI gds esummary uid 200093421, 2026-09-23) — not Zheng68K.
+  The PBMC data is distributed from the 10x Genomics website and SRA, not GEO. Its SRA
+  study SRP073767 and BioProject PRJNA318252 also hold the paper's other 10x datasets
+  (frozen PBMCs, sorted cell populations, cell lines), so they are recorded here but not
+  used as identifiers: a match on them could be a sibling dataset. GSE93421, which PubMed
+  links to this paper, is its 1.3M-cell E18 mouse brain dataset, not Zheng68K.

@@ -1035,6 +1035,15 @@
           "minLength": 1,
           "description": "A verifier's statement that a publication-level match is the same dataset, with the evidence (e.g. the paper published only this dataset). Lets a publication-level match support PRESENT."
         },
+        "identity": {
+          "const": "provisional",
+          "description": "Present when an attempted key relies only on provisional catalog identifiers (datasets/ confirmed: provisional). The verdict stands, qualified: e.g. NOT PRESENT · provisional identity. Derived, and checked against the catalog (G23)."
+        },
+        "identity_basis": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The basis of the provisional identification, copied from the catalog identifier."
+        },
         "samples": {
           "type": "integer",
           "minimum": 0
@@ -1132,6 +1141,24 @@
           "then": {
             "required": [
               "reason"
+            ]
+          }
+        },
+        {
+          "$comment": "A provisional identity always states its basis.",
+          "if": {
+            "properties": {
+              "identity": {
+                "const": "provisional"
+              }
+            },
+            "required": [
+              "identity"
+            ]
+          },
+          "then": {
+            "required": [
+              "identity_basis"
             ]
           }
         }

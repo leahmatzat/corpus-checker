@@ -134,6 +134,14 @@ CASES = [
     ("G21", "match_level dataset claimed without an accession hit",
      lambda e: finding(e, 0).update(matched_on=["pmid"])),
     ("G00", "PRESENT without match_level", lambda e: finding(e, 0).pop("match_level")),
+    # --- G23: identity is derived from the catalog
+    ("G23", "attempted a provisional accession but recorded no provisional identity",
+     lambda e: corpus(e)["result"]["findings"].append(
+         {"dataset": "epsilon2024", "verdict": "NOT PRESENT", "keys_attempted": ["accession", "pmid"]})),
+    ("G23", "claims provisional identity where every identifier is confirmed",
+     lambda e: finding(e, 1).update(identity="provisional", identity_basis="none really")),
+    ("G00", "provisional identity without its basis",
+     lambda e: finding(e, 1).update(identity="provisional")),
     # --- G15 via accession_types: a GEO accession is not an attempt against a UUID-keyed manifest
     ("G15", "accession attempt with the wrong kind of accession",
      lambda e: corpus(e)["manifest"].update(accession_types=["cellxgene_collection"], requires_keys=["pmid"])),
@@ -188,6 +196,13 @@ def test_identity_note_lets_a_verifier_accept_a_paper_level_match(toy_repo, entr
     finding(entry, 0).update(matched_on=["pmid"], match_level="publication",
                              identity_note="The paper published a single dataset, GSE1 (checked on GEO).")
     assert "G21" not in codes(run(toy_repo, entry))
+
+
+def test_provisional_identity_recorded_with_its_basis_passes(toy_repo, entry):
+    corpus(entry)["result"]["findings"].append(
+        {"dataset": "epsilon2024", "verdict": "NOT PRESENT", "keys_attempted": ["accession", "pmid"],
+         "identity": "provisional", "identity_basis": "matched on SRA title and submitter"})
+    assert codes(run(toy_repo, entry)) == set()
 
 
 def test_totals_confirmation_allows_definite_verdicts(toy_repo, entry):

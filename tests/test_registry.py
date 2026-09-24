@@ -13,8 +13,7 @@ from corpus_checker.validate import ERROR, Options, validate
 from conftest import REPO, TODAY
 
 EXPECTED_OPEN_ERRORS = {
-    # A1: Zheng68K NOT PRESENT rests on PMID only — no confirmed accession yet.
-    "registry/scfoundation.yaml": {"G14"},
+    "registry/scfoundation.yaml": set(),
     # Drafts: nobody has verified them.
     "registry/geneformer-30m.yaml": {"G10"},
     "registry/scgpt.yaml": {"G10"},

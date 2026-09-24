@@ -60,6 +60,14 @@ def test_zheng_mouse_brain_is_not_in_scfoundation():
     assert (a.verdict, a.keys_attempted) == ("NOT PRESENT", ("accession", "pmid"))
 
 
+def test_an_sra_accession_finds_zheng68k_with_its_provisional_identity():
+    res = one(lookup(["SRX1723926"], REPO, network=False), "SRX1723926")
+    assert res.query.catalog_id == "zheng2017-pbmc68k"
+    a = by_model(res)["scfoundation"]
+    assert (a.verdict, a.identity, a.recorded) == ("NOT PRESENT", "provisional", True)
+    assert "provisional identity" in answer_text(a)
+
+
 def test_is_it_in_model_x():
     res = one(lookup(["GSE133344"], REPO, network=False, models=["scgpt"], include_drafts=True), "GSE133344")
     assert [a.model for a in res.answers] == ["scgpt"]

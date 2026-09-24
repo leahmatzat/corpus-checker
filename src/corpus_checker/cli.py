@@ -151,6 +151,7 @@ def _cmd_check(args, root: Path) -> int:
                                 "verdict": r.verdict, "keys_attempted": list(r.keys_attempted),
                                 "matched_on": list(r.matched_on), "samples": len(r.sample_ids) or None,
                                 "cells": r.cells, "reason": r.decision.reason, "registry": agree,
+                                "identity": r.identity, "identity_basis": r.identity_basis,
                                 "registry_verdict": recorded.get(r.dataset, {}).get("verdict")})
             origin = f"re-run from {args.manifests}" if args.manifests else "re-run from committed snapshots and extracts"
             sections.append((header, f"{origin} · searched: {', '.join(run.sources_searched)}", section))
@@ -162,7 +163,8 @@ def _cmd_check(args, root: Path) -> int:
                 section.append({"stage": corpus["stage"], "relation": relation(entry, f["dataset"]),
                                 "dataset": f["dataset"], "verdict": f["verdict"],
                                 "keys_attempted": f.get("keys_attempted", []), "matched_on": f.get("matched_on", []),
-                                "samples": f.get("samples"), "cells": f.get("cells"), "reason": f.get("reason")})
+                                "samples": f.get("samples"), "cells": f.get("cells"), "reason": f.get("reason"),
+                                "identity": f.get("identity"), "identity_basis": f.get("identity_basis")})
             prov = entry["provenance"]
             signed = f"verified by {prov['verified_by']} {prov['verified_date']}" if prov["verified_by"] else "DRAFT — not verified"
             sections.append((header, f"as recorded in registry/{args.model}.yaml · {signed} · "
@@ -180,6 +182,8 @@ def _cmd_check(args, root: Path) -> int:
         print(f"  {'RELATION':10} {'DATASET':20} {'VERDICT':14} {'KEYS TRIED':16} EVIDENCE")
         for r in sorted(section, key=lambda r: (order[r["relation"]], r["dataset"])):
             evidence = _evidence(r["verdict"], r["samples"], r["cells"], r["reason"])
+            if r.get("identity") == "provisional":
+                evidence = f"· provisional identity — {r['identity_basis'] or 'basis not recorded'} {evidence}".strip()
             if "registry" in r and r["registry"] != "= registry":
                 evidence = f"[{r['registry']}{': ' + r['registry_verdict'] if r.get('registry_verdict') else ''}] {evidence}"
             if len(evidence) > 110:

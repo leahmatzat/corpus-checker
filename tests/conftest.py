@@ -28,6 +28,13 @@ DATASETS = {
         "identifiers": [{"type": "pmid", "value": "2", "confirmed": True},
                         {"type": "sra", "value": "SRP2", "confirmed": False}],
     },
+    "epsilon2024": {   # accession known only provisionally — like Zheng68K's SRA experiment
+        "schema_version": 1, "id": "epsilon2024", "name": "Epsilon 2024",
+        "identifiers": [
+            {"type": "sra", "value": "SRX5", "confirmed": "provisional", "basis": "matched on SRA title and submitter"},
+            {"type": "pmid", "value": "5", "confirmed": True},
+        ],
+    },
     "gamma2022": {
         "schema_version": 1, "id": "gamma2022", "name": "Gamma 2022",
         "identifiers": [

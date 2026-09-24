@@ -52,11 +52,13 @@
           "description": "pmid → match key 'pmid'; doi → 'doi'; url → not matchable; everything else → 'accession'."
         },
         "value":     { "type": ["string", "integer"] },
-        "confirmed": { "type": "boolean", "description": "true = resolved through the crosswalk or checked against a primary source. Unconfirmed identifiers are recorded but never count as an attempted key." },
+        "confirmed": { "enum": [true, false, "provisional"], "description": "true = resolved through the crosswalk or checked against a primary source. \"provisional\" = identified by metadata (a title, a submitter) without a primary-source link; it is searched, but any finding that relies on it is marked provisional identity, with the basis. false = recorded only; never counts as an attempted key." },
+        "basis":     { "type": "string", "minLength": 1, "description": "Required when confirmed is \"provisional\": how the identifier was matched to the dataset, and which link is missing." },
         "via":       { "type": "string", "description": "How it was confirmed: crosswalk entry, API call, or the verified registry entry it came from." },
         "note":      { "type": "string" }
       },
       "allOf": [
+        { "if": { "properties": { "confirmed": { "const": "provisional" } }, "required": ["confirmed"] }, "then": { "required": ["basis"] } },
         { "if": { "properties": { "type": { "const": "geo" } } },          "then": { "properties": { "value": { "type": "string", "pattern": "^GS[EM]\\d+$" } } } },
         { "if": { "properties": { "type": { "const": "arrayexpress" } } }, "then": { "properties": { "value": { "type": "string", "pattern": "^E-[A-Z]{4}-\\d+$" } } } },
         { "if": { "properties": { "type": { "const": "sra" } } },          "then": { "properties": { "value": { "type": "string", "pattern": "^[SED]R[APRSX]\\d+$" } } } },

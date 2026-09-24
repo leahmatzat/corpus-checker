@@ -52,19 +52,16 @@ def test_absent_on_both_keys(by_dataset, dataset):
     assert r.keys_attempted == ("accession", "pmid")
 
 
-def test_zheng68k_cannot_be_called_absent_on_pmid_alone(by_dataset):
-    """Open issue A1: no confirmed Zheng68K accession yet, and this manifest requires one."""
+def test_zheng68k_is_absent_with_a_provisional_identity(by_dataset):
+    """Searched on its SRA experiment and on its PMID; the SRA record is identified by title and submitter only."""
     r = by_dataset["zheng2017-pbmc68k"]
-    assert r.verdict == "INCONCLUSIVE"
-    assert r.keys_attempted == ("pmid",)
-    assert "accession" in r.decision.reason
+    assert r.verdict == "NOT PRESENT"
+    assert r.keys_attempted == ("accession", "pmid")
+    assert r.identity == "provisional" and "Fresh 68k PBMCs" in r.identity_basis
 
 
-def test_registry_reproduces_except_the_known_open_issue(run):
-    diffs = compare(CORPUS, run)
-    assert [(d.dataset, d.field, d.registry, d.engine) for d in diffs] == [
-        ("zheng2017-pbmc68k", "verdict", "NOT PRESENT", "INCONCLUSIVE"),
-    ]
+def test_registry_reproduces_exactly(run):
+    assert compare(CORPUS, run) == []
 
 
 def test_manifest_totals_match_the_registry(run):

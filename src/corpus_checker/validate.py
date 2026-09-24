@@ -26,6 +26,7 @@ tests, so a guard cannot be dropped without a visible diff.
     G20  a committed snapshot is missing or no longer matches its sha256
     G21  PRESENT on a publication-level match (PMID/DOI only) without a verifier's identity_note
     G22  a committed extract is missing or does not declare its source's sha256
+    G23  a finding's identity (provisional or not) disagrees with the catalog identifiers it attempted
 """
 from __future__ import annotations
 
@@ -46,6 +47,7 @@ from .registry import (
     EXACT_KEYS,
     WEAK_KEYS,
     confirmed_keys,
+    identity_of,
     load_catalog,
     load_schema,
     load_verifiers,
@@ -252,6 +254,12 @@ def check_entry(path: Path, doc: object, root: Path, catalog: dict[str, dict],
                                       "from a verifier saying why it is the same dataset — otherwise INCONCLUSIVE")
                 elif f.get("match_level") == "dataset" and "accession" not in matched:
                     add("G21", where, "match_level: dataset requires an accession in matched_on (or an identity_note)")
+
+            # G23 — identity is derived from the catalog, so it cannot disagree with it
+            derived, _ = identity_of(catalog[ds], attempted, manifest.get("accession_types"))
+            if derived != f.get("identity"):
+                add("G23", where, f"identity should be {derived or 'confirmed (omitted)'} given the catalog identifiers "
+                                  f"behind keys_attempted {sorted(attempted)}; recorded {f.get('identity') or 'confirmed'}")
 
             # G09 — an unconfirmed file cannot support a definite verdict
             if unconfirmed and verdict in ("PRESENT", "NOT PRESENT"):

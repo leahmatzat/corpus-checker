@@ -24,7 +24,7 @@ from .check import SourceError, locate_committed
 from .crosswalk import CrosswalkError, resolve
 from .ledger import build_ledger
 from .match import RecordIndex, match
-from .registry import EXACT_KEYS, confirmed_keys, load_catalog, load_yaml, registry_paths
+from .registry import EXACT_KEYS, confirmed_keys, identity_of, load_catalog, load_yaml, registry_paths
 from .resolvers import get_resolver
 from .verdict import PAPER_LEVEL_DISCLAIMER, decide
 
@@ -57,6 +57,7 @@ class Query:
     catalog_id: str | None = None
     linked_from: str | None = None         # for a dataset reached through a paper query
     notes: tuple[str, ...] = ()
+    provisional: tuple[tuple[str, str, str], ...] = ()   # (type, value, basis) of provisional catalog identifiers
 
 
 @dataclass(frozen=True)
@@ -76,6 +77,8 @@ class Answer:
     listed_accessions: tuple[str, ...]
     sources_searched: tuple[str, ...]
     recorded: bool                         # True = the registry's own finding for a catalog dataset
+    identity: str | None                   # "provisional" when the dataset's identification is provisional
+    identity_basis: str | None
     verified_by: str | None
     verified_date: str | None
     draft: bool
@@ -123,8 +126,9 @@ def interpret(raw: str, catalog: dict[str, dict], *, network: bool = True,
     catalog_id = _catalog_match(raw, set(), catalog)
     if catalog_id:
         d = catalog[catalog_id]
-        idents = tuple((i["type"], str(i["value"])) for i in d["identifiers"] if i.get("confirmed"))
-        return [Query(raw, "dataset", idents, (catalog_id,), catalog_id=catalog_id)]
+        idents = tuple((i["type"], str(i["value"])) for i in d["identifiers"] if i.get("confirmed") in (True, "provisional"))
+        prov = tuple((i["type"], str(i["value"]), i.get("basis", "")) for i in d["identifiers"] if i.get("confirmed") == "provisional")
+        return [Query(raw, "dataset", idents, (catalog_id,), catalog_id=catalog_id, provisional=prov)]
 
     tokens = parse(raw)
     typed = tuple(tokens["accession"] + tokens["pmid"] + tokens["doi"])
@@ -152,16 +156,20 @@ def interpret(raw: str, catalog: dict[str, dict], *, network: bool = True,
 
     if tokens["accession"]:
         catalog_id = _catalog_match(raw, accessions, catalog)
+        if catalog_id:   # a typed accession that is a catalog identifier: use the catalog's view of it
+            return [Query(raw, q.kind, q.identifiers, typed, catalog_id, notes=tuple(notes), provisional=q.provisional)
+                    for q in interpret(catalog_id, catalog, network=False)]
         idents = [(accession_type(a), a) for a in sorted(accessions)] + \
                  [("pmid", p) for p in sorted(pmids)] + [("doi", d) for d in sorted(dois)]
-        return [Query(raw, "dataset", tuple(idents), typed, catalog_id=catalog_id, notes=tuple(notes))]
+        return [Query(raw, "dataset", tuple(idents), typed, notes=tuple(notes))]
 
     # A paper: answer at the paper level, then once per dataset it links to.
     paper = Query(raw, "paper", tuple([("pmid", p) for p in sorted(pmids)] + [("doi", d) for d in sorted(dois)]),
                   typed, notes=tuple(notes))
     queries = [paper]
     for gse in sorted(linked):
-        queries += [Query(gse, q.kind, q.identifiers, q.typed, q.catalog_id, linked_from=raw, notes=q.notes)
+        queries += [Query(gse, q.kind, q.identifiers, q.typed, q.catalog_id, linked_from=raw, notes=q.notes,
+                          provisional=q.provisional)
                     for q in interpret(gse, catalog, network=network, cache_dir=cache_dir)]
     return queries
 
@@ -226,29 +234,35 @@ def _answer(corpus: _Corpus, query: Query) -> Answer:
     base = dict(model=corpus.model, model_name=corpus.model_name, stage=corpus.stage,
                 sources_searched=corpus.sources_searched, verified_by=corpus.verified_by,
                 verified_date=corpus.verified_date, draft=corpus.draft, recorded=False)
+    unknown_identity = dict(identity=None, identity_basis=None)
     m = corpus.manifest
     if m["type"] in ("C-vague", "D"):
         d = decide(manifest_type=m["type"], can_prove_presence=False, match=None)
-        return Answer(**base, verdict=d.verdict, code=d.code, reason=d.reason, match_level=None, keys_attempted=(),
-                      matched_on=(), samples=None, cells=None, sample_ids=(), listed_accessions=())
+        return Answer(**base, **unknown_identity, verdict=d.verdict, code=d.code, reason=d.reason, match_level=None,
+                      keys_attempted=(), matched_on=(), samples=None, cells=None, sample_ids=(), listed_accessions=())
     if corpus.index is None:
-        return Answer(**base, verdict="INCONCLUSIVE", code="not_indexed",
+        return Answer(**base, **unknown_identity, verdict="INCONCLUSIVE", code="not_indexed",
                       reason=f"this manifest is not available to search here ({corpus.unavailable})",
                       match_level=None, keys_attempted=(), matched_on=(), samples=None, cells=None,
                       sample_ids=(), listed_accessions=())
 
-    dataset = {"id": "query", "identifiers": [{"type": t, "value": v, "confirmed": True} for t, v in query.identifiers]}
+    provisional = {(t, v): basis for t, v, basis in query.provisional}
+    dataset = {"id": "query", "identifiers": [
+        {"type": t, "value": v, "confirmed": "provisional", "basis": provisional[(t, v)]} if (t, v) in provisional
+        else {"type": t, "value": v, "confirmed": True}
+        for t, v in query.identifiers]}
     accession_types = m.get("accession_types")
     if accession_types and "cellxgene_collection" in accession_types:
         # A UUID typed by the user may be a collection or a dataset id; offer it as both.
-        extra = [{"type": "cellxgene_collection", "value": i["value"], "confirmed": True}
-                 for i in dataset["identifiers"] if i["type"] == "cellxgene_dataset"]
+        extra = [{**i, "type": "cellxgene_collection"} for i in dataset["identifiers"] if i["type"] == "cellxgene_dataset"]
         dataset["identifiers"] += extra
     keys = sorted(confirmed_keys(dataset, accession_types) & set(m.get("keys_available", [])) & EXACT_KEYS)
     mt = match(corpus.index, dataset, keys, accession_types)
     d = decide(manifest_type=m["type"], can_prove_presence=corpus.can_prove_presence, match=mt,
                requires_keys=frozenset(m.get("requires_keys", [])), unconfirmed_sources=corpus.unconfirmed)
+    identity, basis = identity_of(dataset, keys, accession_types)
     return Answer(**base, verdict=d.verdict, code=d.code, reason=d.reason, match_level=mt.match_level,
+                  identity=identity, identity_basis=basis,
                   keys_attempted=tuple(keys), matched_on=mt.keys_hit,
                   samples=len(mt.sample_ids) or None, cells=mt.cells, sample_ids=mt.sample_ids,
                   listed_accessions=mt.listed_accessions)
@@ -262,6 +276,7 @@ def _recorded(corpus: _Corpus, finding: dict) -> Answer:
                   samples=finding.get("samples"), cells=finding.get("cells"),
                   sample_ids=tuple(finding.get("sample_ids", [])), listed_accessions=(),
                   sources_searched=corpus.sources_searched, recorded=True,
+                  identity=finding.get("identity"), identity_basis=finding.get("identity_basis"),
                   verified_by=corpus.verified_by, verified_date=corpus.verified_date, draft=corpus.draft)
 
 
@@ -310,6 +325,8 @@ def answer_text(a: Answer, *, lead: bool = True) -> str:
         body = f"{a.model_name} did not publish a training-data list for its {a.stage} stage."
     else:
         body = f"{a.reason.rstrip('.')}." if a.reason else ""
+    if a.identity == "provisional":
+        body += f" (provisional identity: {a.identity_basis.rstrip('.') if a.identity_basis else 'basis not recorded'}.)"
     return f"{short(a.verdict)} — {body}" if lead else body
 
 
@@ -358,8 +375,11 @@ def build_lookup_index(root: Path, *, include_drafts: bool = False) -> dict:
             "verified_by": c.verified_by, "verified_date": c.verified_date, "draft": c.draft,
             "rows": rows,
         })
+    # Catalog identifiers: [type, value] when confirmed, [type, value, "provisional", basis] when provisional.
     catalog = {d_id: {"name": d["name"],
-                      "identifiers": [[i["type"], str(i["value"])] for i in d["identifiers"] if i.get("confirmed")]}
+                      "identifiers": [[i["type"], str(i["value"])] if i["confirmed"] is True
+                                      else [i["type"], str(i["value"]), "provisional", i.get("basis", "")]
+                                      for i in d["identifiers"] if i.get("confirmed") in (True, "provisional")]}
                for d_id, d in sorted(load_catalog(root).items())}
     models = {c["model"] for c in corpora_out}
     recorded = [r for r in build_ledger(root)["rows"] if r["model"] in models]

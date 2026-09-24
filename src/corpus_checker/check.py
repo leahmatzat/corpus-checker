@@ -12,7 +12,7 @@ from typing import Callable
 from urllib.parse import unquote, urlparse
 
 from .match import RecordIndex, match
-from .registry import EXACT_KEYS, confirmed_keys, relation
+from .registry import EXACT_KEYS, confirmed_keys, identity_of, relation
 from .resolvers import get_resolver
 from .verdict import Decision, decide
 
@@ -95,6 +95,8 @@ class FindingResult:
     sample_ids: tuple[str, ...]
     cells: int | None
     match_level: str | None = None
+    identity: str | None = None           # "provisional" when an attempted key rests only on provisional identifiers
+    identity_basis: str | None = None
 
     @property
     def verdict(self) -> str:
@@ -109,6 +111,9 @@ class FindingResult:
             f["matched_on"] = list(self.matched_on)
         if self.match_level:
             f["match_level"] = self.match_level
+        if self.identity:
+            f["identity"] = self.identity
+            f["identity_basis"] = self.identity_basis
         if self.verdict == "PRESENT":
             f["overlap_level"] = self.overlap_level
             f["samples"] = len(self.sample_ids)
@@ -158,10 +163,12 @@ def check_corpus(entry: dict, corpus: dict, catalog: dict[str, dict], locate: Lo
         m = match(index, dataset, keys, accession_types)
         decision = decide(manifest_type=manifest["type"], can_prove_presence=resolver.can_prove_presence,
                           match=m, requires_keys=requires, unconfirmed_sources=unconfirmed)
+        identity, basis = identity_of(dataset, keys, accession_types)
         results.append(FindingResult(
             dataset=d, relation=relation(entry, d), decision=decision,
             keys_attempted=tuple(keys), matched_on=m.keys_hit, overlap_level=m.overlap_level,
             sample_ids=m.sample_ids, cells=m.cells, match_level=m.match_level,
+            identity=identity, identity_basis=basis,
         ))
     return CorpusCheck(corpus["stage"], tuple(searched), index, tuple(results))
 
@@ -183,7 +190,8 @@ def compare(corpus: dict, check: CorpusCheck) -> list[Discrepancy]:
         if r is None:
             continue
         pairs = [("verdict", f["verdict"], r.verdict),
-                 ("keys_attempted", sorted(f.get("keys_attempted", [])), sorted(r.keys_attempted))]
+                 ("keys_attempted", sorted(f.get("keys_attempted", [])), sorted(r.keys_attempted)),
+                 ("identity", f.get("identity"), r.identity)]
         if f["verdict"] == "PRESENT" or r.verdict == "PRESENT":
             pairs += [("matched_on", sorted(f.get("matched_on", [])), sorted(r.matched_on)),
                       ("cells", f.get("cells"), r.cells),

@@ -132,11 +132,18 @@ corpora:
           keys_attempted: [accession, pmid]
         - dataset: zheng2017-pbmc68k
           verdict: NOT PRESENT
-          keys_attempted: [pmid]
+          keys_attempted: [accession, pmid]
+          identity: provisional
+          identity_basis: >-
+            SRA experiment titled "Fresh 68k PBMCs (Donor A)", Homo sapiens, submitted by 10X Genomics
+            with contact Grace Zheng (the paper's first author). NCBI has no link between this record
+            and PMID 28091601 in either direction (checked 2026-09-24), so the identification rests on
+            title and submitter.
           note: >
-            PMID only. The original audit also searched GSE93421, which is the same
-            paper's mouse-brain dataset, not Zheng68K, so it does not count as an
-            accession attempt.
+            Searched on the SRA experiment and run (SRX1723926, SRR3561754) and on PMID
+            28091601; none appears. The manifest does carry SRA and ENA sample accessions
+            (399 sample rows), so the accession search is a real one. The original audit's
+            accession, GSE93421, is the same paper's mouse-brain dataset, not Zheng68K.
         - dataset: segerstolpe2016
           verdict: NOT PRESENT
           keys_attempted: [accession, pmid]

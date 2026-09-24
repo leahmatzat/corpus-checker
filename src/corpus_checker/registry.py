@@ -95,14 +95,15 @@ def identifier_key(identifier_type: str) -> str | None:
 def usable_identifiers(dataset: dict, accession_types: list[str] | None = None) -> list[dict]:
     """The dataset's identifiers that can be matched against a given manifest.
 
-    Only CONFIRMED identifiers count — an unconfirmed accession is recorded in the
-    catalog but must never let a finding claim that key was attempted. When the
+    Confirmed and provisional identifiers count; an unconfirmed one is recorded in the
+    catalog but must never let a finding claim that key was attempted (provisional ones
+    make the finding's identity provisional — see identity_of). When the
     manifest declares `accession_types`, accessions of other kinds are not usable
     either: a GEO accession tried against CELLxGENE UUIDs is not an attempt.
     """
     usable = []
     for ident in dataset.get("identifiers", []):
-        if ident.get("confirmed") is not True or not identifier_key(ident.get("type", "")):
+        if ident.get("confirmed") not in (True, "provisional") or not identifier_key(ident.get("type", "")):
             continue
         if identifier_key(ident["type"]) == "accession" and accession_types is not None \
                 and ident["type"] not in accession_types:
@@ -114,6 +115,28 @@ def usable_identifiers(dataset: dict, accession_types: list[str] | None = None) 
 def confirmed_keys(dataset: dict, accession_types: list[str] | None = None) -> set[str]:
     """Match keys this dataset can actually be searched on (see usable_identifiers)."""
     return {identifier_key(i["type"]) for i in usable_identifiers(dataset, accession_types)}
+
+
+def provisional_keys(dataset: dict, accession_types: list[str] | None = None) -> tuple[set[str], tuple[str, ...]]:
+    """Keys whose ONLY usable identifiers are provisional, and the bases of those identifiers.
+
+    A finding that attempted any of these keys has a provisional identity: the search was
+    real, but whether it searched for the right dataset rests on the stated basis.
+    """
+    by_key: dict[str, list[dict]] = {}
+    for ident in usable_identifiers(dataset, accession_types):
+        by_key.setdefault(identifier_key(ident["type"]), []).append(ident)
+    keys = {k for k, idents in by_key.items() if all(i.get("confirmed") == "provisional" for i in idents)}
+    bases = tuple(dict.fromkeys(i["basis"] for k in sorted(keys) for i in by_key[k] if i.get("basis")))
+    return keys, bases
+
+
+def identity_of(dataset: dict, keys_attempted, accession_types: list[str] | None = None) -> tuple[str | None, str | None]:
+    """('provisional', basis) if any attempted key relies only on provisional identifiers, else (None, None)."""
+    keys, bases = provisional_keys(dataset, accession_types)
+    if keys & set(keys_attempted):
+        return "provisional", " ".join(bases) or None
+    return None, None
 
 
 def relation(entry: dict, dataset_id: str) -> str:

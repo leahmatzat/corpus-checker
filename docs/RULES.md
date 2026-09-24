@@ -24,6 +24,7 @@ How corpus-checker decides what it can claim, how those rules are enforced, and 
 - **A superset cannot prove presence.** When a paper names a versioned public corpus (e.g. a CELLxGENE census release) that the model trained on a *subset* of, absence from the corpus proves absence from the model's data, but presence proves nothing. The best such a match can reach is `INCONCLUSIVE`.
 - **Absence needs every required key.** Some manifests leave identifiers blank; one had PMIDs missing for 161 of 522 studies. For those manifests, `NOT PRESENT` requires both the accession and the PMID to be searched.
 - **Only confirmed identifiers count.** A dataset's accession must be confirmed against a primary source before a search on it counts. Searching the wrong accession is not a search.
+- **Identity can be provisional.** Some datasets live outside GEO, and no primary source links their accession to the paper; the link rests on metadata such as a title and a submitter. Zheng68K's SRA experiment is an example. Such an identifier is searched, but any finding that relies on it carries the qualifier **provisional identity**, with the basis stated, e.g. `NOT PRESENT · provisional identity`. The verdict describes the search; the qualifier describes how sure we are which dataset was searched for.
 - **A supplied file has to be confirmed.** A manifest file that was handed to us, rather than downloaded from the publisher, supports `PRESENT` or `NOT PRESENT` only after it is confirmed as the paper's file. Confirmation can come from matching the publisher's download, from its contents adding up to totals printed in the paper, or from the authors. Until then, the verdict is `INCONCLUSIVE`.
 - **Every manifest file must be searched.** A `NOT PRESENT` from one of two files is not allowed.
 
@@ -56,6 +57,7 @@ How corpus-checker decides what it can claim, how those rules are enforced, and 
 | G20 | a committed corpus snapshot is missing or has changed |
 | G21 | `PRESENT` rests on a paper-level match (PMID or DOI only) without a verifier's `identity_note` |
 | G22 | a committed manifest extract is missing, or doesn't name the publisher file it was derived from |
+| G23 | a finding's identity (provisional or not) disagrees with the catalog identifiers it searched |
 
 Exit codes never encode verdicts: `0` means the check ran, `1` a tool error, `2` a rule violation and `3` bad usage.
 
