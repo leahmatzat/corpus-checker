@@ -6,14 +6,18 @@ already covers the ledger itself; this file covers what the HTML says and how it
 """
 from __future__ import annotations
 
+import json
 import re
 from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 
 from corpus_checker.ledger import build_ledger
+from corpus_checker.lookup import build_lookup_index
 from corpus_checker.site import build_site
+from corpus_checker.verdict import PAPER_LEVEL_DISCLAIMER
 
 from conftest import REPO
 
@@ -309,3 +313,89 @@ def test_about_page_renders_data_flow_and_mermaid_is_readable_as_text(site_dir):
     assert "How to read a verdict" in about
     for verdict in ("PRESENT", "NOT PRESENT", "INCONCLUSIVE", "NOT CHECKABLE"):
         assert verdict in about
+
+
+def test_about_page_has_the_lookup_section_anchor(site_dir):
+    """docs/DATA_FLOW.md's '## 3 — Looking up a dataset' must get a stable, GitHub-style id so
+    lookup.html's link to about.html#3--looking-up-a-dataset actually lands on the section."""
+    about = _read(site_dir, "about.html")
+    assert 'id="3--looking-up-a-dataset"' in about
+    assert "Looking up a dataset" in about
+
+
+# --------------------------------------------------------------------------------- dataset lookup page
+
+def test_lookup_page_and_index_exist(site_dir):
+    assert (site_dir / "lookup.html").is_file()
+    assert (site_dir / "lookup-index.json").is_file()
+    assert (site_dir / "lookup-core.mjs").is_file()
+    assert (site_dir / "lookup.js").is_file()
+
+
+def test_lookup_index_content_equals_build_lookup_index(site_dir):
+    on_disk = json.loads(_read(site_dir, "lookup-index.json"))
+    expected = build_lookup_index(REPO, include_drafts=True)
+    assert on_disk == expected
+    # every registered model (including drafts) is in the index — the page searches drafts too,
+    # labelled as drafts, same as the rest of the site (only production builds contain none).
+    assert {c["model"] for c in on_disk["corpora"]} == {"geneformer-30m", "scfoundation", "scgpt"}
+
+
+def test_lookup_index_is_serialized_deterministically(site_dir):
+    raw = (site_dir / "lookup-index.json").read_text(encoding="utf-8")
+    assert "\n" not in raw  # one compact line: sort_keys + separators=(",", ":"), no whitespace padding
+    assert '"index_version":1' in raw
+
+
+def test_lookup_disclaimer_is_static_and_verbatim(site_dir):
+    """The standing disclaimer under the input must be in the HTML before any JS runs, and must
+    be the real PAPER_LEVEL_DISCLAIMER text, not a retyped paraphrase."""
+    lookup_html = _read(site_dir, "lookup.html")
+    assert PAPER_LEVEL_DISCLAIMER in lookup_html
+    assert 'id="paper-level-disclaimer"' in lookup_html
+    # it sits in a plain paragraph before the page's <script> tags, not inside one of them
+    first_script_pos = lookup_html.index("<script")
+    disclaimer_pos = lookup_html.index(PAPER_LEVEL_DISCLAIMER)
+    assert disclaimer_pos < first_script_pos
+
+
+def test_lookup_page_has_model_filter_checkboxes(site_dir):
+    lookup_html = _read(site_dir, "lookup.html")
+    for model_id in ("geneformer-30m", "scfoundation", "scgpt"):
+        assert f'value="{model_id}"' in lookup_html
+    # scgpt and geneformer-30m are drafts and must carry the same visible label as everywhere else
+    assert "Draft — not yet verified" in lookup_html
+
+
+def test_lookup_page_links_about_section_correction_and_add_dataset(site_dir):
+    lookup_html = _read(site_dir, "lookup.html")
+    assert 'href="about.html#3--looking-up-a-dataset"' in lookup_html
+    assert "template=correction.yml" in lookup_html
+    assert FAKE_REPO_URL in lookup_html
+
+    m = re.search(r'id="add-dataset-link" href="([^"]+)"', lookup_html)
+    assert m, "add-dataset link not found"
+    url = html_lib_unescape(m.group(1))
+    parts = urlsplit(url)
+    assert f"{parts.scheme}://{parts.netloc}{parts.path}".startswith(FAKE_REPO_URL)
+    assert parts.path.endswith("/issues/new")
+    qs = parse_qs(parts.query)
+    assert qs.get("template") == ["add-dataset.yml"]
+    assert qs.get("title", [""])[0].startswith("[add-dataset]")
+
+
+def html_lib_unescape(s: str) -> str:
+    import html as _html
+    return _html.unescape(s)
+
+
+def test_index_page_has_a_search_box_to_lookup(site_dir):
+    index_html = _read(site_dir, "index.html")
+    assert '<form action="lookup.html" method="get"' in index_html
+    assert 'name="q"' in index_html
+
+
+def test_lookup_page_present_on_every_page_nav(site_dir):
+    for f in sorted(site_dir.rglob("*.html")):
+        text = f.read_text(encoding="utf-8")
+        assert "lookup.html" in text, f

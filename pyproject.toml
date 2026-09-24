@@ -32,7 +32,7 @@ corpus-checker = "corpus_checker.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-corpus_checker = ["site_templates/*.html", "site_templates/*.css"]
+corpus_checker = ["site_templates/*.html", "site_templates/*.css", "site_templates/*.mjs", "site_templates/*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
