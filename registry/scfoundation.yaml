@@ -160,6 +160,6 @@ corpora:
 
 provenance:
   verified_by: LM
-  verified_date: 2026-09-08
+  verified_date: 2026-09-24
   method: original audit script (2026-09-08); reproduced by `corpus-checker check scfoundation --manifests DIR`
   reproducible: true
