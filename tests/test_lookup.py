@@ -11,7 +11,7 @@ from corpus_checker.lookup import answer_text, build_lookup_index, interpret, lo
 from corpus_checker.registry import load_catalog
 from corpus_checker.verdict import PAPER_LEVEL_DISCLAIMER
 
-from conftest import REPO
+from conftest import REPO, repo_copy
 
 import importlib.util
 
@@ -37,10 +37,13 @@ def test_norman_is_in_scfoundation_and_the_answer_is_its_recorded_finding():
     assert res.searched == ("scfoundation",)           # drafts are not searched by default
 
 
-def test_drafts_only_when_asked_and_marked():
-    res = one(lookup(["GSE133344"], REPO, network=False, include_drafts=True), "GSE133344")
-    scgpt = by_model(res)["scgpt"]
-    assert scgpt.verdict == "NOT PRESENT" and scgpt.draft
+def test_drafts_only_when_asked_and_marked(tmp_path):
+    root = repo_copy(tmp_path)
+    assert "toy-draft" not in by_model(one(lookup(["GSE133344"], root, network=False), "GSE133344"))
+    res = one(lookup(["GSE133344"], root, network=False, include_drafts=True), "GSE133344")
+    stages = {a.stage: a for a in res.answers if a.model == "toy-draft"}
+    assert stages["pretraining"].verdict == "NOT CHECKABLE" and stages["pretraining"].draft
+    assert stages["fine-tuning"].verdict == "NOT PRESENT"   # the census stage: absence from a superset is provable
 
 
 def test_a_paper_is_answered_at_paper_level_then_per_linked_dataset():
@@ -69,8 +72,8 @@ def test_an_sra_accession_finds_zheng68k_with_its_provisional_identity():
 
 
 def test_is_it_in_model_x():
-    res = one(lookup(["GSE133344"], REPO, network=False, models=["scgpt"], include_drafts=True), "GSE133344")
-    assert [a.model for a in res.answers] == ["scgpt"]
+    res = one(lookup(["GSE133344"], REPO, network=False, models=["scfoundation"]), "GSE133344")
+    assert [a.model for a in res.answers] == ["scfoundation"]
 
 
 def test_unrecognised_input_gets_no_answers_and_says_why():
@@ -125,12 +128,14 @@ def test_cli_batch_file_and_usage_errors(tmp_path, capsys):
 
 # ------------------------------------------------------------------ the web index + parity vectors
 
-def test_web_index_holds_only_verified_entries_and_is_deterministic():
+def test_web_index_holds_only_verified_entries_and_is_deterministic(tmp_path):
     a, b = build_lookup_index(REPO), build_lookup_index(REPO)
     assert json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True)
     assert {c["model"] for c in a["corpora"]} == {"scfoundation"}
     assert a["disclaimer"] == PAPER_LEVEL_DISCLAIMER
-    assert {c["model"] for c in build_lookup_index(REPO, include_drafts=True)["corpora"]} == {"scfoundation", "scgpt", "geneformer-30m"}
+    root = repo_copy(tmp_path)
+    assert {c["model"] for c in build_lookup_index(root)["corpora"]} == {"scfoundation"}
+    assert {c["model"] for c in build_lookup_index(root, include_drafts=True)["corpora"]} == {"scfoundation", "toy-draft"}
 
 
 def test_parity_vectors_are_current():

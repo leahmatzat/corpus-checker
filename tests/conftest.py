@@ -110,3 +110,68 @@ def toy_repo(tmp_path: Path) -> Path:
 @pytest.fixture
 def entry() -> dict:
     return copy.deepcopy(ENTRY)
+
+
+_ALL_CHECKED = {k: {"checked": True, "found": "none"} for k in (
+    "data_availability", "code_availability", "supplementary_files", "methods", "github_repo",
+    "hf_model_card", "hf_dataset_card", "archive_deposits", "preprint_vs_published")}
+
+# A Type-B manifest over the real, committed CELLxGENE census 2023-05-15 snapshot.
+CENSUS_SNAPSHOT = "snapshots/cellxgene-census/2023-05-15/datasets.csv"
+CENSUS_MANIFEST = {
+    "type": "B", "identifier_type": "mixed",
+    "quote": "Pretraining data can be retrieved from the CELLxGENE census, release 2023-05-15.",
+    "as_of": "2026-09-23", "resolver": "census_snapshot",
+    "keys_available": ["accession", "doi", "title"],
+    "accession_types": ["cellxgene_collection", "cellxgene_dataset"],
+    "requires_keys": ["doi"],
+    "pointer": {"corpus": "CELLxGENE census", "release": "2023-05-15"},
+    "sources": [{
+        "name": "CELLxGENE census 2023-05-15 — census_info/datasets",
+        "url": "s3://cellxgene-census-public-us-west-2/cell-census/2023-05-15/soma/",
+        "snapshot": CENSUS_SNAPSHOT, "format": "csv", "level": "dataset", "records": 562,
+        "sha256": "a30061e7323850768883c0528428478a8001d0c4414c8ec256defa389350607c",
+        "acquired": "fetched",
+        "confirmation": {"method": "api_snapshot", "detail": "scripts/snapshot_census.py 2023-05-15", "date": "2026-09-23"},
+        "columns": ["dataset_id", "collection_id", "collection_name", "collection_doi", "dataset_title",
+                    "dataset_total_cell_count"],
+        "roles": {"accession": ["collection_id", "dataset_id"], "project": "collection_id", "sample": "dataset_id",
+                  "doi": "collection_doi", "title": "collection_name", "cells": "dataset_total_cell_count"},
+    }],
+}
+
+# A synthetic DRAFT model for tests that need a second, unverified entry. Stage 1 publishes no
+# manifest (NOT CHECKABLE); stage 2 is the census (a superset, so its hit is INCONCLUSIVE). It
+# evaluates on Norman 2019, so the reuse map has something to show.
+TOY_DRAFT = {
+    "schema_version": 2, "id": "toy-draft", "model": "Toy Draft", "model_class": "foundation",
+    "paper": {"doi": "10.1000/toy-draft"},
+    "discovery": _ALL_CHECKED,
+    "evaluated_on": [{"dataset": "norman2019", "task": "perturbation prediction"}],
+    "corpora": [
+        {"stage": "pretraining",
+         "manifest": {"type": "C-vague", "quote": "Data were collected from public repositories.", "as_of": "2026-09-24"},
+         "result": {"checked": "2026-09-24", "sources_searched": [],
+                    "findings": [{"dataset": "norman2019", "verdict": "NOT CHECKABLE"}]}},
+        {"stage": "fine-tuning",
+         "manifest": CENSUS_MANIFEST,
+         "result": {"checked": "2026-09-24", "sources_searched": [CENSUS_MANIFEST["sources"][0]["name"]],
+                    "findings": [{"dataset": "siletti2022-perirhinal", "verdict": "INCONCLUSIVE",
+                                  "keys_attempted": ["accession", "doi"], "matched_on": ["accession", "doi"],
+                                  "match_level": "dataset",
+                                  "reason": "found in the pointed-to corpus, which the model trained on a subset of — "
+                                            "a superset cannot prove presence."}]}},
+    ],
+    "provenance": {"verified_by": "", "verified_date": None, "method": "test"},
+}
+
+
+def repo_copy(tmp_path: Path, *, with_toy_draft: bool = True) -> Path:
+    """The real registry, datasets and committed extracts, plus (optionally) the toy draft."""
+    for d in ("schema", "datasets", "registry", "extracts", "snapshots", "docs"):
+        if (REPO / d).exists():
+            shutil.copytree(REPO / d, tmp_path / d)
+    shutil.copy(REPO / "verifiers.yaml", tmp_path / "verifiers.yaml")
+    if with_toy_draft:
+        write_yaml(tmp_path / "registry" / "toy-draft.yaml", TOY_DRAFT)
+    return tmp_path

@@ -726,19 +726,6 @@
    "expected": {
     "answers": [
      {
-      "cells": null,
-      "code": "not_indexed",
-      "identity": null,
-      "keys_attempted": [],
-      "match_level": null,
-      "matched_on": [],
-      "model": "geneformer-30m",
-      "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "INCONCLUSIVE"
-     },
-     {
       "cells": 125081,
       "code": "recorded",
       "identity": null,
@@ -756,21 +743,6 @@
       "samples": 8,
       "stage": "pretraining",
       "verdict": "PRESENT"
-     },
-     {
-      "cells": null,
-      "code": "recorded",
-      "identity": null,
-      "keys_attempted": [
-       "doi"
-      ],
-      "match_level": null,
-      "matched_on": [],
-      "model": "scgpt",
-      "recorded": true,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "NOT PRESENT"
      }
     ],
     "paper_level_warning": false
@@ -798,19 +770,6 @@
    "expected": {
     "answers": [
      {
-      "cells": null,
-      "code": "not_indexed",
-      "identity": null,
-      "keys_attempted": [],
-      "match_level": null,
-      "matched_on": [],
-      "model": "geneformer-30m",
-      "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "INCONCLUSIVE"
-     },
-     {
       "cells": 125081,
       "code": "present",
       "identity": null,
@@ -826,19 +785,6 @@
       "samples": 8,
       "stage": "pretraining",
       "verdict": "PRESENT"
-     },
-     {
-      "cells": null,
-      "code": "no_exact_key",
-      "identity": null,
-      "keys_attempted": [],
-      "match_level": null,
-      "matched_on": [],
-      "model": "scgpt",
-      "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "INCONCLUSIVE"
      }
     ],
     "paper_level_warning": false
@@ -858,19 +804,6 @@
    "expected": {
     "answers": [
      {
-      "cells": null,
-      "code": "not_indexed",
-      "identity": null,
-      "keys_attempted": [],
-      "match_level": null,
-      "matched_on": [],
-      "model": "geneformer-30m",
-      "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "INCONCLUSIVE"
-     },
-     {
       "cells": 125081,
       "code": "present",
       "identity": null,
@@ -888,19 +821,6 @@
       "samples": 8,
       "stage": "pretraining",
       "verdict": "PRESENT"
-     },
-     {
-      "cells": null,
-      "code": "no_exact_key",
-      "identity": null,
-      "keys_attempted": [],
-      "match_level": null,
-      "matched_on": [],
-      "model": "scgpt",
-      "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "INCONCLUSIVE"
      }
     ],
     "paper_level_warning": false
@@ -924,19 +844,6 @@
    "expected": {
     "answers": [
      {
-      "cells": null,
-      "code": "not_indexed",
-      "identity": null,
-      "keys_attempted": [],
-      "match_level": null,
-      "matched_on": [],
-      "model": "geneformer-30m",
-      "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "INCONCLUSIVE"
-     },
-     {
       "cells": 125081,
       "code": "same_publication",
       "identity": null,
@@ -952,21 +859,6 @@
       "samples": 8,
       "stage": "pretraining",
       "verdict": "INCONCLUSIVE"
-     },
-     {
-      "cells": null,
-      "code": "not_present",
-      "identity": null,
-      "keys_attempted": [
-       "doi"
-      ],
-      "match_level": null,
-      "matched_on": [],
-      "model": "scgpt",
-      "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "NOT PRESENT"
      }
     ],
     "paper_level_warning": true
@@ -991,19 +883,6 @@
     "answers": [
      {
       "cells": null,
-      "code": "not_indexed",
-      "identity": null,
-      "keys_attempted": [],
-      "match_level": null,
-      "matched_on": [],
-      "model": "geneformer-30m",
-      "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "INCONCLUSIVE"
-     },
-     {
-      "cells": null,
       "code": "not_present",
       "identity": null,
       "keys_attempted": [
@@ -1013,21 +892,6 @@
       "match_level": null,
       "matched_on": [],
       "model": "scfoundation",
-      "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "NOT PRESENT"
-     },
-     {
-      "cells": null,
-      "code": "not_present",
-      "identity": null,
-      "keys_attempted": [
-       "doi"
-      ],
-      "match_level": null,
-      "matched_on": [],
-      "model": "scgpt",
       "recorded": false,
       "samples": null,
       "stage": "pretraining",
@@ -1068,19 +932,6 @@
     "answers": [
      {
       "cells": null,
-      "code": "not_indexed",
-      "identity": null,
-      "keys_attempted": [],
-      "match_level": null,
-      "matched_on": [],
-      "model": "geneformer-30m",
-      "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "INCONCLUSIVE"
-     },
-     {
-      "cells": null,
       "code": "not_present",
       "identity": null,
       "keys_attempted": [
@@ -1094,19 +945,6 @@
       "samples": null,
       "stage": "pretraining",
       "verdict": "NOT PRESENT"
-     },
-     {
-      "cells": null,
-      "code": "no_exact_key",
-      "identity": null,
-      "keys_attempted": [],
-      "match_level": null,
-      "matched_on": [],
-      "model": "scgpt",
-      "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "INCONCLUSIVE"
      }
     ],
     "paper_level_warning": false
@@ -1131,19 +969,6 @@
     "answers": [
      {
       "cells": null,
-      "code": "not_indexed",
-      "identity": null,
-      "keys_attempted": [],
-      "match_level": null,
-      "matched_on": [],
-      "model": "geneformer-30m",
-      "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "INCONCLUSIVE"
-     },
-     {
-      "cells": null,
       "code": "missing_required_key",
       "identity": null,
       "keys_attempted": [
@@ -1154,23 +979,6 @@
       "model": "scfoundation",
       "recorded": false,
       "samples": null,
-      "stage": "pretraining",
-      "verdict": "INCONCLUSIVE"
-     },
-     {
-      "cells": 7607332,
-      "code": "superset",
-      "identity": null,
-      "keys_attempted": [
-       "accession"
-      ],
-      "match_level": "dataset",
-      "matched_on": [
-       "accession"
-      ],
-      "model": "scgpt",
-      "recorded": false,
-      "samples": 138,
       "stage": "pretraining",
       "verdict": "INCONCLUSIVE"
      }
@@ -1193,19 +1001,6 @@
     "answers": [
      {
       "cells": null,
-      "code": "not_indexed",
-      "identity": null,
-      "keys_attempted": [],
-      "match_level": null,
-      "matched_on": [],
-      "model": "geneformer-30m",
-      "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "INCONCLUSIVE"
-     },
-     {
-      "cells": null,
       "code": "not_present",
       "identity": "provisional",
       "keys_attempted": [
@@ -1215,21 +1010,6 @@
       "match_level": null,
       "matched_on": [],
       "model": "scfoundation",
-      "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "NOT PRESENT"
-     },
-     {
-      "cells": null,
-      "code": "not_present",
-      "identity": null,
-      "keys_attempted": [
-       "doi"
-      ],
-      "match_level": null,
-      "matched_on": [],
-      "model": "scgpt",
       "recorded": false,
       "samples": null,
       "stage": "pretraining",
@@ -1270,19 +1050,6 @@
     "answers": [
      {
       "cells": null,
-      "code": "not_indexed",
-      "identity": null,
-      "keys_attempted": [],
-      "match_level": null,
-      "matched_on": [],
-      "model": "geneformer-30m",
-      "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "INCONCLUSIVE"
-     },
-     {
-      "cells": null,
       "code": "recorded",
       "identity": "provisional",
       "keys_attempted": [
@@ -1292,21 +1059,6 @@
       "match_level": null,
       "matched_on": [],
       "model": "scfoundation",
-      "recorded": true,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "NOT PRESENT"
-     },
-     {
-      "cells": null,
-      "code": "recorded",
-      "identity": null,
-      "keys_attempted": [
-       "doi"
-      ],
-      "match_level": null,
-      "matched_on": [],
-      "model": "scgpt",
       "recorded": true,
       "samples": null,
       "stage": "pretraining",
@@ -1347,19 +1099,6 @@
     "answers": [
      {
       "cells": null,
-      "code": "not_indexed",
-      "identity": null,
-      "keys_attempted": [],
-      "match_level": null,
-      "matched_on": [],
-      "model": "geneformer-30m",
-      "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "INCONCLUSIVE"
-     },
-     {
-      "cells": null,
       "code": "not_present",
       "identity": null,
       "keys_attempted": [
@@ -1370,21 +1109,6 @@
       "matched_on": [],
       "model": "scfoundation",
       "recorded": false,
-      "samples": null,
-      "stage": "pretraining",
-      "verdict": "NOT PRESENT"
-     },
-     {
-      "cells": null,
-      "code": "recorded",
-      "identity": null,
-      "keys_attempted": [
-       "doi"
-      ],
-      "match_level": null,
-      "matched_on": [],
-      "model": "scgpt",
-      "recorded": true,
       "samples": null,
       "stage": "pretraining",
       "verdict": "NOT PRESENT"

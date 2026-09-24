@@ -8,7 +8,7 @@ It is built for people comparing single-cell foundation models. For each benchma
 
 ## Status
 
-Early. The registry schema, validator, resolvers and ledger are built and tested. scFoundation is verified; scGPT and Geneformer are drafts awaiting verification. The public site will be at [huggingface.co/spaces/lmatzat/corpus-checker](https://huggingface.co/spaces/lmatzat/corpus-checker); it is rebuilt from this repository on every merge.
+Early. The registry schema, validator, resolvers and ledger are built and tested. scFoundation is verified. Entries for scGPT and Geneformer are in progress and will be added once they are verified. The public site will be at [huggingface.co/spaces/lmatzat/corpus-checker](https://huggingface.co/spaces/lmatzat/corpus-checker); it is rebuilt from this repository on every merge.
 
 | | |
 |---|---|

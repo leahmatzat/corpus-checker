@@ -1,7 +1,8 @@
 """The static site built from the ledger.
 
-Builds once into a shared tmp_path (module-scoped) and inspects the real registry/datasets —
-this is the site a researcher would actually see, not a synthetic fixture. `tests/test_ledger.py`
+Builds once into a shared tmp_path (module-scoped) from the real registry/datasets plus one
+synthetic draft entry (tests/conftest.py TOY_DRAFT), so draft labels, the reuse map and
+INCONCLUSIVE reasons are exercised even when no real draft is in the registry. `tests/test_ledger.py`
 already covers the ledger itself; this file covers what the HTML says and how it is structured.
 """
 from __future__ import annotations
@@ -19,17 +20,26 @@ from corpus_checker.lookup import build_lookup_index
 from corpus_checker.site import build_site
 from corpus_checker.verdict import PAPER_LEVEL_DISCLAIMER
 
-from conftest import REPO
+from conftest import REPO, repo_copy
 
 FAKE_REPO_URL = "https://github.com/example-org/corpus-checker"
 
-LEDGER = build_ledger(REPO)
 
 
 @pytest.fixture(scope="module")
-def site_dir(tmp_path_factory) -> Path:
+def root(tmp_path_factory) -> Path:
+    return repo_copy(tmp_path_factory.mktemp("repo"))
+
+
+@pytest.fixture(scope="module")
+def ledger(root) -> dict:
+    return build_ledger(root)
+
+
+@pytest.fixture(scope="module")
+def site_dir(tmp_path_factory, root) -> Path:
     out = tmp_path_factory.mktemp("site") / "_build"
-    build_site(REPO, out, FAKE_REPO_URL)
+    build_site(root, out, FAKE_REPO_URL)
     return out
 
 
@@ -83,26 +93,26 @@ def test_index_and_about_exist(site_dir):
     assert (site_dir / "style.css").is_file()
 
 
-def test_every_model_has_a_page(site_dir):
-    for model_id in LEDGER["models"]:
+def test_every_model_has_a_page(site_dir, ledger):
+    for model_id in ledger["models"]:
         assert (site_dir / "models" / f"{model_id}.html").is_file(), model_id
 
 
-def test_every_dataset_has_a_page(site_dir):
-    for dataset_id in LEDGER["datasets"]:
+def test_every_dataset_has_a_page(site_dir, ledger):
+    for dataset_id in ledger["datasets"]:
         assert (site_dir / "datasets" / f"{dataset_id}.html").is_file(), dataset_id
 
 
 # --------------------------------------------------------------------------------- content rules
 
 def test_norman_reuse_sentence_on_index_and_dataset_page(site_dir):
-    sentence = "Norman 2019 is in scFoundation's pretraining corpus, and scGPT evaluates on it."
+    sentence = "Norman 2019 is in scFoundation's pretraining corpus, and Toy Draft evaluates on it."
     assert sentence in _visible_text(_read(site_dir, "index.html"))
     assert sentence in _visible_text(_read(site_dir, "datasets/norman2019.html"))
 
 
-def test_draft_label_on_scgpt_and_geneformer(site_dir):
-    for model_id in ("scgpt", "geneformer-30m"):
+def test_draft_label_on_draft_model_pages(site_dir):
+    for model_id in ("toy-draft",):
         text = _visible_text(_read(site_dir, f"models/{model_id}.html"))
         assert "Draft — not yet verified" in text
     # and NOT on the verified scFoundation entry
@@ -110,7 +120,7 @@ def test_draft_label_on_scgpt_and_geneformer(site_dir):
 
 
 def test_draft_label_follows_model_everywhere_it_appears(site_dir):
-    # scGPT is a draft and appears on the index matrix, its own page, and every dataset page
+    # The toy draft appears on the index matrix, its own page, and every dataset page
     # that lists it — the label must travel with it, not just live on its own page.
     assert "Draft — not yet verified" in _visible_text(_read(site_dir, "index.html"))
     assert "Draft — not yet verified" in _visible_text(_read(site_dir, "datasets/norman2019.html"))
@@ -143,9 +153,9 @@ def test_evidence_is_visible_on_model_page(site_dir):
     assert "125,081 cells" in scf
 
 
-def test_inconclusive_reason_always_shown(site_dir):
-    inconclusive_rows = [r for r in LEDGER["rows"] if r["verdict"] == "INCONCLUSIVE"]
-    assert inconclusive_rows  # sanity: the real registry does have some
+def test_inconclusive_reason_always_shown(site_dir, ledger):
+    inconclusive_rows = [r for r in ledger["rows"] if r["verdict"] == "INCONCLUSIVE"]
+    assert inconclusive_rows  # sanity: the toy draft's census stage contributes one
     for row in inconclusive_rows:
         assert row.get("reason"), row  # schema requires it; assert the data actually has it too
         text = _visible_text(_read(site_dir, f"models/{row['model']}.html"))
@@ -170,13 +180,13 @@ _ABSOLUTE_FORBIDDEN = ("contaminat", "leak", "cheat", "dirty")
 _CANONICAL_HEDGE_FRAGMENT = "does not by itself mean a reported number is inflated"
 
 
-def _allowed_inflated_snippets() -> list[str]:
+def _allowed_inflated_snippets(ledger) -> list[str]:
     """Every other place 'inflated' may legitimately appear: the verbatim registry text this
     site is required to display as-is (quotes/caveats/notes/reasons) rather than rewrite, even
     where a verifier's own phrasing of the hedge differs from the canonical sentence above.
     Nothing outside the canonical fragment and these may use the word."""
     snippets = []
-    for model in LEDGER["models"].values():
+    for model in ledger["models"].values():
         note = (model.get("paper") or {}).get("note")
         if note:
             snippets.append(note)
@@ -184,10 +194,10 @@ def _allowed_inflated_snippets() -> list[str]:
             snippets.extend(corpus.get("caveats") or [])
             if corpus.get("quote"):
                 snippets.append(corpus["quote"])
-    for dataset in LEDGER["datasets"].values():
+    for dataset in ledger["datasets"].values():
         if dataset.get("note"):
             snippets.append(dataset["note"])
-    for row in LEDGER["rows"]:
+    for row in ledger["rows"]:
         if row.get("reason"):
             snippets.append(row["reason"])
         if row.get("note"):
@@ -195,8 +205,8 @@ def _allowed_inflated_snippets() -> list[str]:
     return [_normalize_ws(s) for s in snippets if s]
 
 
-def test_forbidden_words_absent_everywhere(site_dir):
-    allowed = _allowed_inflated_snippets()
+def test_forbidden_words_absent_everywhere(site_dir, ledger):
+    allowed = _allowed_inflated_snippets(ledger)
     for f in sorted(site_dir.rglob("*.html")):
         text = _visible_text(f.read_text(encoding="utf-8"))
         low = text.lower()
@@ -219,13 +229,13 @@ def test_canonical_hedge_sentence_is_exact(site_dir):
 
 # --------------------------------------------------------------------------------- structure (rule 2)
 
-def test_matrix_has_no_per_model_total_or_score_column(site_dir):
+def test_matrix_has_no_per_model_total_or_score_column(site_dir, ledger):
     index_html = _read(site_dir, "index.html")
     table_match = re.search(r'<table class="matrix">.*?</table>', index_html, re.DOTALL)
     assert table_match, "no matrix table found"
     matrix_html = table_match.group(0)
 
-    n_models = len(LEDGER["models"])
+    n_models = len(ledger["models"])
     thead = re.search(r"<thead>.*?</thead>", matrix_html, re.DOTALL).group(0)
     assert len(re.findall(r"<th\b", thead)) == n_models + 1  # "Dataset" + one per model, nothing more
 
@@ -238,9 +248,9 @@ def test_matrix_has_no_per_model_total_or_score_column(site_dir):
         assert forbidden not in matrix_text
 
 
-def test_no_model_level_score_key_on_any_model_page(site_dir):
+def test_no_model_level_score_key_on_any_model_page(site_dir, ledger):
     forbidden = {"score", "grade", "rank", "overall"}
-    for model_id in LEDGER["models"]:
+    for model_id in ledger["models"]:
         text = _visible_text(_read(site_dir, f"models/{model_id}.html")).lower()
         words = set(re.findall(r"[a-z]+", text))
         assert not (forbidden & words), model_id
@@ -332,13 +342,13 @@ def test_lookup_page_and_index_exist(site_dir):
     assert (site_dir / "lookup.js").is_file()
 
 
-def test_lookup_index_content_equals_build_lookup_index(site_dir):
+def test_lookup_index_content_equals_build_lookup_index(site_dir, root):
     on_disk = json.loads(_read(site_dir, "lookup-index.json"))
-    expected = build_lookup_index(REPO, include_drafts=True)
+    expected = build_lookup_index(root, include_drafts=True)
     assert on_disk == expected
     # every registered model (including drafts) is in the index — the page searches drafts too,
     # labelled as drafts, same as the rest of the site (only production builds contain none).
-    assert {c["model"] for c in on_disk["corpora"]} == {"geneformer-30m", "scfoundation", "scgpt"}
+    assert {c["model"] for c in on_disk["corpora"]} == {"scfoundation", "toy-draft"}
 
 
 def test_lookup_index_is_serialized_deterministically(site_dir):
@@ -361,9 +371,9 @@ def test_lookup_disclaimer_is_static_and_verbatim(site_dir):
 
 def test_lookup_page_has_model_filter_checkboxes(site_dir):
     lookup_html = _read(site_dir, "lookup.html")
-    for model_id in ("geneformer-30m", "scfoundation", "scgpt"):
+    for model_id in ("scfoundation", "toy-draft"):
         assert f'value="{model_id}"' in lookup_html
-    # scgpt and geneformer-30m are drafts and must carry the same visible label as everywhere else
+    # the draft must carry the same visible label as everywhere else
     assert "Draft — not yet verified" in lookup_html
 
 
