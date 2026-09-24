@@ -69,7 +69,31 @@ flowchart TD
 
 ---
 
-## 3 — Two views from one set of files
+## 3 — Looking up a dataset
+
+```mermaid
+flowchart TD
+  Q["Your query<br/>accession, PMID, DOI or URL"] --> N["Normalize + expand<br/>tokens, then NCBI crosswalk"]
+  Q -. "PMID or DOI entered" .-> W1["Paper-level disclaimer<br/>PMIDs/DOIs name papers, not datasets"]
+  N --> M["Match every manifest<br/>each model × training stage"]
+  I[("Search index<br/>verified model entries only")] --> M
+  M --> V{"Verdict rules<br/>Yes needs a dataset-level match"}
+  V -. "paper-only match" .-> W2["Can't tell: same publication<br/>manifest lists accession X"]
+  V --> A["Answer per model<br/>Yes / No / Can't tell / Unknown + who verified"]
+  W2 --> A
+  A --> C["Coverage line<br/>which models were searched"]
+  A --> R["Next steps<br/>add a dataset, report a problem"]
+```
+
+**Start from a dataset, not a model.** When you plan an evaluation, what matters is whether any model you compare against saw your evaluation data in training, not only your own model. The lookup takes any identifier and asks every verified model entry.
+
+**Expansion.** A GEO series is expanded through NCBI to its paper's PMID and DOI and to its SRA/BioProject IDs, so manifests keyed any of those ways can be searched. A single sample (GSM) is never widened to its whole series.
+
+**PMIDs and DOIs identify papers, not datasets.** A match on the paper alone is shown as *Can't tell — same publication*, with the accession the manifest lists, because one paper can publish several datasets. A query that is only a PMID or DOI is answered at the paper level, then separately for each dataset the paper links to.
+
+**The index is static.** `lookup-index.json` holds every verified entry's identifiers, taken from the committed extracts and snapshots, so the lookup runs in the browser with no server. Every answer says which entry it came from and who verified it, and every result lists which models were searched.
+
+## 4 — Two views from one set of files
 
 The **ledger** is derived by inverting every registry entry on dataset. It is never written by hand, so it cannot disagree with the entries.
 

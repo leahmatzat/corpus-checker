@@ -12,13 +12,14 @@ How corpus-checker decides what it can claim, how those rules are enforced, and 
 
 | Verdict | Means | Must carry |
 |---|---|---|
-| `PRESENT` | An exact identifier match (accession, PMID or DOI) was found in the training-data manifest | The keys that matched, the overlap level (study, sample or cell), and the matched samples or cell count |
+| `PRESENT` | The dataset's own accession was found in the training-data manifest (a PMID or DOI alone identifies only the paper) | The keys that matched, the match level (dataset), the overlap level (study, sample or cell), and the matched samples or cell count |
 | `NOT PRESENT` | An exact match was attempted on every required key, against every manifest file, and nothing matched | The list of sources searched and the keys attempted |
 | `INCONCLUSIVE` | Something matched only weakly, or absence can't be established | A reason |
 | `NOT CHECKABLE` | The paper did not publish enough to answer the question | The verbatim data-availability statement and a complete record of where we looked. **This is a finding, not an error** |
 
 ## What limits a verdict
 
+- **A PMID or DOI identifies a paper, not a dataset.** One paper can publish several datasets (Zheng 2017 released a mouse-brain dataset and the PBMC data; Replogle 2022 released K562 and RPE1 screens). A match on the paper alone is capped at `INCONCLUSIVE` ("same publication"), and shows the accession the manifest lists so a person can compare. `PRESENT` needs a dataset-level match: the accession, or a verifier's recorded `identity_note` explaining why the paper-level match is the same dataset.
 - **A title or keyword match is never enough.** It is capped at `INCONCLUSIVE`. Author names and titles collide. For example, "Zheng" matches a 2020 immune atlas as well as the Zheng68K benchmark.
 - **A superset cannot prove presence.** When a paper names a versioned public corpus (e.g. a CELLxGENE census release) that the model trained on a *subset* of, absence from the corpus proves absence from the model's data, but presence proves nothing. The best such a match can reach is `INCONCLUSIVE`.
 - **Absence needs every required key.** Some manifests leave identifiers blank; one had PMIDs missing for 161 of 522 studies. For those manifests, `NOT PRESENT` requires both the accession and the PMID to be searched.
@@ -53,8 +54,23 @@ How corpus-checker decides what it can claim, how those rules are enforced, and 
 | G18 | *(warning)* `NOT PRESENT` while some discovery locations are unchecked |
 | G19 | a manifest file's column roles name a column that doesn't exist |
 | G20 | a committed corpus snapshot is missing or has changed |
+| G21 | `PRESENT` rests on a paper-level match (PMID or DOI only) without a verifier's `identity_note` |
+| G22 | a committed manifest extract is missing, or doesn't name the publisher file it was derived from |
 
 Exit codes never encode verdicts: `0` means the check ran, `1` a tool error, `2` a rule violation and `3` bad usage.
+
+## Looking up a dataset
+
+`corpus-checker lookup` and the site's lookup page start from a dataset rather than a model. They answer two questions: *which models used this dataset in training?* and *is this dataset in model X?* They accept an accession, a PMID, a DOI, a URL containing one, or a catalog name, and they can take a list of datasets, such as a benchmark plan.
+
+- The same rules apply as for a registry check. Each answer is **Yes / No / Can't tell / Unknown**, backed by one of the four verdicts, and says why.
+- **Verification belongs to the model entries.** A lookup searches manifests a verifier has already recorded, and each answer names who recorded that entry and when. Draft entries are not searched on the site.
+- **Every result lists which models were searched.** A model that isn't in the registry is not covered, so "No" never means "no model anywhere".
+- Input is expanded through NCBI: a GEO series brings its PMID, DOI and SRA/BioProject IDs. A single sample (GSM) is never widened to its series. A PMID or DOI is answered at the paper level, and then separately for each dataset the paper links to.
+
+> **PMIDs and DOIs identify papers, not datasets.** One paper can publish several datasets (Zheng 2017 released a mouse-brain dataset and the PBMC data; Replogle 2022 released K562 and RPE1 screens). A match on a PMID or DOI alone cannot tell which of them a model trained on. Search by accession (GSE…, E-MTAB…, a CELLxGENE ID) whenever you can.
+
+To make an answer permanent, use the *Add a dataset* form. The dataset then gets its own page and appears in the models × datasets matrix.
 
 ## Who signs an entry
 

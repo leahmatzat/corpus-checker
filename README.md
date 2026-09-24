@@ -4,7 +4,7 @@
 
 A deterministic check that uses only what a paper published: no model access, no GPU, no scraping. **A check a reviewer can run on a laptop in ten minutes.**
 
-It is built for people comparing single-cell foundation models. For each benchmark dataset, the registry records which models had it in their training corpus and which models evaluate on it.
+It is built for people comparing single-cell foundation models. For each benchmark dataset, the registry records which models had it in their training corpus and which models evaluate on it. The lookup answers the same question for any dataset you're planning to evaluate on: *which models used this in training?*
 
 ## Status
 
@@ -28,6 +28,7 @@ python3 -m venv .venv && .venv/bin/pip install -e '.[dev,xlsx]'
 .venv/bin/corpus-checker check scfoundation       # a model's findings, as recorded
 .venv/bin/corpus-checker check scgpt --rerun      # re-run from the committed census snapshot
 .venv/bin/corpus-checker ledger                   # every dataset × model: who trained on it, who evaluates on it
+.venv/bin/corpus-checker lookup GSE133344         # which models trained on this dataset? (accession, PMID, DOI, URL)
 .venv/bin/pytest                                  # every guard, made to fire
 ```
 
