@@ -586,8 +586,14 @@ async function main() {
     }
 
     if (paperLevel) {
+      // The standing note above already states the rule; the banner says how it applies to this search.
+      const papers = allQueries.filter((q) => q.kind === "paper").map((q) => q.raw);
       bannerEl.hidden = false;
-      bannerEl.textContent = loaded.disclaimer;
+      bannerEl.textContent = papers.length
+        ? `${papers.join(", ")} ${papers.length === 1 ? "is a paper" : "are papers"} (PMID or DOI), not ` +
+          "a dataset. Answers for it are at the paper level; each dataset the paper links to is answered " +
+          "separately below. See the note above."
+        : "Some answers below match only on the paper (PMID or DOI), not the dataset itself. See the note above.";
     }
 
     if (allQueries.length === 1) {
