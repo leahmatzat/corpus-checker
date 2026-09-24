@@ -76,7 +76,7 @@ To make an answer permanent, use the *Add a dataset* form. The dataset then gets
 
 ## Who signs an entry
 
-`verified_by` means **a person listed in [`verifiers.yaml`](../verifiers.yaml) read the evidence and agrees with the entry.** Code never fills it in. Drafts can be proposed but cannot be merged until a verifier signs. If anyone later changes a verdict, a manifest or a model's evaluation list, the entry is blocked until a verifier signs again (G03). A signature therefore always refers to the claim as it currently stands.
+`verified_by` means **a person listed in [`verifiers.yaml`](../verifiers.yaml) read the evidence and agrees with the entry.** Code never fills it in. Drafts can be proposed but cannot be merged until a verifier signs. If anyone later changes a verdict, a manifest or a model's evaluation list, the entry is blocked until a verifier signs again (G03). A signature therefore always refers to the claim as it currently stands. How to review and sign, step by step: [VERIFYING.md](VERIFYING.md).
 
 ## Corrections
 

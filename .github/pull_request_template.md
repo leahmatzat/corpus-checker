@@ -41,6 +41,8 @@ useful; "looks fine" is not.
 
 ## For the verifier
 
+*Step-by-step: [docs/VERIFYING.md](https://github.com/leahmatzat/corpus-checker/blob/main/docs/VERIFYING.md). Run `corpus-checker validate --base-ref main` and `corpus-checker check <id> --rerun` first.*
+
 - [ ] I re-read the quoted availability statement(s) against the source, not just against this diff.
 - [ ] I confirmed every `manifestSource` this PR relies on has a `confirmation.method` that actually supports the
       verdicts drawn from it (`none` caps everything at `INCONCLUSIVE` — G09).

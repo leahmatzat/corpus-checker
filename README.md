@@ -15,6 +15,7 @@ Early. The registry schema, validator, resolvers and ledger are built and tested
 | [`docs/RULES.md`](docs/RULES.md) | **the four verdicts, the rules that limit them, the guard codes, and how to correct or dispute an entry** |
 | [`docs/DATA_FLOW.md`](docs/DATA_FLOW.md) | how a verdict is produced, and how a change reaches the site (two diagrams) |
 | [`docs/ADDING_A_MODEL.md`](docs/ADDING_A_MODEL.md) | the workflow for adding a model, including the mistakes it is designed to prevent |
+| [`docs/VERIFYING.md`](docs/VERIFYING.md) | how a verifier reviews an entry and signs it off, and what to do about each validator message |
 | [`docs/DEPLOY.md`](docs/DEPLOY.md) | publishing the static site to a Hugging Face Space |
 | [`registry/`](registry/) | one YAML file per model; every claim carries a source. [`scfoundation.yaml`](registry/scfoundation.yaml) is the worked example |
 | [`datasets/`](datasets/) | the shared benchmark catalog every model is checked against |
