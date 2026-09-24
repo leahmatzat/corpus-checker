@@ -58,7 +58,7 @@
         <td><a href="../models/{{ r.model_id }}.html#finding-{{ dataset.id }}-{{ r.stage }}">{{ r.model_name }}</a>{% if r.model_draft %} {{ m.draft_badge() }}{% endif %}</td>
         <td>{{ r.stage }}</td>
         <td>{{ r.relation }}{% if r.relation == "self-eval" %} {{ m.self_eval_marker() }}{% endif %}</td>
-        <td>{{ m.verdict_chip(r.verdict) }}</td>
+        <td>{{ m.verdict_chip(r.verdict) }}{% if r.identity == "provisional" %} {{ m.identity_badge(r.identity_basis) }}{% endif %}</td>
         <td>{{ r.evidence }}</td>
       </tr>
     {% endfor %}

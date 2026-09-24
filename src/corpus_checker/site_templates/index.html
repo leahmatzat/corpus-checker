@@ -7,6 +7,16 @@
   <p>{{ intro_paragraph }}</p>
 </section>
 
+<section class="lookup-cta" aria-labelledby="lookup-cta-h">
+  <h2 id="lookup-cta-h">Check a dataset against every model</h2>
+  <form action="lookup.html" method="get" class="lookup-cta-form">
+    <label for="lookup-cta-q" class="sr-only">Dataset identifier — accession, PMID, DOI or URL</label>
+    <input type="text" id="lookup-cta-q" name="q" placeholder="GSE133344, a PMID, a DOI, or a CELLxGENE ID">
+    <button type="submit">Check</button>
+  </form>
+  <p class="muted">Or <a href="lookup.html">paste a list of datasets</a> to check several at once.</p>
+</section>
+
 <section class="legend" aria-labelledby="legend-h">
   <h2 id="legend-h">Reading the matrix</h2>
   <dl class="verdict-legend">

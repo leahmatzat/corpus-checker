@@ -189,6 +189,20 @@ h4 { font-size: 1em; margin-top: 1em; }
 }
 .unconfirmed { border: none; padding: 0; font-weight: normal; color: var(--muted); font-size: 0.85em; }
 
+.identity-badge {
+  display: inline-block;
+  font-size: 0.8em;
+  font-weight: 600;
+  padding: 0.15em 0.55em;
+  border-radius: 999px;
+  border: 1.5px dashed var(--v-inconclusive-border);
+  background: var(--v-inconclusive-bg);
+  color: var(--v-inconclusive-fg);
+  white-space: nowrap;
+  line-height: 1.6;
+  cursor: help;
+}
+
 .stage-tag {
   font-size: 0.75em;
   color: var(--muted);
@@ -342,6 +356,127 @@ thead th {
   font-size: 0.9em;
 }
 .site-footer p { margin: 0.4em 0; }
+
+/* ------------------------------------------------------------------ index page: lookup CTA */
+
+.lookup-cta {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 0.4em;
+  padding: 0.8em 1em;
+  margin: 1em 0;
+}
+.lookup-cta-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+.lookup-cta-form input[type="text"] { flex: 1 1 16em; }
+
+/* ------------------------------------------------------------------ lookup page */
+
+.lookup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8em;
+  max-width: 44rem;
+}
+.lookup-mode-toggle { display: flex; gap: 1.2em; flex-wrap: wrap; }
+.lookup-field { display: flex; flex-direction: column; gap: 0.3em; }
+.lookup-field[hidden] { display: none; }
+.lookup-field label { font-weight: 600; }
+.lookup-form input[type="text"], .lookup-form textarea {
+  width: 100%;
+  padding: 0.5em 0.6em;
+  border: 1px solid var(--border);
+  border-radius: 0.3em;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+.model-filter {
+  border: 1px solid var(--border);
+  border-radius: 0.4em;
+  padding: 0.6em 0.9em;
+}
+.model-filter legend { font-weight: 600; padding: 0 0.3em; }
+#model-checkboxes { display: flex; flex-wrap: wrap; gap: 0.4em 1.2em; }
+#model-checkboxes label { display: inline-flex; align-items: center; gap: 0.35em; font-weight: normal; }
+
+.disclaimer-note, .banner {
+  background: var(--banner-bg);
+  border: 1px solid var(--banner-border);
+  border-radius: 0.4em;
+  padding: 0.6em 0.9em;
+  font-size: 0.95em;
+}
+
+.lookup-links { margin: 1em 0; }
+.lookup-links button {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 0.3em;
+  color: var(--link);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.1em 0.5em;
+}
+
+.lookup-status { min-height: 1.4em; color: var(--muted); }
+
+.lookup-query-block {
+  border: 1px solid var(--border);
+  border-radius: 0.4em;
+  padding: 0.8em 1em;
+  margin: 1em 0;
+}
+.lookup-query-heading { margin-top: 0; word-break: break-word; }
+
+.lookup-cards { list-style: none; padding: 0; margin: 0; }
+.lookup-card {
+  border: 1px solid var(--border);
+  border-radius: 0.4em;
+  padding: 0.7em 0.9em;
+  margin-bottom: 0.7em;
+}
+.lookup-card-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin-bottom: 0.4em;
+}
+.lookup-model-name { font-weight: 600; }
+.lookup-verdict { display: inline-flex; align-items: center; gap: 0.4em; }
+.lookup-sentence { margin: 0.3em 0; }
+.lookup-provenance, .also-searched, .lookup-note { font-size: 0.9em; }
+.pub-warning {
+  color: var(--v-inconclusive-fg);
+  background: var(--v-inconclusive-bg);
+  border-left: 3px solid var(--v-inconclusive-border);
+  padding: 0.3em 0.6em;
+  margin: 0.4em 0;
+}
+.coverage-line { margin-top: 0.8em; font-size: 0.9em; }
+
+.lookup-table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 0.4em;
+  margin: 0.8em 0;
+}
+.lookup-table { border-collapse: collapse; width: 100%; min-width: max-content; }
+.lookup-table th, .lookup-table td {
+  text-align: left;
+  padding: 0.5em 0.7em;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.lookup-table thead th { background: var(--bg-alt); position: sticky; top: 0; }
+.lookup-table tbody th { position: sticky; left: 0; background: var(--bg); border-right: 1px solid var(--border); }
+.lookup-cell summary { cursor: pointer; list-style: none; }
+.lookup-cell summary::-webkit-details-marker { display: none; }
+.lookup-cell-detail { margin-top: 0.5em; font-size: 0.9em; max-width: 22em; }
 
 /* ------------------------------------------------------------------ small screens */
 

@@ -106,6 +106,9 @@
         <a href="../datasets/{{ f.dataset }}.html">{{ f.dataset_name }}</a>
         {{ m.verdict_chip(f.verdict) }}
         {{ m.self_eval_marker() }}
+      {% if f.identity == "provisional" %}
+        {{ m.identity_badge(f.identity_basis) }}
+      {% endif %}
         <div class="finding-detail">
         {% if f.keys_attempted %}<p>Keys attempted: {{ f.keys_attempted | join(", ") }}</p>{% endif %}
         {% if f.matched_on %}<p>Matched on: {{ f.matched_on | join(", ") }}</p>{% endif %}
@@ -128,6 +131,9 @@
       <li id="finding-{{ f.dataset }}-{{ f.stage }}" class="finding">
         <a href="../datasets/{{ f.dataset }}.html">{{ f.dataset_name }}</a>
         {{ m.verdict_chip(f.verdict) }}
+      {% if f.identity == "provisional" %}
+        {{ m.identity_badge(f.identity_basis) }}
+      {% endif %}
         <div class="finding-detail">
         {% if f.keys_attempted %}<p>Keys attempted: {{ f.keys_attempted | join(", ") }}</p>{% endif %}
         {% if f.matched_on %}<p>Matched on: {{ f.matched_on | join(", ") }}</p>{% endif %}

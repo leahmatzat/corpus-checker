@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}Look up a dataset — corpus-checker{% endblock %}
+{% block content %}
+<article class="lookup-page">
+  <h1>Is this dataset in a model's training data?</h1>
+  <p>Type a dataset identifier — an accession (GSE…, E-MTAB…, a CELLxGENE ID), a PMID, a DOI, a URL
+     containing one, or a catalog name — and see whether it is in each registered model's training
+     data. Paste a list to check several at once.</p>
+
+  <form id="lookup-form" class="lookup-form">
+    <div class="lookup-mode-toggle" role="radiogroup" aria-label="Lookup mode">
+      <label><input type="radio" name="mode" id="mode-single" value="single" checked> Single dataset</label>
+      <label><input type="radio" name="mode" id="mode-list" value="list"> List of datasets</label>
+    </div>
+
+    <div id="single-mode-fields" class="lookup-field">
+      <label for="query-input">Dataset identifier</label>
+      <input type="text" id="query-input" name="q" autocomplete="off"
+             placeholder="e.g. GSE133344, 31395745, or 10.1126/science.aax4438">
+    </div>
+
+    <div id="list-mode-fields" class="lookup-field" hidden>
+      <label for="query-list">One identifier per line (# comments allowed)</label>
+      <textarea id="query-list" name="list" rows="6" placeholder="GSE133344&#10;# a comment&#10;31395745"></textarea>
+    </div>
+
+    <fieldset class="model-filter">
+      <legend>Only check specific models <span class="muted">(optional — "is it in model X?")</span></legend>
+      <div id="model-checkboxes">
+      {% for model in models %}
+        <label><input type="checkbox" name="model" value="{{ model.id }}"> {{ model.name }}{% if model.draft %} {{ m.draft_badge() }}{% endif %}</label>
+      {% endfor %}
+      </div>
+    </fieldset>
+
+    <p class="disclaimer-note" id="paper-level-disclaimer"><strong>Before you search:</strong> {{ disclaimer }}</p>
+
+    <button type="submit" id="lookup-submit">Check</button>
+  </form>
+
+  <div id="paper-query-banner" class="banner" hidden></div>
+
+  <p class="lookup-links">
+    <a id="add-dataset-link" href="{{ add_dataset_url }}">Add this dataset to the catalog</a>
+    · <a href="{{ correction_url }}">Report a problem</a>
+    · <a href="{{ root_prefix }}about.html#3--looking-up-a-dataset">How this lookup works</a>
+    · <button type="button" id="copy-csv" hidden>Copy as CSV</button>
+  </p>
+
+  <div id="lookup-status" role="status" class="lookup-status"></div>
+  <div id="lookup-results" aria-live="polite"></div>
+</article>
+{% endblock %}
+{% block scripts %}
+<script>
+  window.CORPUS_CHECKER_LOOKUP = {{ config_json | safe }};
+</script>
+<script type="module" src="{{ root_prefix }}lookup.js"></script>
+{% endblock %}

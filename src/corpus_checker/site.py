@@ -17,6 +17,7 @@ bare `set`, never wall-clock time) so that building twice produces byte-identica
 from __future__ import annotations
 
 import html
+import json
 import re
 import shutil
 from pathlib import Path
@@ -26,6 +27,8 @@ import jinja2
 import markdown as _markdown
 
 from .ledger import build_ledger
+from .lookup import build_lookup_index
+from .verdict import PAPER_LEVEL_DISCLAIMER
 
 # --------------------------------------------------------------------------------- constants
 
@@ -115,6 +118,12 @@ def _correction_url(repo_url: str, name: str) -> str:
     return f"{repo_url}/issues/new?template=correction.yml&title={title}"
 
 
+def _add_dataset_url(repo_url: str) -> str:
+    """Static part of the add-dataset link; lookup.js appends the per-query identifiers/results."""
+    title = _urlquote("[add-dataset] ", safe="")
+    return f"{repo_url}/issues/new?template=add-dataset.yml&title={title}"
+
+
 def _source_url(repo_url: str, kind: str, id_: str) -> str:
     folder = "registry" if kind == "model" else "datasets"
     return f"{repo_url}/blob/main/{folder}/{id_}.yaml"
@@ -143,24 +152,39 @@ def _absolute_doc_links(text: str, repo_url: str) -> str:
     return _RELATIVE_DOC_LINK_RE.sub(lambda m: f"]({repo_url}/blob/main/docs/{m.group(1)}{m.group(2) or ''})", text)
 
 
+def _github_slugify(value: str, separator: str) -> str:
+    """GitHub's own heading-anchor algorithm: lowercase; drop anything not word/space/hyphen;
+    replace EACH remaining whitespace character with `separator` (never collapsed).
+
+    "3 — Looking up a dataset" -> the em dash is dropped, leaving the two spaces around it
+    adjacent -> "3--looking-up-a-dataset" (a double separator), matching the anchor
+    about.html#3--looking-up-a-dataset links against.
+    """
+    value = re.sub(r"[^\w\s-]", "", value).strip().lower()
+    return re.sub(r"\s", separator, value)
+
+
 def _render_markdown_with_mermaid(text: str) -> str:
     """Markdown -> HTML, except ```mermaid fences become `<pre class="mermaid">RAW TEXT</pre>`.
 
     The raw diagram source is HTML-escaped, not code-rendered, so mermaid.js's `textContent`
     read recovers the exact original text (entities round-trip through the DOM) and the diagram
-    stays readable as plain text if the script never loads.
+    stays readable as plain text if the script never loads. Headings get stable, GitHub-style
+    ids (via the `toc` extension) so a page can link to one directly, e.g. #3--looking-up-a-dataset.
     """
+    extensions = ["tables", "fenced_code", "toc"]
+    extension_configs = {"toc": {"slugify": _github_slugify}}
     pieces: list[str] = []
     pos = 0
     for m in _MERMAID_FENCE_RE.finditer(text):
         before = text[pos:m.start()]
         if before.strip():
-            pieces.append(_markdown.markdown(before, extensions=["tables", "fenced_code"]))
+            pieces.append(_markdown.markdown(before, extensions=extensions, extension_configs=extension_configs))
         pieces.append(f'<pre class="mermaid">{html.escape(m.group(1))}</pre>')
         pos = m.end()
     tail = text[pos:]
     if tail.strip():
-        pieces.append(_markdown.markdown(tail, extensions=["tables", "fenced_code"]))
+        pieces.append(_markdown.markdown(tail, extensions=extensions, extension_configs=extension_configs))
     return "\n".join(pieces)
 
 
@@ -250,6 +274,8 @@ def _model_page_corpora(model_id: str, model: dict, ledger: dict) -> list[dict]:
             "overlap_level": r.get("overlap_level"),
             "reason": r.get("reason"),
             "note": r.get("note"),
+            "identity": r.get("identity"),
+            "identity_basis": r.get("identity_basis"),
         }
 
     corpora = []
@@ -270,7 +296,8 @@ def _dataset_page_context(dataset_id: str, dataset: dict, ledger: dict) -> dict:
         mod = models[r["model"]]
         return {"model_id": r["model"], "model_name": mod["model"], "model_draft": mod["draft"],
                 "stage": r["stage"], "relation": r["relation"], "verdict": r["verdict"],
-                "evidence": _evidence_text(r)}
+                "evidence": _evidence_text(r),
+                "identity": r.get("identity"), "identity_basis": r.get("identity_basis")}
 
     rows = sorted((_row(r) for r in ledger["rows"] if r["dataset"] == dataset_id),
                    key=lambda x: (x["model_name"].lower(), x["stage"]))
@@ -376,8 +403,30 @@ def build_site(root: Path, out: Path, repo_url: str) -> list[Path]:
             dataset=page_dataset,
         ))
 
-    # -- style.css: copied verbatim, never templated --------------------------------------
+    # -- lookup.html + lookup-index.json ---------------------------------------------------
+    models_for_filter = [
+        {"id": mid, "name": ledger["models"][mid]["model"], "draft": ledger["models"][mid]["draft"]}
+        for mid in sorted(ledger["models"], key=lambda mid: (ledger["models"][mid]["model"].lower(), mid))
+    ]
+    lookup_index = build_lookup_index(root, include_drafts=True)
+    index_json = json.dumps(lookup_index, sort_keys=True, separators=(",", ":"))
+    _write(out / "lookup-index.json", index_json)
+
+    config_json = json.dumps({"indexUrl": "lookup-index.json", "repoUrl": repo_url, "rootPrefix": ""},
+                             sort_keys=True, separators=(",", ":"))
+    _write(out / "lookup.html", env.get_template("lookup.html").render(
+        **common, root_prefix="", page_kind="lookup",
+        correction_url=_correction_url(repo_url, "lookup page"), source_url=None,
+        disclaimer=PAPER_LEVEL_DISCLAIMER, models=models_for_filter,
+        add_dataset_url=_add_dataset_url(repo_url), config_json=config_json,
+    ))
+
+    # -- style.css / lookup-core.mjs / lookup.js: copied verbatim, never templated --------
     css = (_TEMPLATES_DIR / "style.css").read_text(encoding="utf-8")
     _write(out / "style.css", css)
+    lookup_core_js = (_TEMPLATES_DIR / "lookup-core.mjs").read_text(encoding="utf-8")
+    _write(out / "lookup-core.mjs", lookup_core_js)
+    lookup_page_js = (_TEMPLATES_DIR / "lookup.js").read_text(encoding="utf-8")
+    _write(out / "lookup.js", lookup_page_js)
 
     return sorted(written)
