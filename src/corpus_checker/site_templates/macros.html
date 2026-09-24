@@ -1,0 +1,28 @@
+{# Shared building blocks. Every macro that renders a verdict or a draft/self-eval marker
+   keeps the TEXT label as the primary signal — colour is decoration, never the only cue. #}
+
+{% macro verdict_chip(verdict) -%}
+<span class="verdict v-{{ verdict|verdictslug }}">{{ verdict }}</span>
+{%- endmacro %}
+
+{% macro self_eval_marker() -%}
+<span class="self-marker" title="This model's own paper evaluated on this dataset">self-eval</span>
+{%- endmacro %}
+
+{% macro draft_badge() -%}
+<span class="draft-badge">Draft — not yet verified</span>
+{%- endmacro %}
+
+{# Shown next to a verdict chip wherever a finding's identity rests on a provisional catalog
+   identifier (datasets/ confirmed: provisional) rather than a confirmed one — the search was
+   real, but which dataset it searched for rests on the stated basis. #}
+{% macro identity_badge(basis) -%}
+<span class="identity-badge" title="Provisional identity: {{ basis or 'basis not recorded' }}">provisional identity</span>
+{%- endmacro %}
+
+{# Renders exactly: "<Dataset> is in <Model A>'s <stage> corpus, and <Model B> evaluates on it."
+   `prefix` is "" from the site root (index.html) or "../" from a page one level down
+   (models/ or datasets/). Kept to one line so no stray whitespace lands in the sentence. #}
+{% macro reuse_sentence(prefix, dataset_id, dataset_name, train_id, train_name, stage, eval_id, eval_name) -%}
+<a href="{{ prefix }}datasets/{{ dataset_id }}.html">{{ dataset_name }}</a> is in <a href="{{ prefix }}models/{{ train_id }}.html">{{ train_name }}</a>'s {{ stage }} corpus, and <a href="{{ prefix }}models/{{ eval_id }}.html">{{ eval_name }}</a> evaluates on it.
+{%- endmacro %}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" data-page="{{ page_kind }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}corpus-checker{% endblock %}</title>
+<meta name="description" content="Is a benchmark dataset inside a single-cell foundation model's training corpus? Exposure, not effect.">
+<link rel="stylesheet" href="{{ root_prefix }}style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-title" href="{{ root_prefix }}index.html">corpus-checker</a>
+    <nav aria-label="Site">
+      <a href="{{ root_prefix }}index.html">Matrix</a>
+      <a href="{{ root_prefix }}lookup.html">Look up a dataset</a>
+      <a href="{{ root_prefix }}about.html">About</a>
+      <a href="{{ repo_url }}">Source on GitHub</a>
+    </nav>
+  </div>
+{% if repo_url == placeholder_repo_url %}
+  <p class="placeholder-banner">This build has no real <code>--repo-url</code> configured — the
+    correction and source links below point at a placeholder
+    (<code>{{ placeholder_repo_url }}</code>), not a real repository.</p>
+{% endif %}
+</header>
+<main id="main">
+{% block content %}{% endblock %}
+</main>
+<footer class="site-footer">
+  <p class="exposure-note">{{ exposure_note }}</p>
+  <p class="page-links">
+    <a href="{{ correction_url }}">Suggest a correction</a>{% if source_url %} · <a href="{{ source_url }}">View source YAML</a>{% endif %}
+  </p>
+  <p class="provenance-note">Generated from <a href="{{ repo_url }}">the registry</a>. Never hand-written — every page here traces back to a file in that repository.</p>
+</footer>
+{% block scripts %}{% endblock %}
+</body>
+</html>

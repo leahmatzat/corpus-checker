@@ -1,0 +1,9 @@
+schema_version: 1
+id: cheng2021-myeloid
+name: Pan-cancer myeloid (Cheng 2021)
+kind: observational
+organism: [human]
+identifiers:
+  - {type: geo,  value: GSE154763,                 confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-09-23"}
+  - {type: pmid, value: "33545035",                confirmed: true, via: "GSE154763 pubmedids — NCBI E-utilities, 2026-09-23"}
+  - {type: doi,  value: 10.1016/j.cell.2021.01.010, confirmed: true, via: "esummary db=pubmed id=33545035 — NCBI E-utilities, 2026-09-23"}

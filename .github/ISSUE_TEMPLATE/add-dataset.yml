@@ -1,0 +1,71 @@
+name: "Add a dataset to the catalog"
+description: "Ask for a benchmark dataset to be added, so every model is checked against it and it gets its own page."
+title: "[add-dataset] "
+labels: ["dataset-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The lookup page can already check any accession against every verified model. Adding a dataset to the
+        catalog makes that answer permanent: the dataset gets its own page, appears in the models × datasets
+        matrix, and shows which models evaluate on it.
+
+        **PMIDs and DOIs identify papers, not datasets.** One paper can publish several datasets, so please give
+        the dataset's own accession (GSE…, E-MTAB…, a CELLxGENE ID, an SRA/BioProject ID) whenever there is one.
+
+  - type: input
+    id: name
+    attributes:
+      label: Dataset name
+      description: The name the field uses for it.
+      placeholder: "Replogle 2022 (K562 genome-wide)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: identifiers
+    attributes:
+      label: Identifiers
+      description: >
+        Every identifier you know, one per line. An accession is the most useful; a PMID or DOI alone identifies
+        only the paper.
+      placeholder: |
+        GSE133344
+        PMID 31395745
+        10.1126/science.aax4438
+    validations:
+      required: true
+
+  - type: input
+    id: where
+    attributes:
+      label: Where people obtain it
+      description: If the field usually gets it from somewhere other than the original deposit (a processed copy, a benchmark repo), link it.
+      placeholder: "https://…"
+    validations:
+      required: false
+
+  - type: textarea
+    id: used-by
+    attributes:
+      label: Which models or benchmarks evaluate on it (if known)
+      placeholder: "scGPT (perturbation prediction), …"
+    validations:
+      required: false
+
+  - type: textarea
+    id: lookup-results
+    attributes:
+      label: Lookup results
+      description: Filled in automatically when you come from the lookup page. Leave as-is.
+      render: text
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        A maintainer confirms each identifier against its primary source, adds the dataset to `datasets/`, and
+        re-checks every model's manifest against it. The results are signed by a verifier before they appear on
+        the site.

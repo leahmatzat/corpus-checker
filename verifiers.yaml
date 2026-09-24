@@ -1,0 +1,7 @@
+# People who may sign provenance.verified_by (guard G10).
+#
+# verified_by means a human looked. Adding someone here is a governance decision,
+# made by an existing verifier in a reviewed PR — never by a contributor for themselves.
+verifiers:
+  - initials: LM
+    name: Leah Matzat

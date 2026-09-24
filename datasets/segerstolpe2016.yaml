@@ -1,0 +1,8 @@
+schema_version: 1
+id: segerstolpe2016
+name: Segerstolpe 2016
+kind: observational
+organism: [human]
+identifiers:
+  - {type: arrayexpress, value: E-MTAB-5061, confirmed: true, via: "registry/scfoundation.yaml (verified LM 2026-09-08)"}
+  - {type: pmid,         value: "27667667",  confirmed: true, via: "registry/scfoundation.yaml (verified LM 2026-09-08)"}

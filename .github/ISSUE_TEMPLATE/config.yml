@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: How to add a model (read first)
+    url: https://github.com/leahmatzat/corpus-checker/blob/main/docs/ADDING_A_MODEL.md
+    about: The full workflow for adding a model — read this before opening an "Add a model" submission.

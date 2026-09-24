@@ -1,0 +1,18 @@
+schema_version: 1
+id: norman2019
+name: Norman 2019
+kind: perturbation
+organism: [human]
+identifiers:
+  - {type: geo,  value: GSE133344,               confirmed: true, via: "registry/scfoundation.yaml (verified LM 2026-09-08)"}
+  - {type: pmid, value: "31395745",              confirmed: true, via: "registry/scfoundation.yaml (verified LM 2026-09-08)"}
+  - {type: doi,  value: 10.1126/science.aax4438, confirmed: true, via: "registry/scfoundation.yaml (verified LM 2026-09-08)"}
+sources:
+  - name: Harvard Dataverse (GEARS processed data)
+    url: https://dataverse.harvard.edu/api/access/datafile/6154020
+    note: Where scGPT obtained it (scGPT data availability statement).
+  - name: GEARS repo
+    note: Where scFoundation, scGPT and others obtain the processed 2-gene perturbation splits.
+note: >
+  GEO lists 16 samples. 8 are "sgRNA perturb-seq experiment" expression files
+  (GSM3906020–27); the other 8 are guide-barcode files.

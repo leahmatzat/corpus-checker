@@ -1,0 +1,10 @@
+schema_version: 1
+id: dixit2016
+name: Dixit 2016
+kind: perturbation
+identifiers:
+  - {type: geo,  value: GSE90063,                   confirmed: true, via: "registry/scfoundation.yaml (verified LM 2026-09-08)"}
+  - {type: pmid, value: "27984732",                 confirmed: true, via: "registry/scfoundation.yaml (verified LM 2026-09-08)"}
+  - {type: doi,  value: 10.1016/j.cell.2016.11.038, confirmed: true, via: "registry/scfoundation.yaml (verified LM 2026-09-08)"}
+sources:
+  - name: GEARS repo

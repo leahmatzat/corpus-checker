@@ -17,3 +17,6 @@ dist/
 site/_build/
 
 .DS_Store
+
+# Private working notes, specs and original audit scripts — never published
+internal/

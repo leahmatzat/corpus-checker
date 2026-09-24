@@ -1,0 +1,25 @@
+schema_version: 1
+id: siletti2022-perirhinal
+name: Perirhinal cortex (Human Brain Cell Atlas v1.0)
+kind: observational
+organism: [human]
+identifiers:
+  - type: cellxgene_collection
+    value: 283d65eb-dd53-496d-adb7-7570c7caa443
+    confirmed: true
+    via: URL given in scGPT's data availability statement (Nat Methods 2024)
+  - type: doi
+    value: 10.1101/2022.10.12.511898
+    confirmed: true
+    via: collection_doi of that collection in CELLxGENE census 2023-05-15 (snapshots/cellxgene-census/2023-05-15/datasets.csv)
+subsets:
+  - id: prg
+    name: "Dissection: Cerebral cortex (Cx) - Perirhinal gyrus (PRG) - A35-A36"
+    identifiers: [{type: cellxgene_dataset, value: dd03ce70-3243-4c96-9561-330cc461e4d7, confirmed: true, via: census 2023-05-15 snapshot}]
+  - id: a35r
+    name: "Dissection: Perirhinal cortex (area 35) (A35) - rostral subdivision of area 35 - A35r"
+    identifiers: [{type: cellxgene_dataset, value: 8039c63d-08b0-4fc9-af0f-5b57f08ca0da, confirmed: true, via: census 2023-05-15 snapshot}]
+note: >
+  The collection is "Transcriptomic diversity of cell types across the adult human brain"
+  (138 datasets in census 2023-05-15). Which perirhinal dissection(s) a model evaluated on
+  must be read from that model's paper.

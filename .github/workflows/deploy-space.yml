@@ -1,0 +1,106 @@
+name: deploy-space
+
+# Builds the static site from registry/ + datasets/ and pushes it to a Hugging Face Space.
+# GitHub stays the source of truth: this only ever publishes what already passed
+# `corpus-checker validate` with no --allow-draft — an unsigned or invalid entry never ships.
+# See docs/DEPLOY.md for one-time setup (creating the Space, the HF_TOKEN secret, the
+# HF_SPACE_ID repository variable).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      space_id:
+        description: >-
+          Target Space id (e.g. someuser/corpus-checker-test). Overrides the HF_SPACE_ID
+          repository variable — use this to try a deploy against a test Space first.
+        required: false
+        type: string
+      dry_run:
+        description: "List what would be uploaded without deploying anything. No token needed."
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Never fail CI for a repo that has no Space configured yet: resolve the target first,
+      # and skip every remaining step (job still reports success) when there isn't one.
+      # Inputs reach the shell only through env, never interpolated into the script,
+      # so a crafted space_id cannot inject commands.
+      - name: Resolve target Space id
+        id: target
+        env:
+          INPUT_SPACE_ID: ${{ inputs.space_id }}
+          VAR_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+        run: |
+          SPACE_ID="$INPUT_SPACE_ID"
+          if [ -z "$SPACE_ID" ]; then
+            SPACE_ID="$VAR_SPACE_ID"
+          fi
+          if ! printf '%s' "$SPACE_ID" | grep -Eq '^([A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*)?$'; then
+            echo "::error::space id must look like owner/name"
+            exit 1
+          fi
+          if [ -z "$SPACE_ID" ]; then
+            echo "::notice::deploy not configured — no space_id input and no HF_SPACE_ID repository variable. Skipping."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "space_id=$SPACE_ID" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.target.outputs.configured == 'true'
+
+      - uses: actions/setup-python@v5
+        if: steps.target.outputs.configured == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Install corpus-checker with deploy extras
+        if: steps.target.outputs.configured == 'true'
+        run: pip install -e '.[deploy]'
+
+      - name: Validate registry (no --allow-draft — never deploy an unsigned or invalid entry)
+        if: steps.target.outputs.configured == 'true'
+        run: corpus-checker validate
+
+      # Detect build-site rather than assuming it exists —
+      # do not fake a site in the meantime.
+      - name: Check whether corpus-checker build-site exists yet
+        id: buildcheck
+        if: steps.target.outputs.configured == 'true'
+        run: |
+          if corpus-checker build-site --help > /dev/null 2>&1; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::corpus-checker build-site is not available in this version. Nothing to build or deploy — skipping."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build static site
+        if: steps.target.outputs.configured == 'true' && steps.buildcheck.outputs.available == 'true'
+        env:
+          CORPUS_CHECKER_REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: corpus-checker build-site --out site/_build
+
+      - name: Deploy to Hugging Face Space
+        if: steps.target.outputs.configured == 'true' && steps.buildcheck.outputs.available == 'true'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          GITHUB_SHA: ${{ github.sha }}
+          SPACE_ID: ${{ steps.target.outputs.space_id }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -- --space-id "$SPACE_ID" --folder site/_build
+          if [ "$DRY_RUN" = "true" ]; then
+            set -- "$@" --dry-run
+          fi
+          python scripts/deploy_space.py "$@"

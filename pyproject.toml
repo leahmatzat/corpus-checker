@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "corpus-checker"
+version = "0.1.0"
+description = "Is a model's evaluation data inside its pretraining corpus? A deterministic check that uses only what the paper published."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = [
+    "pyyaml>=6",
+    "jsonschema>=4.18",
+]
+
+[project.optional-dependencies]
+# Read publisher XLSX manifests directly. Tests use committed CSV extracts.
+xlsx = ["openpyxl>=3"]
+dev = ["pytest>=8"]
+# `corpus-checker build-site` renders the static Space from the ledger.
+site = ["jinja2>=3", "markdown>=3"]
+# scripts/deploy_space.py pushes the built static site to a Hugging Face Space. The
+# deploy workflow runs `corpus-checker build-site` before deploying, so this extra includes
+# the site's own dependencies too.
+deploy = ["huggingface_hub>=0.24", "jinja2>=3", "markdown>=3"]
+
+[project.scripts]
+corpus-checker = "corpus_checker.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+corpus_checker = ["site_templates/*.html", "site_templates/*.css", "site_templates/*.mjs", "site_templates/*.js"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-m \"not network\""
+markers = [
+    "network: hits real NCBI/EBI APIs; excluded by default, run with -m network",
+]

@@ -1,0 +1,14 @@
+schema_version: 1
+id: adamson2016
+name: Adamson 2016
+kind: perturbation
+organism: [human]
+identifiers:
+  - {type: geo,  value: GSE90546,                   confirmed: true, via: "registry/scfoundation.yaml (verified LM 2026-09-08)"}
+  - {type: pmid, value: "27984733",                 confirmed: true, via: "registry/scfoundation.yaml (verified LM 2026-09-08)"}
+  - {type: doi,  value: 10.1016/j.cell.2016.11.048, confirmed: true, via: "registry/scfoundation.yaml (verified LM 2026-09-08)"}
+sources:
+  - name: Harvard Dataverse (GEARS processed data)
+    url: https://dataverse.harvard.edu/api/access/datafile/6154417
+    note: Where scGPT obtained it (scGPT data availability statement).
+  - name: GEARS repo
