@@ -1,0 +1,125 @@
+"""G06 — the canary. scFoundation's registry entry must reproduce from its manifest.
+
+Runs the real resolver over derived extracts of Supplementary Data 1 and 2
+(tests/fixtures/scfoundation/, each tied to its parent file by sha256). If this goes
+red, nothing downstream can be trusted.
+"""
+from __future__ import annotations
+
+import shutil
+from pathlib import Path
+
+import pytest
+
+from corpus_checker.check import SourceError, check_corpus, compare, locate_extracts, locate_in_dir
+from corpus_checker.registry import load_catalog, load_yaml
+from corpus_checker.validate import ERROR, Options, validate
+
+from conftest import REPO, TODAY, write_yaml
+
+FIXTURES = REPO / "tests" / "fixtures" / "scfoundation"
+EXTRACTS = {"Supplementary Data 1": FIXTURES / "data1.csv", "Supplementary Data 2": FIXTURES / "data2.csv"}
+DOWNLOADS = Path.home() / "Downloads"
+
+ENTRY = load_yaml(REPO / "registry" / "scfoundation.yaml")
+CORPUS = ENTRY["corpora"][0]
+CATALOG = load_catalog(REPO)
+
+
+@pytest.fixture(scope="module")
+def run():
+    return check_corpus(ENTRY, CORPUS, CATALOG, locate_extracts(EXTRACTS))
+
+
+@pytest.fixture(scope="module")
+def by_dataset(run):
+    return {r.dataset: r for r in run.results}
+
+
+def test_norman_is_present_at_8_samples_125081_cells(by_dataset):
+    r = by_dataset["norman2019"]
+    assert r.verdict == "PRESENT"
+    assert r.relation == "self-eval"
+    assert r.matched_on == ("accession", "pmid")          # both keys hit, independently
+    assert r.overlap_level == "sample"
+    assert r.sample_ids == tuple(f"GSM39060{n}" for n in range(20, 28))
+    assert r.cells == 125_081
+
+
+@pytest.mark.parametrize("dataset", ["adamson2016", "dixit2016", "baron2016", "segerstolpe2016"])
+def test_absent_on_both_keys(by_dataset, dataset):
+    r = by_dataset[dataset]
+    assert r.verdict == "NOT PRESENT"
+    assert r.keys_attempted == ("accession", "pmid")
+
+
+def test_zheng68k_cannot_be_called_absent_on_pmid_alone(by_dataset):
+    """Open issue A1: no confirmed Zheng68K accession yet, and this manifest requires one."""
+    r = by_dataset["zheng2017-pbmc68k"]
+    assert r.verdict == "INCONCLUSIVE"
+    assert r.keys_attempted == ("pmid",)
+    assert "accession" in r.decision.reason
+
+
+def test_registry_reproduces_except_the_known_open_issue(run):
+    diffs = compare(CORPUS, run)
+    assert [(d.dataset, d.field, d.registry, d.engine) for d in diffs] == [
+        ("zheng2017-pbmc68k", "verdict", "NOT PRESENT", "INCONCLUSIVE"),
+    ]
+
+
+def test_manifest_totals_match_the_registry(run):
+    sample_rows = [r for r in run.index.records if r.source == "Supplementary Data 1"]
+    totals = CORPUS["manifest"]["totals"]
+    assert len(sample_rows) == totals["samples"] == 10_747
+    assert sum(r.cells for r in sample_rows) == totals["cells"] == 55_040_785
+    assert len({r.project for r in sample_rows}) == totals["projects"] == 656
+
+
+def test_manifest_gaps_match_the_registry(run):
+    """The reasons single-key matching is unsafe here, recomputed rather than trusted."""
+    study_rows = [r for r in run.index.records if r.source == "Supplementary Data 2"]
+    sample_projects = {r.project for r in run.index.records if r.source == "Supplementary Data 1"}
+    gaps = CORPUS["manifest"]["gaps"]
+    assert sum(1 for r in study_rows if not r.pmids and not r.dois) == gaps["blank_pmids_in_study_table"] == 161
+    assert len(sample_projects - {r.project for r in study_rows}) == gaps["projects_absent_from_study_table"] == 134
+    raw = [line.rsplit(",", 1)[-1] for line in (FIXTURES / "data2.csv").read_text(encoding="utf-8").splitlines()
+           if not line.startswith("#")][1:]
+    assert sum(1 for cell in raw if cell and not cell.strip().isdigit()) == gaps["multi_id_pmid_cells"] == 21
+
+
+def test_engine_output_always_passes_the_validator(run, tmp_path):
+    """The engine must never produce a finding the validator rejects."""
+    shutil.copytree(REPO / "schema", tmp_path / "schema")
+    shutil.copytree(REPO / "datasets", tmp_path / "datasets")
+    shutil.copy(REPO / "verifiers.yaml", tmp_path / "verifiers.yaml")
+    entry = load_yaml(REPO / "registry" / "scfoundation.yaml")
+    entry["corpora"][0]["result"]["findings"] = [r.as_finding() for r in run.results]
+    write_yaml(tmp_path / "registry" / "scfoundation.yaml", entry)
+    errors = [i for i in validate(tmp_path, opts=Options(today=TODAY)) if i.severity == ERROR]
+    assert errors == []
+
+
+def test_a_file_with_the_wrong_hash_is_refused(tmp_path):
+    fake = tmp_path / "data1.csv"
+    fake.write_text("# derived-from-sha256: " + "0" * 64 + "\nproject_ID,sample_ID,cell_number_reserved\n")
+    with pytest.raises(SourceError):
+        check_corpus(ENTRY, CORPUS, CATALOG, locate_extracts({**EXTRACTS, "Supplementary Data 1": fake}))
+
+
+def test_a_missing_source_is_an_error_not_a_partial_search():
+    with pytest.raises(SourceError):
+        check_corpus(ENTRY, CORPUS, CATALOG, locate_extracts({"Supplementary Data 1": EXTRACTS["Supplementary Data 1"]}))
+
+
+_ORIGINALS = [DOWNLOADS / "41592_2024_2305_MOESM4_ESM.xlsx", DOWNLOADS / "41592_2024_2305_MOESM5_ESM.xlsx"]
+
+
+@pytest.mark.skipif(not all(p.is_file() for p in _ORIGINALS), reason="publisher XLSX files not present locally")
+def test_original_xlsx_gives_the_same_answer(by_dataset):
+    """Reading the publisher files directly must agree with the committed extracts."""
+    direct = check_corpus(ENTRY, CORPUS, CATALOG, locate_in_dir(DOWNLOADS))
+    for r in direct.results:
+        e = by_dataset[r.dataset]
+        assert (r.verdict, r.keys_attempted, r.matched_on, r.sample_ids, r.cells) == \
+               (e.verdict, e.keys_attempted, e.matched_on, e.sample_ids, e.cells)

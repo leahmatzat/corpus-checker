@@ -1,267 +1,1150 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/corpus-checker/schema/registry.schema.json",
-  "title": "corpus-checker registry entry",
-  "description": "One model. Every claim carries a source. Cross-field rules that cannot be expressed here are enforced by the validator.",
+  "$id": "https://github.com/leahmatzat/corpus-checker/blob/main/schema/registry.schema.json",
+  "title": "corpus-checker registry entry (schema_version 2)",
+  "description": "One model. Every claim carries a source. See docs/RULES.md for the rules that cannot be expressed here — they live in src/corpus_checker/validate.py and each has a guard code (G01…).",
   "type": "object",
-  "required": ["model", "paper", "manifest", "evaluation_datasets", "result", "provenance"],
+  "required": [
+    "schema_version",
+    "id",
+    "model",
+    "model_class",
+    "paper",
+    "discovery",
+    "evaluated_on",
+    "corpora",
+    "provenance"
+  ],
   "additionalProperties": false,
-
   "properties": {
-    "model":   { "type": "string", "minLength": 1 },
-    "version": { "type": "string", "description": "Which checkpoint/variant was scored. Models ship variants; the entry must say which one." },
-
+    "schema_version": {
+      "const": 2
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Stable slug. Must equal the file name stem (G12). Add a variant suffix when a model ships more than one corpus — geneformer-30m now, geneformer-104m later. Ledger keys and site URLs use this, so do not rename it once published."
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "description": "Which checkpoint/variant was scored. Models ship variants; the entry must say which one."
+    },
+    "model_class": {
+      "enum": [
+        "foundation",
+        "task-specific"
+      ],
+      "description": "foundation = has a pretraining corpus distinct from its evaluation data. task-specific = trains directly on task data (CPA, CellOT); may have no pretraining corpus at all. GEARS is not a model row — it is an evaluation-dataset source in datasets/."
+    },
     "paper": {
       "type": "object",
       "description": "The PUBLISHED version when one exists. Preprint-vs-published drift is real: Geneformer's corpus, parameter count, input window and vocabulary all differ.",
-      "anyOf": [ { "required": ["doi"] }, { "required": ["pmid"] } ],
+      "anyOf": [
+        {
+          "required": [
+            "doi"
+          ]
+        },
+        {
+          "required": [
+            "pmid"
+          ]
+        }
+      ],
       "additionalProperties": false,
       "properties": {
-        "doi":       { "type": "string", "pattern": "^10\\.\\d{4,}/\\S+$" },
-        "pmid":      { "type": ["string", "integer"] },
-        "journal":   { "type": "string" },
-        "published": { "type": "string", "pattern": "^\\d{4}(-\\d{2}){0,2}$" },
-        "preprint":  { "type": "string", "description": "DOI or URL of the preprint, when the entry was scored against the published version." },
-        "note":      { "type": "string" }
+        "doi": {
+          "type": "string",
+          "pattern": "^10\\.\\d{4,}/\\S+$"
+        },
+        "pmid": {
+          "type": [
+            "string",
+            "integer"
+          ]
+        },
+        "journal": {
+          "type": "string"
+        },
+        "published": {
+          "type": "string",
+          "pattern": "^\\d{4}(-\\d{2}){0,2}$"
+        },
+        "preprint": {
+          "type": "string",
+          "description": "DOI or URL of the preprint, when the entry was scored against the published version."
+        },
+        "note": {
+          "type": "string"
+        }
       }
     },
-
+    "discovery": {
+      "$ref": "#/$defs/discovery"
+    },
+    "evaluated_on": {
+      "type": "array",
+      "description": "SELF-EVALUATION: datasets/ catalog ids this model's own paper evaluated on. A finding whose dataset is listed here is shown with relation=self-eval; every other finding is relation=catalog. The relation is DERIVED from this list, never authored on the finding.",
+      "items": {
+        "$ref": "#/$defs/selfEval"
+      }
+    },
+    "corpora": {
+      "type": "array",
+      "description": "One entry per training stage that has its own data. STATE-style models have more than one (embedding pretraining vs perturbation training).",
+      "items": {
+        "$ref": "#/$defs/corpus"
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "verified_by",
+        "verified_date",
+        "method"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "verified_by": {
+          "type": "string",
+          "description": "A PERSON listed in verifiers.yaml. Empty string = drafted, not yet verified. The FIELD is required here; the NON-EMPTY check is G10 in validate.py so that a draft can be committed but not merged. Code never fills it."
+        },
+        "verified_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "method": {
+          "type": "string",
+          "description": "Path to the script or resolver that produced this."
+        },
+        "reproducible": {
+          "type": "boolean"
+        }
+      }
+    },
+    "disputed": {
+      "$ref": "#/$defs/dispute"
+    }
+  },
+  "allOf": [
+    {
+      "$comment": "A foundation model always has at least one corpus to check.",
+      "if": {
+        "properties": {
+          "model_class": {
+            "const": "foundation"
+          }
+        },
+        "required": [
+          "model_class"
+        ]
+      },
+      "then": {
+        "properties": {
+          "corpora": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "matchKey": {
+      "enum": [
+        "accession",
+        "pmid",
+        "doi",
+        "title",
+        "keyword"
+      ]
+    },
+    "discovery": {
+      "type": "object",
+      "description": "WHERE WE LOOKED for a training-data manifest. Every location is listed so an unchecked one is visible. G11: a NOT CHECKABLE verdict requires every location checked. Audit error #4 — Geneformer's manifest lives only in the supplementary file list — is why supplementary_files is its own row.",
+      "required": [
+        "data_availability",
+        "code_availability",
+        "supplementary_files",
+        "methods",
+        "github_repo",
+        "hf_model_card",
+        "hf_dataset_card",
+        "archive_deposits",
+        "preprint_vs_published"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "data_availability": {
+          "$ref": "#/$defs/discoveryItem"
+        },
+        "code_availability": {
+          "$ref": "#/$defs/discoveryItem"
+        },
+        "supplementary_files": {
+          "$ref": "#/$defs/discoveryItem",
+          "description": "Enumerate EVERY supplementary file title in `files`, not only the ones the availability statement mentions."
+        },
+        "methods": {
+          "$ref": "#/$defs/discoveryItem"
+        },
+        "github_repo": {
+          "$ref": "#/$defs/discoveryItem"
+        },
+        "hf_model_card": {
+          "$ref": "#/$defs/discoveryItem"
+        },
+        "hf_dataset_card": {
+          "$ref": "#/$defs/discoveryItem"
+        },
+        "archive_deposits": {
+          "$ref": "#/$defs/discoveryItem",
+          "description": "Zenodo, figshare, Dryad, OSF."
+        },
+        "preprint_vs_published": {
+          "$ref": "#/$defs/discoveryItem"
+        },
+        "submitter_supplied": {
+          "$ref": "#/$defs/discoveryItem",
+          "description": "Optional. A file handed to us rather than found — see manifestSource.acquired."
+        }
+      }
+    },
+    "discoveryItem": {
+      "type": "object",
+      "required": [
+        "checked"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "checked": {
+          "type": "boolean",
+          "description": "true = someone looked HERE for a training-data manifest. Looking for something else does not count."
+        },
+        "found": {
+          "type": "string",
+          "description": "What was there, or 'none'. Required when checked."
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "checked": {
+                "const": true
+              }
+            },
+            "required": [
+              "checked"
+            ]
+          },
+          "then": {
+            "required": [
+              "found"
+            ]
+          }
+        }
+      ]
+    },
+    "selfEval": {
+      "type": "object",
+      "required": [
+        "dataset",
+        "task"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "dataset": {
+          "$ref": "#/$defs/slug",
+          "description": "A datasets/ catalog id (G02)."
+        },
+        "task": {
+          "type": "string",
+          "description": "A model can be clean on one task and exposed on another."
+        },
+        "obtained_from": {
+          "type": "string",
+          "description": "Where the AUTHORS got it. 'GEARS repo' is the common answer and is itself a finding."
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "corpus": {
+      "type": "object",
+      "required": [
+        "stage",
+        "manifest",
+        "result"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "stage": {
+          "enum": [
+            "pretraining",
+            "continued-pretraining",
+            "fine-tuning",
+            "training"
+          ],
+          "description": "training = a task-specific model's only training stage."
+        },
+        "name": {
+          "type": "string",
+          "description": "e.g. Genecorpus-30M"
+        },
+        "description": {
+          "type": "string"
+        },
+        "manifest": {
+          "$ref": "#/$defs/manifest"
+        },
+        "result": {
+          "$ref": "#/$defs/result"
+        }
+      },
+      "allOf": [
+        {
+          "$comment": "THE SUPERSET RULE. A Type-B manifest names a corpus the model trained on a SUBSET of. Absence is provable; presence is not.",
+          "if": {
+            "properties": {
+              "manifest": {
+                "properties": {
+                  "type": {
+                    "const": "B"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "manifest"
+            ]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "properties": {
+                  "findings": {
+                    "items": {
+                      "properties": {
+                        "verdict": {
+                          "not": {
+                            "const": "PRESENT"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "$comment": "No manifest means no verdict other than NOT CHECKABLE.",
+          "if": {
+            "properties": {
+              "manifest": {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "C-vague",
+                      "D"
+                    ]
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "manifest"
+            ]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "properties": {
+                  "findings": {
+                    "items": {
+                      "properties": {
+                        "verdict": {
+                          "const": "NOT CHECKABLE"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "$comment": "sources_searched may only be empty when there was nothing to search.",
+          "if": {
+            "properties": {
+              "manifest": {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "A",
+                      "A+",
+                      "B",
+                      "C-named"
+                    ]
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "manifest"
+            ]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "properties": {
+                  "sources_searched": {
+                    "minItems": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     "manifest": {
       "type": "object",
-      "required": ["type", "quote", "as_of"],
+      "required": [
+        "type",
+        "quote",
+        "as_of"
+      ],
       "additionalProperties": false,
       "properties": {
         "type": {
-          "enum": ["A", "A+", "B", "C-named", "C-vague", "D"],
+          "enum": [
+            "A",
+            "A+",
+            "B",
+            "C-named",
+            "C-vague",
+            "D"
+          ],
           "description": "A static list | A+ corpus published | B versioned pointer | C-named prose but resolvable | C-vague/D not checkable"
         },
         "quote": {
           "type": "string",
           "minLength": 1,
-          "description": "VERBATIM data-availability statement. Required for every type INCLUDING C-vague and D -- for those it is the entire evidence for the NOT CHECKABLE verdict."
+          "description": "VERBATIM data-availability statement. Required for every type INCLUDING C-vague and D — for those it is the entire evidence for the NOT CHECKABLE verdict."
         },
-        "as_of":    { "type": "string", "format": "date" },
+        "as_of": {
+          "type": "string",
+          "format": "date"
+        },
         "identifier_type": {
-          "enum": ["accession", "citation", "mixed"],
-          "description": "SECOND AXIS, independent of type. A published list can be keyed by accession (scFoundation) or by CITATION STRING (Geneformer -- 561 rows, zero accessions). Citation-keyed lists are complete and closed but need citation->PMID resolution before any exact match is possible."
+          "enum": [
+            "accession",
+            "citation",
+            "doi",
+            "mixed"
+          ],
+          "description": "SECOND AXIS, independent of type. A published list can be keyed by accession (scFoundation), by CITATION STRING (Geneformer — 561 rows, zero accessions) or by DOI (CELLxGENE census collections)."
         },
-        "resolver": { "type": "string", "description": "Which resolvers/ implementation handles this manifest." },
-        "sources":  { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/manifestSource" } },
-        "pointer":  { "$ref": "#/$defs/manifestPointer" },
-        "corpus_published": { "$ref": "#/$defs/corpusPublished" },
+        "keys_available": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/matchKey"
+          },
+          "description": "Which match keys this manifest can be searched on. G13: every finding's keys_attempted must be a subset."
+        },
+        "requires_keys": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/matchKey"
+          },
+          "description": "Keys that must ALL be attempted before NOT PRESENT is allowed against this manifest (G14). scFoundation: [accession, pmid] — 161/522 blank PMIDs and 134/656 projects with no title or PMID make either key alone unsafe."
+        },
+        "accession_types": {
+          "type": "array",
+          "uniqueItems": true,
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "geo",
+              "arrayexpress",
+              "sra",
+              "bioproject",
+              "ega",
+              "scp",
+              "hca",
+              "cellxgene_collection",
+              "cellxgene_dataset",
+              "hf_dataset",
+              "figshare",
+              "zenodo",
+              "synapse"
+            ]
+          },
+          "description": "Which KINDS of accession this manifest holds. When set, the accession key is only available for datasets with a confirmed identifier of one of these kinds — a GEO accession tried against a manifest of CELLxGENE UUIDs is not an attempt. Omit when the manifest mixes repositories freely (scFoundation)."
+        },
+        "resolver": {
+          "type": "string",
+          "description": "Which resolvers/ implementation handles this manifest."
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/manifestSource"
+          }
+        },
+        "pointer": {
+          "$ref": "#/$defs/manifestPointer"
+        },
+        "corpus_published": {
+          "$ref": "#/$defs/corpusPublished"
+        },
         "totals": {
           "type": "object",
-          "additionalProperties": { "type": "integer", "minimum": 0 }
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
         },
         "gaps": {
           "type": "object",
           "description": "Why single-key matching is unsafe for this manifest. Free-form counts.",
-          "additionalProperties": { "type": "integer", "minimum": 0 }
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
         }
       },
-
       "allOf": [
         {
-          "if":   { "properties": { "type": { "enum": ["A", "A+"] } }, "required": ["type"] },
-          "then": { "required": ["sources", "resolver"] }
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "A",
+                  "A+"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "sources",
+              "resolver",
+              "keys_available"
+            ]
+          }
         },
         {
-          "if":   { "properties": { "type": { "const": "B" } }, "required": ["type"] },
-          "then": { "required": ["pointer", "resolver"] }
+          "if": {
+            "properties": {
+              "type": {
+                "const": "B"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "pointer",
+              "resolver",
+              "keys_available"
+            ]
+          }
         },
         {
-          "if":   { "properties": { "type": { "enum": ["C-vague", "D"] } }, "required": ["type"] },
-          "then": { "not": { "anyOf": [ { "required": ["sources"] }, { "required": ["pointer"] } ] } }
+          "if": {
+            "properties": {
+              "type": {
+                "const": "C-named"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "keys_available"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "C-vague",
+                  "D"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "sources"
+                  ]
+                },
+                {
+                  "required": [
+                    "pointer"
+                  ]
+                },
+                {
+                  "required": [
+                    "keys_available"
+                  ]
+                }
+              ]
+            }
+          }
         }
       ]
     },
-
-    "evaluation_datasets": {
-      "type": "array",
-      "minItems": 1,
-      "items": { "$ref": "#/$defs/evalDataset" }
-    },
-
     "result": {
       "type": "object",
-      "required": ["checked", "sources_searched", "match_keys", "findings"],
+      "required": [
+        "checked",
+        "sources_searched",
+        "findings"
+      ],
       "additionalProperties": false,
       "properties": {
-        "checked": { "type": "string", "format": "date" },
+        "checked": {
+          "type": "string",
+          "format": "date"
+        },
         "sources_searched": {
           "type": "array",
-          "items": { "type": "string" },
-          "description": "Empty is only legal when the manifest type is C-vague or D."
+          "items": {
+            "type": "string"
+          },
+          "description": "Empty is only legal when the manifest type is C-vague or D. For A/A+ each name must be a manifest.sources[].name (G07), and NOT PRESENT requires ALL of them (G08) — audit error #1 was a NOT PRESENT from one of two files."
         },
-        "match_keys": {
+        "findings": {
           "type": "array",
           "minItems": 1,
-          "items": { "enum": ["accession", "pmid", "doi", "title", "keyword"] },
-          "description": "Match on BOTH accession and pmid where available. scFoundation had 161/522 blank PMIDs and 134/656 projects with no title or PMID."
+          "items": {
+            "$ref": "#/$defs/finding"
+          }
         },
-        "findings": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/finding" } },
-        "caveats":  { "type": "array", "items": { "type": "string" } }
-      }
-    },
-
-    "provenance": {
-      "type": "object",
-      "required": ["verified_by", "verified_date", "method"],
-      "additionalProperties": false,
-      "properties": {
-        "verified_by":   { "type": "string", "description": "A PERSON. Empty string = drafted, not yet verified. The FIELD is required here; the NON-EMPTY check lives in CI so that a draft entry can be committed but not merged. CI also clears it whenever result: changes." },
-        "verified_date": { "type": ["string", "null"], "format": "date" },
-        "method":        { "type": "string", "description": "Path to the script or resolver that produced this." },
-        "reproducible":  { "type": "boolean" }
-      }
-    },
-
-    "disputed": { "$ref": "#/$defs/dispute" }
-  },
-
-  "allOf": [
-    {
-      "$comment": "THE SUPERSET RULE. A Type-B manifest names a corpus the model trained on a SUBSET of. Absence is provable; presence is not.",
-      "if":   { "properties": { "manifest": { "properties": { "type": { "const": "B" } }, "required": ["type"] } }, "required": ["manifest"] },
-      "then": {
-        "properties": {
-          "result": {
-            "properties": {
-              "findings": { "items": { "properties": { "verdict": { "not": { "const": "PRESENT" } } } } }
-            }
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         }
       }
     },
-    {
-      "$comment": "No manifest means no verdict other than NOT CHECKABLE.",
-      "if":   { "properties": { "manifest": { "properties": { "type": { "enum": ["C-vague", "D"] } }, "required": ["type"] } }, "required": ["manifest"] },
-      "then": {
-        "properties": {
-          "result": {
-            "properties": {
-              "findings": { "items": { "properties": { "verdict": { "const": "NOT CHECKABLE" } } } }
-            }
-          }
-        }
-      }
-    },
-    {
-      "$comment": "sources_searched may only be empty when there was nothing to search.",
-      "if":   { "properties": { "manifest": { "properties": { "type": { "enum": ["A", "A+", "B", "C-named"] } }, "required": ["type"] } }, "required": ["manifest"] },
-      "then": { "properties": { "result": { "properties": { "sources_searched": { "minItems": 1 } } } } }
-    }
-  ],
-
-  "$defs": {
-
     "manifestSource": {
       "type": "object",
-      "required": ["name", "url", "format", "sha256"],
+      "required": [
+        "name",
+        "url",
+        "format",
+        "sha256",
+        "acquired",
+        "confirmation"
+      ],
       "additionalProperties": false,
       "properties": {
-        "name":    { "type": "string" },
-        "url":     { "type": "string", "format": "uri" },
-        "format":  { "enum": ["xlsx", "csv", "tsv", "json", "txt", "pdf", "parquet", "h5ad"] },
-        "level":   { "enum": ["sample", "study", "project", "cell", "dataset"] },
-        "records": { "type": "integer", "minimum": 0 },
-        "bytes":   { "type": "integer", "minimum": 0 },
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "snapshot": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/-]+$",
+          "description": "Repo-relative path of a COMMITTED snapshot of this source (Type B: a versioned public corpus's dataset table). Its sha256 is checked on every validate run (G20). Only for openly licensed metadata — publisher supplementary files are never committed."
+        },
+        "format": {
+          "enum": [
+            "xlsx",
+            "csv",
+            "tsv",
+            "json",
+            "txt",
+            "pdf",
+            "parquet",
+            "h5ad"
+          ]
+        },
+        "level": {
+          "enum": [
+            "sample",
+            "study",
+            "project",
+            "cell",
+            "dataset"
+          ]
+        },
+        "records": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
         "sha256": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$",
           "description": "as_of says WHEN we looked. sha256 says WHAT we looked at. A URL can serve different bytes later without telling you."
         },
-        "columns": { "type": "array", "items": { "type": "string" } },
-        "note":    { "type": "string", "description": "Flag anything about this source that is not yet confirmed -- e.g. a URL pattern inferred rather than followed." }
-      }
+        "acquired": {
+          "enum": [
+            "fetched",
+            "supplied"
+          ],
+          "description": "fetched = downloaded by us from `url`. supplied = handed to us (by a submitter, by the authors, from a local copy) — the sha256 then describes THAT file, which is not yet shown to be the publisher's."
+        },
+        "supplied_by": {
+          "type": "string",
+          "description": "Who supplied it. Required when acquired = supplied."
+        },
+        "confirmation": {
+          "$ref": "#/$defs/confirmation"
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "roles": {
+          "type": "object",
+          "description": "Which column plays which part, so the generic table resolver can read any tabular manifest without new code. accession: columns scanned for accession tokens (prefixes like GEO-/DISCO- are stripped). project: the join key between one manifest's tables. sample: set on sample-level tables. Every named column must be in `columns` (G19).",
+          "additionalProperties": false,
+          "properties": {
+            "accession": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string"
+              }
+            },
+            "project": {
+              "type": "string"
+            },
+            "sample": {
+              "type": "string"
+            },
+            "pmid": {
+              "type": "string"
+            },
+            "doi": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "citation": {
+              "type": "string"
+            },
+            "cells": {
+              "type": "string"
+            }
+          }
+        },
+        "note": {
+          "type": "string",
+          "description": "Flag anything about this source that is not yet confirmed — e.g. a URL pattern inferred rather than followed."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "acquired": {
+                "const": "supplied"
+              }
+            },
+            "required": [
+              "acquired"
+            ]
+          },
+          "then": {
+            "required": [
+              "supplied_by"
+            ]
+          }
+        },
+        {
+          "$comment": "A file we fetched ourselves is confirmed by construction: its hash was taken from the URL's bytes, or from a reproducible API snapshot.",
+          "if": {
+            "properties": {
+              "acquired": {
+                "const": "fetched"
+              }
+            },
+            "required": [
+              "acquired"
+            ]
+          },
+          "then": {
+            "properties": {
+              "confirmation": {
+                "properties": {
+                  "method": {
+                    "enum": [
+                      "url_hash",
+                      "api_snapshot"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
     },
-
+    "confirmation": {
+      "type": "object",
+      "description": "HOW we know this is the file the paper means. G09: findings from a manifest with any source at method=none are capped at INCONCLUSIVE.",
+      "required": [
+        "method"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "enum": [
+            "url_hash",
+            "api_snapshot",
+            "totals",
+            "author",
+            "none"
+          ],
+          "description": "url_hash = bytes from the publisher/repo URL match sha256 · api_snapshot = a deterministic, re-runnable export of a versioned corpus's own API (detail says how to regenerate it) · totals = contents reconcile to counts printed in the paper · author = authors confirmed in writing · none = unconfirmed"
+        },
+        "detail": {
+          "type": "string",
+          "description": "For totals: the number, and where the paper states it. For author: who, when, and a link."
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "enum": [
+                  "api_snapshot",
+                  "totals",
+                  "author"
+                ]
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "required": [
+              "detail",
+              "date"
+            ]
+          }
+        }
+      ]
+    },
     "manifestPointer": {
       "type": "object",
       "description": "Type B. The corpus is external, versioned and larger than what the model used.",
-      "required": ["corpus", "release"],
+      "required": [
+        "corpus",
+        "release"
+      ],
       "additionalProperties": false,
       "properties": {
-        "corpus":       { "type": "string", "examples": ["CELLxGENE census"] },
-        "release":      { "type": "string", "examples": ["2023-05-15"] },
-        "url":          { "type": "string", "format": "uri" },
-        "superset_size":{ "type": "string", "description": "Size of the pointed-to corpus." },
-        "model_used":   { "type": "string", "description": "What the model actually trained on, if stated. scGPT: ~33M of 57.9M." }
-      }
-    },
-
-    "corpusPublished": {
-      "type": "object",
-      "description": "The corpus itself is downloadable. INDEPENDENT of whether a manifest exists -- Geneformer publishes the corpus and no manifest. Present on any type.",
-      "required": ["url", "carries_provenance"],
-      "additionalProperties": false,
-      "properties": {
-        "url":     { "type": "string", "format": "uri" },
-        "commit":  { "type": "string" },
-        "license": { "type": "string" },
-        "bytes":   { "type": "integer", "minimum": 0 },
-        "fields":  { "type": "array", "items": { "type": "string" }, "description": "The corpus schema. This is what decides carries_provenance." },
-        "carries_provenance": {
-          "type": "boolean",
-          "description": "Does a row say which source dataset it came from? FALSE means downloading the whole corpus answers nothing, and the entry is NOT CHECKABLE however many bytes are public."
+        "corpus": {
+          "type": "string",
+          "examples": [
+            "CELLxGENE census"
+          ]
+        },
+        "release": {
+          "type": "string",
+          "examples": [
+            "2023-05-15"
+          ]
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "superset_size": {
+          "type": "string",
+          "description": "Size of the pointed-to corpus."
+        },
+        "model_used": {
+          "type": "string",
+          "description": "What the model actually trained on, if stated. scGPT: ~33M of 57.9M."
         }
       }
     },
-
-    "evalDataset": {
+    "corpusPublished": {
       "type": "object",
-      "required": ["name", "task"],
-      "anyOf": [ { "required": ["accession"] }, { "required": ["pmid"] }, { "required": ["doi"] } ],
+      "description": "The corpus itself is downloadable. INDEPENDENT of whether a manifest exists — Geneformer publishes both, and its corpus carries no provenance. Present on any type.",
+      "required": [
+        "url",
+        "carries_provenance"
+      ],
       "additionalProperties": false,
       "properties": {
-        "name":      { "type": "string" },
-        "accession": { "type": "string", "pattern": "^(GSE\\d+|GSM\\d+|E-MTAB-\\d+|SRP\\d+|PRJNA\\d+|SCP\\d+)$" },
-        "doi":       { "type": "string", "pattern": "^10\\.\\d{4,}/\\S+$" },
-        "pmid":      { "type": ["string", "integer"] },
-        "task":      { "type": "string", "description": "A model can be clean on one task and contaminated on another." },
-        "obtained_from": { "type": "string", "description": "Where the AUTHORS got it. 'GEARS repo' is the common answer and is itself a finding." },
-        "note":      { "type": "string", "description": "Use this to flag an identifier that has NOT been resolved through the crosswalk." }
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "commit": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The corpus schema. This is what decides carries_provenance."
+        },
+        "carries_provenance": {
+          "type": "boolean",
+          "description": "Does a row say which source dataset it came from? FALSE means downloading the whole corpus answers nothing."
+        }
       }
     },
-
     "finding": {
       "type": "object",
-      "required": ["dataset", "verdict"],
+      "required": [
+        "dataset",
+        "verdict"
+      ],
       "additionalProperties": false,
       "properties": {
-        "dataset": { "type": "string", "description": "Must match an evaluation_datasets[].name." },
-        "verdict": { "enum": ["PRESENT", "NOT PRESENT", "INCONCLUSIVE", "NOT CHECKABLE"] },
-        "matched_on": { "type": "array", "items": { "enum": ["accession", "pmid", "doi", "title", "keyword"] } },
-        "samples":    { "type": "integer", "minimum": 0 },
-        "sample_ids": { "type": "array", "items": { "type": "string" } },
-        "cells":      { "type": "integer", "minimum": 0 },
-        "reason":     { "type": "string", "description": "REQUIRED for INCONCLUSIVE. Say why the match is weak." },
-        "note":       { "type": "string" }
+        "dataset": {
+          "$ref": "#/$defs/slug",
+          "description": "A datasets/ catalog id (G02). Whether this is a self-eval or catalog finding is derived from evaluated_on."
+        },
+        "verdict": {
+          "enum": [
+            "PRESENT",
+            "NOT PRESENT",
+            "INCONCLUSIVE",
+            "NOT CHECKABLE"
+          ]
+        },
+        "keys_attempted": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/matchKey"
+          },
+          "description": "Per finding, not per result: which keys were actually tried for THIS dataset. A key only counts if the dataset has a confirmed identifier of that kind in datasets/."
+        },
+        "matched_on": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/matchKey"
+          }
+        },
+        "overlap_level": {
+          "enum": [
+            "study",
+            "sample",
+            "cell"
+          ],
+          "description": "How fine-grained the overlap is. Study-level PRESENT does not mean the evaluated samples are in the corpus."
+        },
+        "samples": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sample_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cells": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reason": {
+          "type": "string",
+          "description": "REQUIRED for INCONCLUSIVE. Say why the match is weak."
+        },
+        "note": {
+          "type": "string"
+        }
       },
       "allOf": [
         {
           "$comment": "A PRESENT verdict must carry the evidence that produced it.",
-          "if":   { "properties": { "verdict": { "const": "PRESENT" } }, "required": ["verdict"] },
-          "then": { "required": ["matched_on"], "anyOf": [ { "required": ["sample_ids"] }, { "required": ["samples"] }, { "required": ["cells"] } ] }
+          "if": {
+            "properties": {
+              "verdict": {
+                "const": "PRESENT"
+              }
+            },
+            "required": [
+              "verdict"
+            ]
+          },
+          "then": {
+            "required": [
+              "matched_on",
+              "keys_attempted",
+              "overlap_level"
+            ],
+            "anyOf": [
+              {
+                "required": [
+                  "sample_ids"
+                ]
+              },
+              {
+                "required": [
+                  "samples"
+                ]
+              },
+              {
+                "required": [
+                  "cells"
+                ]
+              }
+            ]
+          }
         },
         {
-          "if":   { "properties": { "verdict": { "const": "INCONCLUSIVE" } }, "required": ["verdict"] },
-          "then": { "required": ["reason"] }
+          "if": {
+            "properties": {
+              "verdict": {
+                "const": "NOT PRESENT"
+              }
+            },
+            "required": [
+              "verdict"
+            ]
+          },
+          "then": {
+            "required": [
+              "keys_attempted"
+            ],
+            "properties": {
+              "keys_attempted": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verdict": {
+                "const": "INCONCLUSIVE"
+              }
+            },
+            "required": [
+              "verdict"
+            ]
+          },
+          "then": {
+            "required": [
+              "reason"
+            ]
+          }
         }
       ]
     },
-
     "dispute": {
       "type": "object",
       "description": "An entry is never silently deleted. A contested entry stays visible with the dispute attached.",
-      "required": ["raised_by", "date", "statement"],
+      "required": [
+        "raised_by",
+        "date",
+        "statement"
+      ],
       "additionalProperties": false,
       "properties": {
-        "raised_by": { "type": "string" },
-        "date":      { "type": "string", "format": "date" },
-        "statement": { "type": "string" },
-        "response":  { "type": "string" },
-        "resolved":  { "type": "boolean" }
+        "raised_by": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "statement": {
+          "type": "string"
+        },
+        "response": {
+          "type": "string"
+        },
+        "resolved": {
+          "type": "boolean"
+        }
       }
     }
   }

@@ -1,0 +1,9 @@
+schema_version: 1
+id: baron2016
+name: Baron 2016
+kind: observational
+organism: [human, mouse]
+identifiers:
+  - {type: geo,  value: GSE84133,   confirmed: true, via: "registry/scfoundation.yaml (verified LM 2026-09-08)"}
+  - {type: pmid, value: "27667365", confirmed: true, via: "registry/scfoundation.yaml (verified LM 2026-09-08)"}
+note: Human and mouse pancreas, inDrop. Four human donors.

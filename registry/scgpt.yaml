@@ -1,0 +1,195 @@
+schema_version: 2
+id: scgpt
+model: scGPT
+version: "whole-human pretrained model described in the 2024 paper"
+model_class: foundation
+
+paper:
+  doi: 10.1038/s41592-024-02201-0
+  pmid: 38409223
+  journal: Nature Methods
+  published: 2024-08
+
+discovery:
+  data_availability:
+    checked: true
+    found: >
+      Names the pretraining corpus as CELLxGENE census release 15 May 2023, and lists every
+      evaluation dataset's source. Points to a "Datasets" section for full sources.
+  code_availability:
+    checked: true
+    found: GitHub (bowang-lab/scGPT) and Zenodo 10.5281/zenodo.10466117 — code, no corpus list.
+  supplementary_files:
+    checked: false
+    files: [MOESM1_ESM.pdf, MOESM2_ESM.pdf]
+    note: >
+      MOESM1 (38 pp.) opened 2026-09-23 — Supplementary Tables 1–9 are benchmark results;
+      no corpus composition table. It does say the data-size ablation used "normal human
+      cells". MOESM2 not yet opened.
+  methods:
+    checked: false
+    note: The "Datasets" section (paywalled) holds the rule scGPT used to subset the census; not yet read.
+  github_repo: {checked: false}
+  hf_model_card: {checked: false}
+  hf_dataset_card: {checked: false}
+  archive_deposits:
+    checked: false
+    note: figshare 10.6084/m9.figshare.24954519.v1 holds processed EVALUATION datasets; not checked for a corpus list.
+  preprint_vs_published: {checked: false}
+
+evaluated_on:
+  - dataset: norman2019
+    task: perturbation prediction
+    obtained_from: Harvard Dataverse (GEARS processed data)
+  - dataset: adamson2016
+    task: perturbation prediction
+    obtained_from: Harvard Dataverse (GEARS processed data)
+  - dataset: replogle2022
+    task: perturbation prediction
+    obtained_from: gwps.wi.mit.edu
+  - dataset: cheng2021-myeloid
+    task: cell type annotation
+    obtained_from: GEO GSE154763
+  - dataset: siletti2022-perirhinal
+    task: batch integration
+    obtained_from: CELLxGENE Human Brain Cell Atlas v1.0
+  - dataset: luecken2021-bmmc
+    task: multi-omic integration
+    obtained_from: GEO GSE194122
+
+corpora:
+  - stage: pretraining
+    name: CELLxGENE census 2023-05-15 (human subset, ~33M cells)
+    manifest:
+      type: B
+      identifier_type: mixed
+      quote: >
+        "All sources of used datasets have been reported in Datasets. Pretraining datasets
+        can be retrieved from the CELLxGENE census, release version 15 May 2023
+        (https://chanzuckerberg.github.io/cellxgene-census/python-api.html,
+        https://cellxgene.cziscience.com/)."
+      as_of: 2026-09-23
+      resolver: census_snapshot
+      keys_available: [accession, doi, title]
+      accession_types: [cellxgene_collection, cellxgene_dataset]
+      requires_keys: [doi]
+      pointer:
+        corpus: CELLxGENE census
+        release: "2023-05-15"
+        url: https://chanzuckerberg.github.io/cellxgene-census/
+        superset_size: "562 datasets · 126 collections · 57,880,760 cells (36,673,205 unique) · human and mouse"
+        model_used: "~33M human cells; the subsetting rule is in the paywalled Datasets section"
+      sources:
+        - name: CELLxGENE census 2023-05-15 — census_info/datasets
+          url: s3://cellxgene-census-public-us-west-2/cell-census/2023-05-15/soma/
+          snapshot: snapshots/cellxgene-census/2023-05-15/datasets.csv
+          format: csv
+          level: dataset
+          records: 562
+          bytes: 136668
+          sha256: a30061e7323850768883c0528428478a8001d0c4414c8ec256defa389350607c
+          acquired: fetched
+          confirmation:
+            method: api_snapshot
+            detail: >
+              scripts/snapshot_census.py 2023-05-15 (cellxgene-census 1.18.0, tiledbsoma 2.3.0).
+              Deterministic: two independent runs gave the same sha256. Dataset cell counts sum
+              to the release's own census_info/summary total_cell_count, 57,880,760.
+            date: 2026-09-23
+          columns: [dataset_id, collection_id, collection_name, collection_doi, dataset_title, dataset_total_cell_count]
+          roles: {accession: [collection_id, dataset_id], project: collection_id, sample: dataset_id, doi: collection_doi, title: collection_name, cells: dataset_total_cell_count}
+      totals:
+        datasets: 562
+        collections: 126
+        cells: 57880760
+        unique_cells: 36673205
+      gaps:
+        datasets_without_collection_doi: 40     # 9 collections — DOI matching cannot see these
+        census_accessions_from_geo_or_arrayexpress: 0   # census carries only CELLxGENE UUIDs
+
+    result:
+      checked: 2026-09-23
+      sources_searched: [CELLxGENE census 2023-05-15 — census_info/datasets]
+      findings:
+        - dataset: norman2019
+          verdict: NOT PRESENT
+          keys_attempted:
+          - doi
+        - dataset: adamson2016
+          verdict: NOT PRESENT
+          keys_attempted:
+          - doi
+        - dataset: replogle2022
+          verdict: NOT PRESENT
+          keys_attempted:
+          - doi
+        - dataset: cheng2021-myeloid
+          verdict: NOT PRESENT
+          keys_attempted:
+          - doi
+        - dataset: siletti2022-perirhinal
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          matched_on:
+          - accession
+          - doi
+          reason: found in the pointed-to corpus, which the model trained on a subset of — a superset cannot prove
+            presence
+        - dataset: luecken2021-bmmc
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest
+            carries'
+        - dataset: baron2016
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest
+            carries'
+        - dataset: dixit2016
+          verdict: NOT PRESENT
+          keys_attempted:
+          - doi
+        - dataset: segerstolpe2016
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest
+            carries'
+        - dataset: zheng2017-pbmc68k
+          verdict: NOT PRESENT
+          keys_attempted:
+          - doi
+
+      caveats:
+        - >
+          THE TYPE-B RULE. The census is a superset: scGPT pretrained on ~33M human cells of
+          a release holding 57.9M (36.7M unique) human and mouse cells. Absence from the
+          census proves absence from scGPT's pretraining data; presence proves nothing.
+        - >
+          siletti2022-perirhinal — scGPT's batch-integration dataset was taken from the
+          CELLxGENE Human Brain Cell Atlas v1.0 collection, and that collection is in census
+          2023-05-15 (138 datasets, 7,607,332 cells, including two perirhinal dissections).
+          The superset rule caps this at INCONCLUSIVE. Whether those cells were in scGPT's
+          ~33M depends on the subsetting rule in the paywalled Datasets section; the
+          supplement's reference to "normal human cells" is suggestive, not decisive.
+        - >
+          40 census datasets (9 collections) have no collection DOI, so DOI matching
+          cannot rule them out. None is a perturbation screen: breast atlas, adipose, AIDA,
+          Azimuth meta-analysis, COVID-19 mRNA vaccine, HCA kidney, HTAN MSK Treg, pilocytic
+          astrocytoma, SEA-AD. The COVID-19 collection is relevant only to COVID evaluation
+          datasets, none of which is in the catalog yet.
+        - >
+          Evaluation datasets named in the data availability statement but NOT yet in
+          datasets/ (so not yet checked): MS (E-HCAD-35), human pancreas (TOSICA), Lung-Kim
+          (3CA), COVID-19 (scArches), PBMC 10k (scvi-tools), 10x Multiome PBMC (scGLUE), ASAP
+          PBMC (scMoMaT), Immune Human (figshare 12420968).
+        - >
+          Exposure, not effect. Overlap does not by itself mean any reported number is
+          inflated.
+
+provenance:
+  verified_by: ""
+  verified_date: null
+  method: corpus-checker check scgpt --rerun (census_snapshot resolver) + scripts/snapshot_census.py
+  reproducible: true

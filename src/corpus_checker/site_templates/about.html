@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}About — corpus-checker{% endblock %}
+{% block content %}
+<article>
+  <h1>About</h1>
+
+  <section class="how-to-read" aria-labelledby="howto-h">
+    <h2 id="howto-h">How to read a verdict</h2>
+    <p>Every verdict is for one <strong>model</strong>, one <strong>training stage</strong>, one <strong>dataset</strong> —
+       never for a model as a whole. There is no overall score, grade or rank anywhere on this site.</p>
+    <dl class="verdict-legend">
+    {% for v, desc in verdict_explanations.items() %}
+      <div class="legend-row"><dt>{{ m.verdict_chip(v) }}</dt><dd>{{ desc }}</dd></div>
+    {% endfor %}
+    </dl>
+    <p><strong>Self-eval vs. catalog.</strong> A finding is {{ m.self_eval_marker() }} when the model's own paper
+       evaluated on that dataset. Every other dataset in the shared catalog is checked too and shown as a
+       <em>catalog</em> finding — cross-model reuse is exactly what a catalog finding can surface.</p>
+    <p><strong>{{ m.draft_badge() }}</strong> means the entry has not yet been signed off by a verifier listed in
+       <code>verifiers.yaml</code>. Draft entries can still be inspected — every source and finding is shown exactly
+       as recorded — but no person has confirmed the claims yet.</p>
+    <p><strong>Disputed entries.</strong> An entry is never silently removed. If an author or reader disputes a
+       finding, the dispute statement is recorded and shown prominently on the model's page — the entry stays visible
+       alongside it.</p>
+    <p>{{ exposure_note }}</p>
+    <p>For the full rules behind these verdicts — including every guard that blocks a bad entry,
+       and how a correction or a dispute is handled — see
+       <a href="{{ rules_url }}">docs/RULES.md</a> in the repository.</p>
+  </section>
+
+  <section class="data-flow" aria-label="How data flows through corpus-checker (from docs/DATA_FLOW.md)">
+    <div class="rendered-markdown">
+{{ data_flow_html | safe }}
+    </div>
+  </section>
+</article>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) { window.mermaid.initialize({ startOnLoad: true }); }
+</script>
+{% endblock %}

@@ -1,0 +1,135 @@
+name: "Add a model"
+description: "Submit a single-cell foundation model for a corpus-checker entry."
+title: "[add-model] "
+labels: ["model-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for submitting a model. A few things worth knowing before you fill this in:
+
+        - A maintainer reviews every submission and drafts the registry entry. A `PRESENT` / `NOT PRESENT` /
+          `INCONCLUSIVE` / `NOT CHECKABLE` finding is only ever recorded once a human verifier signs it
+          (see `docs/RULES.md`).
+        - The registry reports **exposure, not effect**. Overlap between a model's evaluation data and its training
+          corpus does not by itself mean a result is inflated.
+        - You do not need to know the answer to every field. "I didn't check this" is a useful answer — leave it
+          unchecked below rather than guessing.
+
+  - type: input
+    id: model-name
+    attributes:
+      label: Model name
+      description: The name the model is published under (e.g. "Geneformer", "scGPT").
+      placeholder: "scFoundation"
+    validations:
+      required: true
+
+  - type: input
+    id: paper-doi-pmid
+    attributes:
+      label: Paper DOI or PMID
+      description: >
+        Use the PUBLISHED version if one exists, not the preprint — preprint and published corpora can differ.
+        (Geneformer's preprint and Nature versions differ in corpus size, parameter count, input window, and
+        vocabulary.) If only a preprint exists, say so.
+      placeholder: "10.1038/s41586-023-06139-9  or  PMID 37258680"
+    validations:
+      required: true
+
+  - type: input
+    id: manifest-url
+    attributes:
+      label: Manifest URL
+      description: >
+        If you already know where the list of training data lives (a supplementary file, a repo file, a dataset
+        card), link it here. Leave blank if you don't know — that's fine.
+      placeholder: "https://... (supplementary table, repo file, dataset card, etc.)"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: discovery
+    attributes:
+      label: "Where did you look?"
+      description: >
+        Check every location you actually searched for a training-data manifest (not just skimmed for something
+        else). Leaving one unchecked is useful information, not a failure — it tells the drafter where to look next.
+        This maps directly to the entry's `discovery` block (schema/registry.schema.json).
+      options:
+        - label: Data availability statement
+        - label: Code availability statement
+        - label: Every supplementary file (titles, not just the ones the availability statement mentions)
+        - label: Methods section
+        - label: GitHub repo
+        - label: Hugging Face model card
+        - label: Hugging Face dataset card
+        - label: Zenodo / figshare / other archive deposit
+        - label: Checked whether a published version supersedes a preprint
+    validations:
+      required: false
+
+  - type: textarea
+    id: manifest-file
+    attributes:
+      label: Manifest file (optional attachment)
+      description: >
+        If you have the training-data manifest itself (a downloaded supplementary file, a file the authors sent
+        you), drag and drop it here, or paste its contents / a link to it.
+
+        A file attached this way is recorded as `acquired: supplied` and every verdict drawn from it is capped at
+        `INCONCLUSIVE` until someone confirms it is actually the paper's file (by URL hash, by reconciling its
+        contents to a total the paper prints, or by author confirmation). That's a deliberate limit, not a bug —
+        see `docs/RULES.md`.
+      placeholder: "Drag a file here, or paste a link / the relevant rows."
+    validations:
+      required: false
+
+  - type: textarea
+    id: evaluation-datasets
+    attributes:
+      label: Evaluation datasets
+      description: >
+        Which datasets does this model's own paper evaluate on? Accessions (GSE…, E-MTAB-…, etc.) if you have them —
+        otherwise just the name used in the paper. These are matched against the shared `datasets/` catalog, and a
+        new entry is added there if needed.
+      placeholder: |
+        - Norman 2019 (GSE133344) — perturbation prediction
+        - Zheng68K — cell-type annotation
+    validations:
+      required: false
+
+  - type: dropdown
+    id: relationship
+    attributes:
+      label: Your relationship to this model
+      description: >
+        Disclosed, not gatekept — authors and users are welcome to submit their own or others' models. This is
+        recorded on the submission so reviewers have the context, not to filter who may submit.
+      options:
+        - "Author of the model or paper"
+        - "User of the model (not an author)"
+        - "Unaffiliated"
+    validations:
+      required: true
+
+  - type: textarea
+    id: training-stages
+    attributes:
+      label: Training stages (if known)
+      description: >
+        Some models train in more than one stage with different data (for example an embedding-pretraining stage
+        followed by a task-specific training stage). If you know the model has distinct stages, list them and, if
+        possible, what each one trained on. Leave blank if the model has a single training stage or you're not sure.
+      placeholder: |
+        - pretraining: <corpus name>
+        - fine-tuning: <corpus or dataset>
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        After you submit, a maintainer will draft a pull request from this issue. You don't need to do anything
+        further unless asked for clarification.

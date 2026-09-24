@@ -1,0 +1,11 @@
+schema_version: 1
+id: luecken2021-bmmc
+name: BMMC multiome (NeurIPS 2021)
+kind: multimodal
+organism: [human]
+identifiers:
+  - {type: geo, value: GSE194122, confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-09-23"}
+note: >
+  GEO title "A sandbox for prediction and integration of DNA, RNA, and proteins in single
+  cells". NO PubMed record (GSE194122 pubmedids is empty) and no DOI resolved yet, so a
+  manifest keyed by DOI or PMID cannot be searched for it exactly.

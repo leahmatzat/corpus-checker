@@ -1,0 +1,91 @@
+{
+  "accessions": [
+    "GSE90546",
+    "PRJNA354963",
+    "SRP094654"
+  ],
+  "doi": "10.1016/j.cell.2016.11.048",
+  "organism": "Homo sapiens",
+  "pmcid": "PMC5315571",
+  "pmids": [
+    "27984733"
+  ],
+  "query": "27984733",
+  "retrieved": "2026-09-23",
+  "samples": [
+    [
+      "GSM2406675",
+      "Pilot TF experiment cells"
+    ],
+    [
+      "GSM2406676",
+      "Pilot TF experiment guide barcodes"
+    ],
+    [
+      "GSM2406677",
+      "Epistasis experiment cells"
+    ],
+    [
+      "GSM2406678",
+      "Epistasis experiment guide barcodes (gemgroup 1)"
+    ],
+    [
+      "GSM2406679",
+      "Epistasis experiment guide barcodes (gemgroup 2)"
+    ],
+    [
+      "GSM2406680",
+      "Epistasis experiment guide barcodes (gemgroup 3)"
+    ],
+    [
+      "GSM2406681",
+      "UPR Perturb-seq experiment cells"
+    ],
+    [
+      "GSM2406682",
+      "UPR Perturb-seq experiment guide barcodes (gemgroup 1)"
+    ],
+    [
+      "GSM2406683",
+      "UPR Perturb-seq experiment guide barcodes (gemgroup 2)"
+    ],
+    [
+      "GSM2406684",
+      "UPR Perturb-seq experiment guide barcodes (gemgroup 3)"
+    ],
+    [
+      "GSM2406685",
+      "UPR Perturb-seq experiment guide barcodes (gemgroup 4)"
+    ],
+    [
+      "GSM2406686",
+      "UPR Perturb-seq experiment guide barcodes (gemgroup 5)"
+    ],
+    [
+      "GSM2406687",
+      "UPR Perturb-seq experiment guide barcodes (gemgroup 6)"
+    ],
+    [
+      "GSM2406688",
+      "UPR Perturb-seq experiment guide barcodes (gemgroup 7)"
+    ],
+    [
+      "GSM2406689",
+      "UPR Perturb-seq experiment guide barcodes (gemgroup 8)"
+    ],
+    [
+      "GSM2406690",
+      "UPR Perturb-seq experiment guide barcodes (gemgroup 9)"
+    ],
+    [
+      "GSM2406691",
+      "UPR Perturb-seq experiment guide barcodes (gemgroup 10)"
+    ]
+  ],
+  "sources": [
+    "esummary.fcgi?db=pubmed",
+    "elink.fcgi?dbfrom=pubmed&db=gds",
+    "esummary.fcgi?db=gds"
+  ],
+  "title": "A Multiplexed Single-Cell CRISPR Screening Platform Enables Systematic Dissection of the Unfolded Protein Response."
+}

@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leahmatzat/corpus-checker/blob/main/schema/dataset.schema.json",
+  "title": "corpus-checker dataset catalog entry (schema_version 1)",
+  "description": "One benchmark dataset, with every identifier it is known by. Registry findings and evaluated_on lists point here by id; the ledger joins on it. Identifiers are what matching uses, so an identifier that has not been confirmed does not count toward keys_attempted (G14).",
+  "type": "object",
+  "required": ["schema_version", "id", "name", "identifiers"],
+  "additionalProperties": false,
+
+  "properties": {
+    "schema_version": { "const": 1 },
+    "id":    { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Must equal the file name stem. Convention: first-author surname + year, plus a suffix when one paper yields several datasets (zheng2017-pbmc68k)." },
+    "name":  { "type": "string", "minLength": 1, "description": "The name the field uses — 'Norman 2019', 'Zheng68K'." },
+    "title": { "type": "string", "description": "Source publication title. Filled from the crosswalk, not typed by hand." },
+    "kind":  { "enum": ["perturbation", "observational", "multimodal"] },
+    "organism": { "type": "array", "items": { "type": "string" } },
+    "identifiers": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/identifier" }
+    },
+    "subsets": {
+      "type": "array",
+      "description": "When one publication or accession holds several datasets that are evaluated separately — Replogle 2022 K562-GW / K562-essential / RPE1.",
+      "items": { "$ref": "#/$defs/subset" }
+    },
+    "sources": {
+      "type": "array",
+      "description": "Where the field obtains this dataset in practice. The GEARS repo is the common answer for Norman / Adamson / Dixit.",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "url":  { "type": "string", "format": "uri" },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "note": { "type": "string" }
+  },
+
+  "$defs": {
+    "identifier": {
+      "type": "object",
+      "required": ["type", "value", "confirmed"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": ["geo", "arrayexpress", "sra", "bioproject", "ega", "scp", "hca", "cellxgene_collection", "cellxgene_dataset", "hf_dataset", "figshare", "zenodo", "synapse", "pmid", "doi", "url"],
+          "description": "pmid → match key 'pmid'; doi → 'doi'; url → not matchable; everything else → 'accession'."
+        },
+        "value":     { "type": ["string", "integer"] },
+        "confirmed": { "type": "boolean", "description": "true = resolved through the crosswalk or checked against a primary source. Unconfirmed identifiers are recorded but never count as an attempted key." },
+        "via":       { "type": "string", "description": "How it was confirmed: crosswalk entry, API call, or the verified registry entry it came from." },
+        "note":      { "type": "string" }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "geo" } } },          "then": { "properties": { "value": { "type": "string", "pattern": "^GS[EM]\\d+$" } } } },
+        { "if": { "properties": { "type": { "const": "arrayexpress" } } }, "then": { "properties": { "value": { "type": "string", "pattern": "^E-[A-Z]{4}-\\d+$" } } } },
+        { "if": { "properties": { "type": { "const": "sra" } } },          "then": { "properties": { "value": { "type": "string", "pattern": "^[SED]R[APRSX]\\d+$" } } } },
+        { "if": { "properties": { "type": { "const": "bioproject" } } },   "then": { "properties": { "value": { "type": "string", "pattern": "^PRJ[NED][A-Z]?\\d+$" } } } },
+        { "if": { "properties": { "type": { "const": "ega" } } },          "then": { "properties": { "value": { "type": "string", "pattern": "^EGA[SD]\\d+$" } } } },
+        { "if": { "properties": { "type": { "const": "scp" } } },          "then": { "properties": { "value": { "type": "string", "pattern": "^SCP\\d+$" } } } },
+        { "if": { "properties": { "type": { "const": "pmid" } } },         "then": { "properties": { "value": { "type": ["string", "integer"], "pattern": "^\\d+$" } } } },
+        { "if": { "properties": { "type": { "const": "doi" } } },          "then": { "properties": { "value": { "type": "string", "pattern": "^10\\.\\d{4,}/\\S+$" } } } },
+        { "if": { "properties": { "type": { "const": "url" } } },          "then": { "properties": { "value": { "type": "string", "format": "uri" } } } }
+      ]
+    },
+
+    "subset": {
+      "type": "object",
+      "required": ["id", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "id":          { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+        "name":        { "type": "string" },
+        "identifiers": { "type": "array", "items": { "$ref": "#/$defs/identifier" } },
+        "samples":     { "type": "array", "items": { "type": "string" }, "description": "Sample accessions (GSM…) in this subset, when known." },
+        "note":        { "type": "string" }
+      }
+    }
+  }
+}

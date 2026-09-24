@@ -1,0 +1,17 @@
+{
+  "accessions": [],
+  "doi": "10.1016/j.cmet.2016.08.020",
+  "organism": null,
+  "pmcid": "PMC5069352",
+  "pmids": [
+    "27667667"
+  ],
+  "query": "27667667",
+  "retrieved": "2026-09-23",
+  "samples": [],
+  "sources": [
+    "esummary.fcgi?db=pubmed",
+    "elink.fcgi?dbfrom=pubmed&db=gds"
+  ],
+  "title": "Single-Cell Transcriptome Profiling of Human Pancreatic Islets in Health and Type 2 Diabetes."
+}

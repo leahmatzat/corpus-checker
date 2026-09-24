@@ -1,0 +1,37 @@
+CC0 1.0 Universal — Public Domain Dedication
+
+The registry data in this directory (registry/*.yaml) is dedicated to the public
+domain under Creative Commons CC0 1.0 Universal.
+
+To the extent possible under law, Leah Matzat has waived all copyright and
+related or neighboring rights to the corpus-checker registry. This work is
+published from the United States.
+
+Full legal text: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Summary:        https://creativecommons.org/publicdomain/zero/1.0/
+
+SPDX-License-Identifier: CC0-1.0
+
+
+WHY CC0
+
+These entries are factual records about published papers. Facts are not
+copyrightable; a compilation of them may be. CC0 removes that ambiguity so
+anyone can embed, redistribute or build on the registry without asking.
+
+Attribution is requested but NOT required. If you use the registry in published
+work, please cite it — see CITATION.cff. Credit here works by scholarly norm
+rather than by legal obligation, which is how citation actually functions and
+which imposes no barrier on reuse.
+
+
+WHAT THIS DOES NOT COVER
+
+- The software in this repository, which is MIT licensed. See ../LICENSE.
+- Quoted data-availability statements, which are short factual quotations from
+  the cited papers, used for identification, and remain the property of their
+  publishers.
+- The underlying papers, corpora and supplementary files referenced by URL.
+  Each carries its own license — for example, Genecorpus-30M is Apache-2.0.
+  Nothing here relicenses them; the registry records pointers and hashes, not
+  redistributed content.

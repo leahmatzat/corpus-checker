@@ -1,0 +1,87 @@
+{
+  "accessions": [
+    "GSE133344",
+    "PRJNA551220",
+    "SRP212114"
+  ],
+  "doi": "10.1126/science.aax4438",
+  "organism": "Homo sapiens",
+  "pmcid": "PMC6746554",
+  "pmids": [
+    "31395745"
+  ],
+  "query": "GSE133344",
+  "retrieved": "2026-09-23",
+  "samples": [
+    [
+      "GSM3906020",
+      "sgRNA perturb-seq experiment (gemgroup 1)"
+    ],
+    [
+      "GSM3906021",
+      "sgRNA perturb-seq experiment (gemgroup 2)"
+    ],
+    [
+      "GSM3906022",
+      "sgRNA perturb-seq experiment (gemgroup 3)"
+    ],
+    [
+      "GSM3906023",
+      "sgRNA perturb-seq experiment (gemgroup 4)"
+    ],
+    [
+      "GSM3906024",
+      "sgRNA perturb-seq experiment (gemgroup 5)"
+    ],
+    [
+      "GSM3906025",
+      "sgRNA perturb-seq experiment (gemgroup 6)"
+    ],
+    [
+      "GSM3906026",
+      "sgRNA perturb-seq experiment (gemgroup 7)"
+    ],
+    [
+      "GSM3906027",
+      "sgRNA perturb-seq experiment (gemgroup 8)"
+    ],
+    [
+      "GSM3906028",
+      "Barcodes identifying perturbations (gemgroup 1)"
+    ],
+    [
+      "GSM3906029",
+      "Barcodes identifying perturbations (gemgroup 2)"
+    ],
+    [
+      "GSM3906030",
+      "Barcodes identifying perturbations (gemgroup 3)"
+    ],
+    [
+      "GSM3906031",
+      "Barcodes identifying perturbations (gemgroup 4)"
+    ],
+    [
+      "GSM3906032",
+      "Barcodes identifying perturbations (gemgroup 5)"
+    ],
+    [
+      "GSM3906033",
+      "Barcodes identifying perturbations (gemgroup 6)"
+    ],
+    [
+      "GSM3906034",
+      "Barcodes identifying perturbations (gemgroup 7)"
+    ],
+    [
+      "GSM3906035",
+      "Barcodes identifying perturbations (gemgroup 8)"
+    ]
+  ],
+  "sources": [
+    "esearch.fcgi?db=gds",
+    "esummary.fcgi?db=gds",
+    "esummary.fcgi?db=pubmed"
+  ],
+  "title": "Exploring genetic interaction manifolds constructed from rich phenotypes"
+}

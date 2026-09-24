@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}{{ model.model }} — corpus-checker{% endblock %}
+{% block content %}
+<article>
+  <h1>{{ model.model }}{% if model.draft %} {{ m.draft_badge() }}{% endif %}</h1>
+
+  <dl class="model-meta">
+    <div><dt>Version</dt><dd>{{ model.version or "not recorded" }}</dd></div>
+    <div><dt>Model class</dt><dd>{{ model.model_class }}{% if model_class_explanations.get(model.model_class) %} — {{ model_class_explanations[model.model_class] }}{% endif %}</dd></div>
+    <div><dt>Paper</dt><dd>
+    {% if model.paper.doi %}<a href="https://doi.org/{{ model.paper.doi }}">DOI {{ model.paper.doi }}</a>{% endif %}
+    {% if model.paper.pmid %} · <a href="https://pubmed.ncbi.nlm.nih.gov/{{ model.paper.pmid }}/">PMID {{ model.paper.pmid }}</a>{% endif %}
+    {% if model.paper.journal %} · {{ model.paper.journal }}{% endif %}
+    {% if model.paper.published %} · {{ model.paper.published }}{% endif %}
+    </dd></div>
+    <div><dt>Verified</dt><dd>
+    {% if model.draft %}
+      {{ m.draft_badge() }} — no verifier has signed this entry yet.
+    {% else %}
+      {{ model.verified_by }} on {{ model.verified_date }}
+    {% endif %}
+    </dd></div>
+  </dl>
+
+{% if model.paper.note %}
+  <p class="note">{{ model.paper.note }}</p>
+{% endif %}
+
+{% if model.disputed %}
+  <section class="dispute" aria-labelledby="dispute-h">
+    <h2 id="dispute-h">Disputed</h2>
+    <p>Raised by {{ model.disputed.raised_by }} on {{ model.disputed.date }}:</p>
+    <blockquote>{{ model.disputed.statement }}</blockquote>
+  {% if model.disputed.response %}
+    <p><strong>Response:</strong> {{ model.disputed.response }}</p>
+  {% endif %}
+    <p class="dispute-status">Status: {{ "resolved" if model.disputed.resolved else "open" }}</p>
+  </section>
+{% endif %}
+
+{% for corpus in model.corpora %}
+  <section class="corpus" aria-labelledby="corpus-h-{{ corpus.stage }}">
+    <h2 id="corpus-h-{{ corpus.stage }}">{{ corpus.name or corpus.stage }} <span class="stage-label">({{ corpus.stage }})</span></h2>
+
+    <p class="manifest-type">Manifest type <strong>{{ corpus.manifest_type }}</strong>
+    {% if manifest_type_explanations.get(corpus.manifest_type) %} — {{ manifest_type_explanations[corpus.manifest_type] }}{% endif %}
+    </p>
+
+    <blockquote class="quote" cite="#">{{ corpus.quote }}</blockquote>
+
+  {% if corpus.pointer %}
+    <div class="pointer-info">
+      <p><strong>Points to:</strong> {{ corpus.pointer.corpus }}{% if corpus.pointer.release %} ({{ corpus.pointer.release }}){% endif %}</p>
+    {% if corpus.pointer.superset_size %}<p>Superset size: {{ corpus.pointer.superset_size }}</p>{% endif %}
+    {% if corpus.pointer.model_used %}<p>What this model actually used: {{ corpus.pointer.model_used }}</p>{% endif %}
+    {% if corpus.pointer.url %}<p><a href="{{ corpus.pointer.url }}">{{ corpus.pointer.url }}</a></p>{% endif %}
+    </div>
+  {% endif %}
+
+  {% if corpus.sources %}
+    <h3>Sources</h3>
+    <div class="table-scroll">
+    <table>
+      <caption class="sr-only">Manifest sources for {{ corpus.name or corpus.stage }}</caption>
+      <thead>
+        <tr><th scope="col">Name</th><th scope="col">SHA-256</th><th scope="col">Confirmation</th><th scope="col">Acquired</th></tr>
+      </thead>
+      <tbody>
+      {% for s in corpus.sources %}
+        <tr>
+          <td>{% if s.url %}<a href="{{ s.url }}">{{ s.name }}</a>{% else %}{{ s.name }}{% endif %}{% if s.records %} <span class="muted">({{ s.records }} records)</span>{% endif %}</td>
+          <td>{% if s.sha256 %}<code title="{{ s.sha256 }}">{{ s.sha256[:12] }}…</code>{% else %}—{% endif %}</td>
+          <td>{% if s.confirmation %}{{ s.confirmation.method }}{% if confirmation_explanations.get(s.confirmation.method) %} — {{ confirmation_explanations[s.confirmation.method] }}{% endif %}{% else %}—{% endif %}</td>
+          <td>{{ s.acquired or "—" }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% endif %}
+
+    <p class="sources-searched"><strong>Sources searched:</strong>
+    {% if corpus.sources_searched %}
+      {{ corpus.sources_searched | join(", ") }}
+    {% else %}
+      (nothing to search — no manifest was published)
+    {% endif %}
+    </p>
+
+  {% if corpus.caveats %}
+    <h3>Caveats</h3>
+    <ul class="caveats">
+    {% for c in corpus.caveats %}
+      <li>{{ c }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+
+    <h3>Findings</h3>
+  {% if corpus.self_eval_findings %}
+    <h4>Self-evaluation <span class="section-note">— this model's own evaluation datasets</span></h4>
+    <ul class="findings">
+    {% for f in corpus.self_eval_findings %}
+      <li id="finding-{{ f.dataset }}-{{ f.stage }}" class="finding">
+        <a href="../datasets/{{ f.dataset }}.html">{{ f.dataset_name }}</a>
+        {{ m.verdict_chip(f.verdict) }}
+        {{ m.self_eval_marker() }}
+        <div class="finding-detail">
+        {% if f.keys_attempted %}<p>Keys attempted: {{ f.keys_attempted | join(", ") }}</p>{% endif %}
+        {% if f.matched_on %}<p>Matched on: {{ f.matched_on | join(", ") }}</p>{% endif %}
+        {% if f.samples is not none or f.cells is not none %}
+          <p>{% if f.samples is not none %}{{ f.samples }} sample(s){% endif %}{% if f.cells is not none %} · {{ "{:,}".format(f.cells) }} cells{% endif %}</p>
+        {% endif %}
+        {% if f.sample_ids %}<p>Sample IDs: {{ f.sample_ids | join(", ") }}</p>{% endif %}
+        {% if f.overlap_level %}<p>Overlap level: {{ f.overlap_level }}</p>{% endif %}
+        {% if f.reason %}<p class="reason">{{ f.reason }}</p>{% endif %}
+        {% if f.note %}<p class="note">{{ f.note }}</p>{% endif %}
+        </div>
+      </li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+  {% if corpus.catalog_findings %}
+    <h4>Catalog <span class="section-note">— every other dataset in the shared benchmark catalog</span></h4>
+    <ul class="findings">
+    {% for f in corpus.catalog_findings %}
+      <li id="finding-{{ f.dataset }}-{{ f.stage }}" class="finding">
+        <a href="../datasets/{{ f.dataset }}.html">{{ f.dataset_name }}</a>
+        {{ m.verdict_chip(f.verdict) }}
+        <div class="finding-detail">
+        {% if f.keys_attempted %}<p>Keys attempted: {{ f.keys_attempted | join(", ") }}</p>{% endif %}
+        {% if f.matched_on %}<p>Matched on: {{ f.matched_on | join(", ") }}</p>{% endif %}
+        {% if f.samples is not none or f.cells is not none %}
+          <p>{% if f.samples is not none %}{{ f.samples }} sample(s){% endif %}{% if f.cells is not none %} · {{ "{:,}".format(f.cells) }} cells{% endif %}</p>
+        {% endif %}
+        {% if f.sample_ids %}<p>Sample IDs: {{ f.sample_ids | join(", ") }}</p>{% endif %}
+        {% if f.overlap_level %}<p>Overlap level: {{ f.overlap_level }}</p>{% endif %}
+        {% if f.reason %}<p class="reason">{{ f.reason }}</p>{% endif %}
+        {% if f.note %}<p class="note">{{ f.note }}</p>{% endif %}
+        </div>
+      </li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+  </section>
+{% endfor %}
+</article>
+{% endblock %}

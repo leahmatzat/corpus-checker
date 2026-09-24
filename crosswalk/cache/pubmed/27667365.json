@@ -1,0 +1,47 @@
+{
+  "accessions": [
+    "GSE84133",
+    "PRJNA328774",
+    "SRP078321"
+  ],
+  "doi": "10.1016/j.cels.2016.08.011",
+  "organism": "Homo sapiens; Mus musculus",
+  "pmcid": "PMC5228327",
+  "pmids": [
+    "27667365"
+  ],
+  "query": "27667365",
+  "retrieved": "2026-09-23",
+  "samples": [
+    [
+      "GSM2230757",
+      "human pancreatic islets, sample 1"
+    ],
+    [
+      "GSM2230758",
+      "human pancreatic islets, sample 2"
+    ],
+    [
+      "GSM2230759",
+      "human pancreatic islets, sample 3"
+    ],
+    [
+      "GSM2230760",
+      "human pancreatic islets, sample 4"
+    ],
+    [
+      "GSM2230761",
+      "mouse pancreatic islets, sample 1"
+    ],
+    [
+      "GSM2230762",
+      "mouse pancreatic islets, sample 2"
+    ]
+  ],
+  "sources": [
+    "esummary.fcgi?db=pubmed",
+    "elink.fcgi?dbfrom=pubmed&db=gds",
+    "esummary.fcgi?db=gds"
+  ],
+  "title": "A Single-Cell Transcriptomic Map of the Human and Mouse Pancreas Reveals Inter- and Intra-cell Population Structure."
+}

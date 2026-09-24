@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}{{ dataset.name }} — corpus-checker{% endblock %}
+{% block content %}
+<article>
+  <h1>{{ dataset.name }}</h1>
+{% if dataset.kind or dataset.organism %}
+  <p class="meta">
+  {% if dataset.kind %}Kind: {{ dataset.kind }}{% endif %}
+  {% if dataset.organism %}{% if dataset.kind %} · {% endif %}Organism: {{ dataset.organism | join(", ") }}{% endif %}
+  </p>
+{% endif %}
+{% if dataset.note %}
+  <p class="note">{{ dataset.note }}</p>
+{% endif %}
+
+  <h2>Identifiers</h2>
+  <ul class="identifiers">
+  {% for ident in dataset.identifiers %}
+    <li><span class="ident-type">{{ ident.type }}</span>:
+    {% if ident.url %}<a href="{{ ident.url }}">{{ ident.value }}</a>{% else %}{{ ident.value }}{% endif %}
+    {% if not ident.confirmed %} <span class="unconfirmed">(unconfirmed — does not count as an attempted match key)</span>{% endif %}
+    {% if ident.via %} <span class="muted">({{ ident.via }})</span>{% endif %}
+    </li>
+  {% endfor %}
+  </ul>
+
+{% if dataset.sources %}
+  <h2>Where the field obtains it</h2>
+  <ul class="sources">
+  {% for s in dataset.sources %}
+    <li>{% if s.url %}<a href="{{ s.url }}">{{ s.name }}</a>{% else %}{{ s.name }}{% endif %}{% if s.note %} — {{ s.note }}{% endif %}</li>
+  {% endfor %}
+  </ul>
+{% endif %}
+
+  <h2>Evaluated by</h2>
+{% if dataset.evaluated_by_models %}
+  <ul>
+  {% for model in dataset.evaluated_by_models %}
+    <li><a href="../models/{{ model.id }}.html">{{ model.name }}</a>{% if model.draft %} {{ m.draft_badge() }}{% endif %}</li>
+  {% endfor %}
+  </ul>
+{% else %}
+  <p>No model in the registry lists this dataset among its own evaluations.</p>
+{% endif %}
+
+  <h2>Every row for this dataset</h2>
+  <div class="table-scroll">
+  <table>
+    <caption class="sr-only">Every model checked against {{ dataset.name }}, by training stage</caption>
+    <thead>
+      <tr><th scope="col">Model</th><th scope="col">Stage</th><th scope="col">Relation</th><th scope="col">Verdict</th><th scope="col">Evidence</th></tr>
+    </thead>
+    <tbody>
+    {% for r in dataset.rows %}
+      <tr>
+        <td><a href="../models/{{ r.model_id }}.html#finding-{{ dataset.id }}-{{ r.stage }}">{{ r.model_name }}</a>{% if r.model_draft %} {{ m.draft_badge() }}{% endif %}</td>
+        <td>{{ r.stage }}</td>
+        <td>{{ r.relation }}{% if r.relation == "self-eval" %} {{ m.self_eval_marker() }}{% endif %}</td>
+        <td>{{ m.verdict_chip(r.verdict) }}</td>
+        <td>{{ r.evidence }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+{% if dataset.reuse %}
+  <h2>Reuse</h2>
+  <ul>
+  {% for x in dataset.reuse %}
+    <li>{{ m.reuse_sentence("../", dataset.id, dataset.name, x.train_id, x.train_name, x.stage, x.eval_id, x.eval_name) }}</li>
+  {% endfor %}
+  </ul>
+{% endif %}
+</article>
+{% endblock %}

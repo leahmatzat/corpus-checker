@@ -1,0 +1,61 @@
+name: "Correction"
+description: "Flag a factual error in an existing registry entry — a wrong accession, a missed manifest file, a stale date, a superseded preprint."
+title: "[correction] "
+labels: ["correction"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every entry names its sources — a quote, a URL, a `sha256`, the keys it attempted. If you can point at the
+        specific line that's wrong, a correction is easy to make and easy to verify.
+
+        **A pull request is the fast path**, if you're able to make one: edit `registry/{model}.yaml` directly, run
+        `corpus-checker validate --allow-draft`, and open the PR. This issue form is just as welcome, though —
+        not everyone who can spot an error has occasion to open a PR, and a bench biologist catching a mis-resolved
+        accession shouldn't need one.
+
+  - type: input
+    id: entry-file
+    attributes:
+      label: Registry entry file
+      description: The file the correction applies to.
+      placeholder: "registry/scfoundation.yaml"
+    validations:
+      required: true
+
+  - type: input
+    id: claim
+    attributes:
+      label: Which claim is wrong
+      description: Point at the specific field or line — a verdict, an accession, a quote, a date, a source URL.
+      placeholder: "corpora[0].result.findings — <dataset> NOT PRESENT"
+    validations:
+      required: true
+
+  - type: textarea
+    id: whats-wrong
+    attributes:
+      label: What is wrong
+      description: Describe the error as specifically as you can.
+      placeholder: "The accession listed for this dataset belongs to a different dataset from the same paper."
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: A URL, a verbatim quote, an accession, or another primary-source pointer that supports the correction.
+      placeholder: |
+        URL: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE93421
+        Quote: "..."
+        Accession: GSE...
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        CI re-runs every guard (`docs/RULES.md`) on any PR that results from this — including G03, which requires
+        a verifier to re-sign the entry before the correction can merge.

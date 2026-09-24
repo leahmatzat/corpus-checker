@@ -1,0 +1,50 @@
+name: validate
+
+# The real guard on the registry — every rule in docs/RULES.md, enforced on every PR.
+# Exit codes: 0 clean · 1 tool error · 2 violation. A verdict never fails the build;
+# only a rule violation does.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 6 * * 1"   # weekly manifest-drift check (G04)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guards:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # G03 diffs against the PR base
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e '.[dev]'
+      - name: Tests (guards fire; known open issues unchanged)
+        run: pytest -q
+      - name: Validate registry against the PR base (G00–G18, incl. G03 stale verification)
+        if: github.event_name == 'pull_request'
+        run: corpus-checker validate --base-ref "origin/${{ github.base_ref }}"
+      - name: Validate registry
+        if: github.event_name != 'pull_request'
+        run: corpus-checker validate
+
+  manifest-drift:
+    # Re-fetches every manifest source and compares sha256. A mismatch fails (the manifest
+    # moved); an unreachable URL only warns — publisher sites often block CI runners.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - run: corpus-checker validate --check-sources --allow-draft

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}corpus-checker — models × datasets{% endblock %}
+{% block content %}
+<section class="intro">
+  <h1>corpus-checker</h1>
+  <p>{{ intro_paragraph }}</p>
+</section>
+
+<section class="legend" aria-labelledby="legend-h">
+  <h2 id="legend-h">Reading the matrix</h2>
+  <dl class="verdict-legend">
+  {% for v, desc in verdict_explanations.items() %}
+    <div class="legend-row"><dt>{{ m.verdict_chip(v) }}</dt><dd>{{ desc }}</dd></div>
+  {% endfor %}
+    <div class="legend-row"><dt>{{ m.self_eval_marker() }}</dt><dd>The model's own paper evaluated on this dataset. Every other finding checks the dataset against the shared catalog.</dd></div>
+    <div class="legend-row"><dt>{{ m.draft_badge() }}</dt><dd>Drafted but not yet signed off by a verifier — shown wherever this model appears.</dd></div>
+  </dl>
+  <p class="empty-cell-note"><span class="empty-cell" aria-hidden="true">–</span> An empty cell means that model/dataset pair has not been checked — it is not a verdict.</p>
+</section>
+
+<section class="matrix-section" aria-labelledby="matrix-h">
+  <h2 id="matrix-h">Models × datasets</h2>
+  <p>Rows are datasets, columns are models, in alphabetical order. Each cell shows one chip per training stage checked for that pair — click a chip for the full finding, evidence and caveats.</p>
+  <div class="matrix-scroll">
+    <table class="matrix">
+      <caption class="sr-only">Verdict for each benchmark dataset against each model, by training stage. Each cell is a finding for one pair, never a per-model summary.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Dataset</th>
+        {% for model in matrix_models %}
+          <th scope="col">
+            <a href="models/{{ model.id }}.html">{{ model.name }}</a>
+          {% if model.draft %}
+            <br>{{ m.draft_badge() }}
+          {% endif %}
+          </th>
+        {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+      {% for row in matrix_rows %}
+        <tr>
+          <th scope="row"><a href="datasets/{{ row.id }}.html">{{ row.name }}</a></th>
+        {% for model in matrix_models %}
+          <td>
+          {% set cell = row.cells.get(model.id) %}
+          {% if cell %}
+            {% for f in cell %}
+            <a class="cell-finding" href="models/{{ model.id }}.html#finding-{{ row.id }}-{{ f.stage }}">
+              {{ m.verdict_chip(f.verdict) }}
+            {% if matrix_multi_stage %}
+              <span class="stage-tag">{{ f.stage }}</span>
+            {% endif %}
+            {% if f.relation == "self-eval" %}
+              {{ m.self_eval_marker() }}
+            {% endif %}
+            </a>
+            {% endfor %}
+          {% else %}
+            <span class="empty-cell" title="Not checked">–</span>
+          {% endif %}
+          </td>
+        {% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="reuse" aria-labelledby="reuse-h">
+  <h2 id="reuse-h">Reuse</h2>
+  <p>The same dataset can be training data for one model and evaluation data for another — that overlap is what this section surfaces.</p>
+{% if reuse_sentences %}
+  <ul>
+  {% for s in reuse_sentences %}
+    <li>{{ m.reuse_sentence("", s.dataset_id, s.dataset_name, s.train_id, s.train_name, s.stage, s.eval_id, s.eval_name) }}</li>
+  {% endfor %}
+  </ul>
+{% else %}
+  <p>No cross-model reuse found in the current registry.</p>
+{% endif %}
+</section>
+{% endblock %}

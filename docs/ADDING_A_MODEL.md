@@ -21,6 +21,8 @@
 >
 > ⇒ **Two different failure modes, same wrong answer.** ★ **Open the supplementary file list and look at every table's title before concluding a manifest does not exist.** *A file called `*_composition` is a manifest whatever the availability statement says.*
 
+**★ 2b. Record where you looked in the entry's `discovery` block — including the places you found nothing.** Nine locations: data availability · code availability · supplementary files *(list every title in `files`)* · methods · GitHub repo · HF model card · HF dataset card · Zenodo/figshare · preprint vs published. **`checked: true` means you looked there *for a training-data manifest*** — having browsed the repo for something else does not count. *CI (G11) refuses `NOT CHECKABLE` until all nine are checked.*
+
 **3. Regex every accession.** `GSE\d+` · `GSM\d+` · `E-MTAB-\d+` · `SRP\d+` · `PRJNA\d+` · `10\.\d{4,}/\S+` · `figshare|zenodo|dataverse`
 
 **4. ★ Classify the manifest type. This is the whole job.**
@@ -50,6 +52,16 @@ Does the paper point to a file listing its training data?
 > ★★ **The hash is what makes `as_of` mean anything.** A date says *when* we looked; the hash says *what we looked at*. ⇒ **Anyone re-downloading can confirm they hold the same file we scored** — and if they do not, the disagreement is located immediately instead of being mistaken for an error in the check.
 > `sha256sum <file>` — for scFoundation: `786c6962…` (Data 1) and `681c1d88…` (Data 2).
 
+**★ 7a. Record how you got the file and how you know it is the paper's.** `acquired: fetched` if you downloaded it from `url` yourself *(confirmation is then `url_hash` by construction)*. `acquired: supplied` + `supplied_by` if someone handed it to you — then pick the strongest `confirmation` you can honestly claim:
+
+| method | when |
+|---|---|
+| `totals` | the file's contents add up to a number the paper prints — *Geneformer: Σ `Total_cells_passed` = 27,406,217, as in the Methods.* Put the number and where it is stated in `detail` |
+| `author` | the authors confirmed it in writing — link the issue in `detail` |
+| `none` | neither. **Honest, and allowed — but every verdict from this manifest is capped at `INCONCLUSIVE` (G09)** |
+
+> ⚠ **An inferred URL is not a followed URL.** *Geneformer's `url` was built from the Springer pattern and never opened.* Leave a `note`; the weekly drift job (G04) will say when the URL serves the same bytes, and a verifier can then upgrade to `url_hash`.
+
 ---
 
 ## Phase 3 — Extract the evaluation datasets *(human — the under-appreciated half)*
@@ -57,12 +69,15 @@ Does the paper point to a file listing its training data?
 **8. ★★★ Usually in the SAME availability statement as the training sources — sometimes the same paragraph.**
 *scGPT: `"Pretraining datasets can be retrieved from the CELLxGENE census…"` then a few sentences later `"For the perturbation prediction task, the Norman and Adamson datasets were retrieved from…"`* ⚠ **Conflating the two halves is the failure mode here. Read for the verb: *pretrained on* vs *evaluated on*.**
 
-**9. Resolve each to a canonical triple** — accession · DOI · PMID. **Reuse `crosswalk/`; do not re-resolve by hand.**
+**9. Resolve each to a canonical triple** — accession · DOI · PMID — **and find or add it in `datasets/`.** **Reuse `crosswalk/`; do not re-resolve by hand.** Mark an identifier `confirmed: true` only when it was resolved through the crosswalk or checked against a primary source — *an unconfirmed identifier never counts as an attempted key (G15)*.
+> ⚠ **Resolve, don't assume.** *The original scFoundation script searched `GSE93421` for Zheng68K. NCBI says `GSE93421` is the same paper's 1.3M-cell **mouse brain** dataset.*
 > ★ **The chain, verified working:**
 > `GSE133344` → eUtils `esearch db=gds` → UID `200133344` → `esummary` → `pubmedids: ["31395745"]` → NCBI ID Converter → `10.1126/science.aax4438`
 > ★★ `esummary` **also returns every sample accession with its title** — *"sgRNA perturb-seq experiment"* — which is a **better perturbation detector than grepping study titles** *(grepping "screen" pulled in a thalamic-development collection)*.
 
-**10. Tag which task each dataset serves.** *A model can be clean on one task and contaminated on another.*
+**10. Tag which task each dataset serves** in `evaluated_on`. *A model can be clean on one task and exposed on another.* These become the model's **self-eval** findings; the rest of the catalog is checked too and shown as **catalog** findings.
+
+**10a. One corpus per training stage.** If the model trains in stages with different data *(STATE: embedding pretraining, then perturbation training)*, each stage gets its own `corpora[]` entry with its own manifest and findings.
 
 ---
 
@@ -72,13 +87,15 @@ Does the paper point to a file listing its training data?
 
 **12. ⚠ Match on BOTH accession and PMID — never one.** *scFoundation's study table had **161 of 522 rows with a blank PMID**, and its sample table had **134 of 656 projects with no title or PMID at all**. Either key alone silently misses rows.*
 
-**13. Apply the verdict rules** *(`NOT PRESENT` needs every source searched; keyword hits never decide)*. **Keyword-only hits are `INCONCLUSIVE`, never `PRESENT`.** **Type-B can return `NOT PRESENT`, never `PRESENT`.**
+**13. Apply the verdict rules** *(see [`RULES.md`](RULES.md))*. **Keyword-only hits are `INCONCLUSIVE`, never `PRESENT`.** **Type-B can return `NOT PRESENT`, never `PRESENT`.**
 
 ---
 
 ## Phase 5 — Record *(non-negotiable)*
 
-**14. Write `registry/{model}.yaml`** — see `registry/scfoundation.yaml` for the worked example. **Every claim carries a source quote.**
+**14. Write `registry/{id}.yaml`** — see `registry/scfoundation.yaml` for the worked example. **Every claim carries a source quote.** The `id` is the file name and becomes a URL; add a variant suffix when a model has more than one corpus *(`geneformer-30m`)*. Record `keys_attempted` **per finding**.
+
+**14a. Run `corpus-checker validate --allow-draft`** until only G10 remains — that one is for the verifier.
 
 **15. Add a regression test.** *There is already one asserting scFoundation still returns Norman with 8 samples / 125,081 cells. **Each new model gets its own.*** ⚠ *Manifests move; the test is how you find out.*
 

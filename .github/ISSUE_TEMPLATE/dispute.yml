@@ -1,0 +1,58 @@
+name: "Dispute framing"
+description: "For someone — often a model author — who agrees with the facts in an entry but disputes how it is framed or presented."
+title: "[dispute] "
+labels: ["disputed"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This form is for a different situation than the "Correction" template: use it when you **don't disagree
+        with any fact** in an entry (the accession, the quote, the matched samples) but you object to how it reads,
+        or you want context recorded alongside it.
+
+        If you think a fact is actually wrong, use the **Correction** template instead — that's a diff against a
+        specific claim, and the fast path there is a pull request.
+
+        **The entry is never removed or hidden over a dispute.** What happens instead: a `disputed` label is
+        applied, your statement is recorded verbatim in the entry's YAML, and the entry stays visible with your
+        statement attached alongside it. Nothing here has a "reject" outcome that makes an entry disappear.
+
+  - type: input
+    id: entry-file
+    attributes:
+      label: Registry entry
+      description: Which entry this concerns.
+      placeholder: "registry/scfoundation.yaml"
+    validations:
+      required: true
+
+  - type: textarea
+    id: statement
+    attributes:
+      label: Statement to record verbatim
+      description: >
+        Write exactly what you want attached to the entry. This is recorded as-is (in the `disputed.statement`
+        field) — it is not paraphrased or edited for you, so write it the way you want it to read.
+      placeholder: "We agree the datasets listed overlap with our training corpus as described. We disagree that this framing..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affiliation
+    attributes:
+      label: Affiliation disclosure
+      description: Disclosed, not gatekept — this just gives readers context for the statement.
+      options:
+        - "Author of the model or paper"
+        - "Affiliated with the authors' lab or institution (not an author)"
+        - "Unaffiliated"
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        A maintainer will apply the `disputed` label and record your statement in the entry's YAML
+        (`disputed.raised_by`, `disputed.date`, `disputed.statement`). The entry, its sources, and your statement
+        all remain visible together.
