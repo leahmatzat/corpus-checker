@@ -37,18 +37,18 @@ class ApiLike(Protocol):
 
 
 # The front matter a STATIC Hugging Face Space needs to build at all. `short_description` is
-# kept under the Hub's ~60-character display limit. `emoji` is a plain, neutral signifier —
+# kept under the Hub's ~60-character display limit. Values match the Space card as the owner set it up —
 # not a verdict on any model.
 SPACE_README = """---
-title: corpus-checker
-emoji: \U0001f50e
-colorFrom: blue
-colorTo: gray
+title: Corpus Checker
+emoji: \U0001f316
+colorFrom: green
+colorTo: green
 sdk: static
 app_file: index.html
 pinned: false
-license: mit
-short_description: Does eval data appear in a model's training corpus?
+license: cc0-1.0
+short_description: find data overlaps in single cell FM training corpus
 ---
 
 corpus-checker reports whether single-cell foundation models' evaluation datasets appear in

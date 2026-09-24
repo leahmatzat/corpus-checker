@@ -65,11 +65,11 @@ def test_writes_readme_with_static_space_front_matter(build_dir):
     path = deploy_space.write_space_readme(build_dir)
     text = path.read_text(encoding="utf-8")
     assert text.startswith("---\n")
-    assert "title: corpus-checker" in text
+    assert "title: Corpus Checker" in text
     assert "sdk: static" in text
     assert "app_file: index.html" in text
     assert "pinned: false" in text
-    assert "license: mit" in text
+    assert "license: cc0-1.0" in text
     assert "short_description:" in text
     assert "emoji:" in text
     assert "colorFrom:" in text and "colorTo:" in text

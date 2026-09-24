@@ -50,7 +50,8 @@ Same location, but the **Variables** tab: **Settings → Secrets and variables �
 Variables → New repository variable**.
 
 - Name: `HF_SPACE_ID`
-- Value: `your-username/corpus-checker` (the Space's full id, as it appears in its URL)
+- Value: `lmatzat/corpus-checker` (the Space's full id, as it appears in its URL:
+  https://huggingface.co/spaces/lmatzat/corpus-checker)
 
 If this variable is unset and no `space_id` is given manually (next section), the deploy
 workflow exits successfully with a notice — it never fails CI just because deployment isn't
@@ -58,7 +59,8 @@ configured yet.
 
 ### 5. Run the workflow manually first, with `dry_run`
 
-Before trusting it to run unattended on every merge: **Actions → deploy-space → Run workflow**,
+GitHub only offers **Run workflow** once the workflow file is on `main`, so this becomes possible after the first
+merge. Before trusting it to run unattended on every merge: **Actions → deploy-space → Run workflow**,
 and set `dry_run: true`. This lists what would be uploaded without contacting Hugging Face at
 all — no token is even required for that path. Once that looks right, run it again with
 `dry_run: false`, optionally first against a separate **test** Space by filling in the `space_id`
@@ -76,7 +78,7 @@ only holds if `main` is actually protected:
 
 **Settings → Branches → Add branch protection rule** for `main`:
 - Require status checks to pass before merging → select the `guards` job from the `validate`
-  workflow (`.github/workflows/validate.yml`) — this is what runs the schema, the G00–G20 guards,
+  workflow (`.github/workflows/validate.yml`) — this is what runs the schema, the G00–G22 guards,
   and the stale-verification check (G03). *GitHub only lists a check here after it has run once,
   so open the first pull request before setting this.*
 - Require a pull request before merging, with **at least one approving review from a code owner**.
