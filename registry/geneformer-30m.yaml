@@ -24,8 +24,8 @@ discovery:
     checked: true
     found: Supplementary Table 1 — Genecorpus-30M_composition, 561 rows (the manifest).
     note: >
-      Found only because the file was supplied; the complete supplementary file list
-      has not been enumerated and recorded.
+      Downloaded from the article's supplementary files; the complete supplementary
+      file list has not been enumerated and recorded.
   methods:
     checked: true
     found: >
@@ -46,9 +46,6 @@ discovery:
     found: >
       The published version differs from the preprint in corpus, parameter count,
       input window and vocabulary. Scored against the published version.
-  submitter_supplied:
-    checked: true
-    found: Supplementary Table 1 xlsx, supplied by LM on 2026-09-23.
 
 evaluated_on: []
 
@@ -76,23 +73,21 @@ corpora:
           records: 561
           bytes: 119097
           sha256: bbfcddfa95a1565977fce9c60862032d061958ac5a4571942bd079a1a0a33e3f
-          acquired: supplied
-          supplied_by: LM
+          acquired: fetched
           confirmation:
-            method: totals
+            method: url_hash
             detail: >
-              sum(Total_cells_passed) over all 561 rows = 27,406,217, exactly the
-              QC-passed count stated in the Methods and on the HF dataset card
-              (recomputed from the supplied file 2026-09-23).
-            date: 2026-09-23
+              Downloaded from the publisher's site by LM; on 2026-09-24 the URL above served
+              exactly this file (119,097 bytes, same sha256).
+            date: 2026-09-24
           columns: [Dataset_ID, Organ_major, Organ_specific, Platform, Count_filtered,
                     Mito_filtered, Gene_filtered, Pct_filtered, Total_cells,
                     Total_cells_passed, Source]
           roles: {sample: Dataset_ID, citation: Source, cells: Total_cells_passed}   # one row = one dataset partition
           note: >
-            URL inferred from the Springer ESM pattern and not yet followed. The sha256
-            above is of the file as supplied locally. Following the URL and matching the
-            hash would upgrade confirmation to url_hash.
+            Its contents also reconcile to the published total: sum(Total_cells_passed) over
+            all 561 rows = 27,406,217, the QC-passed count stated in the Methods and on the
+            HF dataset card.
 
       totals:
         source_datasets: 561
