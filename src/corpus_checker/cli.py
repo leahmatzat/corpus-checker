@@ -58,6 +58,14 @@ def _build_parser() -> argparse.ArgumentParser:
     r.add_argument("identifier", help="a GEO accession (GSE…/GSM…), a PMID, or a DOI (10.…)")
     r.add_argument("--no-network", action="store_true", help="cache only; a cache miss is a tool error")
 
+    lk = sub.add_parser("lookup", help="which models trained on a dataset? (accession, PMID, DOI, URL or datasets/ id)")
+    lk.add_argument("queries", nargs="*", help="identifiers to look up — one dataset each")
+    lk.add_argument("--file", type=Path, help="read queries from a file, one per line (# comments allowed)")
+    lk.add_argument("--model", action="append", help="only these registry ids (repeatable) — 'is it in model X?'")
+    lk.add_argument("--no-network", action="store_true", help="expand identifiers from the committed crosswalk cache only")
+    lk.add_argument("--include-drafts", action="store_true", help="also search draft (unverified) entries, marked as drafts")
+    lk.add_argument("--manifests", type=Path, help="directory of publisher manifest files, for entries without committed extracts")
+
     bs = sub.add_parser("build-site", help="generate the static site (matrix, model/dataset pages, about) from the ledger")
     bs.add_argument("--out", type=Path, required=True, help="output directory, e.g. site/_build")
     bs.add_argument("--repo-url", help="GitHub repo URL for correction/source links "
@@ -229,6 +237,62 @@ def _print_record_table(record) -> None:
     print(f"sources    {', '.join(record.sources) or '(none)'}")
 
 
+def _cmd_lookup(args, root: Path) -> int:
+    from .lookup import answer_text, identifier_label, lookup, provenance_text, short
+    from .verdict import PAPER_LEVEL_DISCLAIMER
+
+    queries = list(args.queries)
+    if args.file:
+        try:
+            queries += [line.split("#", 1)[0].strip() for line in args.file.read_text(encoding="utf-8").splitlines()]
+        except OSError as exc:
+            print(f"corpus-checker: {exc}", file=sys.stderr)
+            return EXIT_TOOL
+    queries = [q for q in queries if q]
+    if not queries:
+        print("corpus-checker: give at least one identifier, or --file", file=sys.stderr)
+        return EXIT_USAGE
+    known = {p.stem for p in (root / "registry").glob("*.yaml")}
+    if unknown := [m for m in (args.model or []) if m not in known]:
+        print(f"corpus-checker: no registry entry {', '.join(unknown)} (known: {', '.join(sorted(known))})", file=sys.stderr)
+        return EXIT_USAGE
+
+    results = lookup(queries, root, network=not args.no_network, models=args.model,
+                     include_drafts=args.include_drafts, manifests_dir=args.manifests)
+    if args.format == "json":
+        print(json.dumps([r.as_dict() for r in results], indent=2, ensure_ascii=False))
+        return EXIT_OK
+
+    paper_level = False
+    for res in results:
+        q = res.query
+        head = q.raw + (f"  (a dataset linked from {q.linked_from})" if q.linked_from else "")
+        if q.kind == "paper":
+            head += "  — a paper, not a dataset"
+        if q.catalog_id:
+            head += f"  → datasets/{q.catalog_id}"
+        print(head)
+        also = [identifier_label(k, v) for k, v in q.identifiers if v not in q.typed and v != q.catalog_id]
+        if also:
+            print(f"  also searched: {', '.join(also)}")
+        for note in q.notes:
+            print(f"  note: {note}")
+        for a in res.answers:
+            flag = "  ⚠ paper-level" if a.match_level == "publication" else ""
+            origin = "recorded finding" if a.recorded else "looked up"
+            print(f"  {a.model_name:14} {a.stage:13} {short(a.verdict):11} {answer_text(a, lead=False)}{flag}")
+            print(f"  {'':14} {'':13} {'':11} {origin} · {provenance_text(a)}")
+        paper_level = paper_level or bool(res.warnings)
+        print()
+    searched = results[0].searched if results else ()
+    print(f"Searched {len(searched)} {'entry' if len(searched) == 1 else 'entries'}: {', '.join(searched) or '—'}"
+          f"{' (including drafts)' if args.include_drafts else ' (verified only)'}. Models not in the registry are not covered.")
+    if paper_level:
+        print(f"\n⚠ {PAPER_LEVEL_DISCLAIMER}")
+    print(_EXPOSURE_NOTE)
+    return EXIT_OK
+
+
 def _cmd_resolve(args, root: Path) -> int:
     try:
         record = resolve(args.identifier, network=not args.no_network, cache_dir=root / "crosswalk" / "cache")
@@ -267,6 +331,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_check(args, root)
     if args.command == "ledger":
         return _cmd_ledger(args, root)
+    if args.command == "lookup":
+        return _cmd_lookup(args, root)
     if args.command == "resolve":
         return _cmd_resolve(args, root)
     if args.command == "build-site":

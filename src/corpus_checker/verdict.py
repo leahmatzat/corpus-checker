@@ -58,7 +58,7 @@ def decide_from(*, manifest_type: str, can_prove_presence: bool, checkable: bool
                                           "a superset cannot prove presence." + extra, "superset")
         if paper_only:
             where = f"the manifest lists {', '.join(listed)}" if listed else "the manifest row names no accession"
-            return Decision(INCONCLUSIVE, f"same publication, matched on {'/'.join(sorted(hit & EXACT_KEYS))} only — "
+            return Decision(INCONCLUSIVE, f"same publication, matched on {'/'.join(k.upper() for k in sorted(hit & EXACT_KEYS))} only — "
                                           f"{where}; confirm it is the same dataset", "same_publication")
         return Decision(PRESENT, None, "present")   # presence in part of a manifest is presence
     if hit:

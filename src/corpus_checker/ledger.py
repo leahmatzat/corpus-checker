@@ -29,7 +29,8 @@ from pathlib import Path
 from .registry import load_catalog, load_yaml, registry_paths, relation
 
 LEDGER_VERSION = 1
-_ROW_FIELDS = ("keys_attempted", "matched_on", "overlap_level", "samples", "sample_ids", "cells", "reason", "note")
+_ROW_FIELDS = ("keys_attempted", "matched_on", "match_level", "identity_note", "overlap_level", "samples",
+               "sample_ids", "cells", "reason", "note")
 
 
 def build_ledger(root: Path) -> dict:
