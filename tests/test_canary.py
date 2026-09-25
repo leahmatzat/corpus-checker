@@ -126,6 +126,7 @@ _ORIGINALS = [DOWNLOADS / "41592_2024_2305_MOESM4_ESM.xlsx", DOWNLOADS / "41592_
 @pytest.mark.skipif(not all(p.is_file() for p in _ORIGINALS), reason="publisher XLSX files not present locally")
 def test_original_xlsx_gives_the_same_answer(by_dataset):
     """Reading the publisher files directly must agree with the committed extracts."""
+    pytest.importorskip("openpyxl")
     direct = check_corpus(ENTRY, CORPUS, CATALOG, locate_committed(REPO, locate_in_dir(DOWNLOADS)))
     for r in direct.results:
         e = by_dataset[r.dataset]

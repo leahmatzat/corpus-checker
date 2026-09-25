@@ -44,8 +44,11 @@ jobs:
           if [ -z "$SPACE_ID" ]; then
             SPACE_ID="$VAR_SPACE_ID"
           fi
-          if ! printf '%s' "$SPACE_ID" | grep -Eq '^([A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*)?$'; then
-            echo "::error::space id must look like owner/name"
+          # Accept the full Space URL too; keep only owner/name.
+          SPACE_ID="${SPACE_ID#https://huggingface.co/spaces/}"
+          SPACE_ID="${SPACE_ID%/}"
+          if [ -n "$SPACE_ID" ] && ! printf '%s\n' "$SPACE_ID" | grep -Eq '^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*$'; then
+            echo "::error::HF_SPACE_ID must look like owner/name (e.g. lmatzat/corpus-checker); got: $SPACE_ID"
             exit 1
           fi
           if [ -z "$SPACE_ID" ]; then

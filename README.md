@@ -27,7 +27,7 @@ Early. The registry schema, validator, resolvers and ledger are built and tested
 python3 -m venv .venv && .venv/bin/pip install -e '.[dev,xlsx]'
 .venv/bin/corpus-checker validate                 # schema + guards over registry/ and datasets/
 .venv/bin/corpus-checker check scfoundation       # a model's findings, as recorded
-.venv/bin/corpus-checker check scgpt --rerun      # re-run from the committed census snapshot
+.venv/bin/corpus-checker check scfoundation --rerun  # re-run from the committed manifest extracts
 .venv/bin/corpus-checker ledger                   # every dataset × model: who trained on it, who evaluates on it
 .venv/bin/corpus-checker lookup GSE133344         # which models trained on this dataset? (accession, PMID, DOI, URL)
 .venv/bin/pytest                                  # every guard, made to fire
