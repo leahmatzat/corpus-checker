@@ -38,7 +38,7 @@ def by_dataset(run):
 def test_norman_is_present_at_8_samples_125081_cells(by_dataset):
     r = by_dataset["norman2019"]
     assert r.verdict == "PRESENT"
-    assert r.relation == "self-eval"
+    assert r.relation == "reported-eval"
     assert r.matched_on == ("accession", "pmid")          # both keys hit, independently
     assert r.overlap_level == "sample"
     assert r.sample_ids == tuple(f"GSM39060{n}" for n in range(20, 28))

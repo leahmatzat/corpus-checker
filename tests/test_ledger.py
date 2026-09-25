@@ -31,7 +31,7 @@ def test_norman_reuse_is_surfaced(toy_ledger):
 
 def test_relation_comes_from_evaluated_on(toy_ledger):
     rows = {(r["dataset"], r["model"]): r for r in toy_ledger["rows"]}
-    assert rows[("norman2019", "scfoundation")]["relation"] == "self-eval"
+    assert rows[("norman2019", "scfoundation")]["relation"] == "reported-eval"
     assert rows[("siletti2022-perirhinal", "toy-draft")]["relation"] == "catalog"
 
 

@@ -78,7 +78,7 @@ only holds if `main` is actually protected:
 
 **Settings → Branches → Add branch protection rule** for `main`:
 - Require status checks to pass before merging → select the `guards` job from the `validate`
-  workflow (`.github/workflows/validate.yml`) — this is what runs the schema, the G00–G22 guards,
+  workflow (`.github/workflows/validate.yml`) — this is what runs the schema, the G00–G23 guards,
   and the stale-verification check (G03). *GitHub only lists a check here after it has run once,
   so open the first pull request before setting this.*
 - Require a pull request before merging, with **at least one approving review from a code owner**.

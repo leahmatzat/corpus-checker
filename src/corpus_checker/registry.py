@@ -140,9 +140,9 @@ def identity_of(dataset: dict, keys_attempted, accession_types: list[str] | None
 
 
 def relation(entry: dict, dataset_id: str) -> str:
-    """'self-eval' if the model's own paper evaluated on this dataset, else 'catalog'.
+    """'reported-eval' if the model's own paper reported an evaluation on this dataset, else 'catalog'.
 
     Derived, never authored — so it cannot disagree with evaluated_on.
     """
     own = {e.get("dataset") for e in entry.get("evaluated_on", [])}
-    return "self-eval" if dataset_id in own else "catalog"
+    return "reported-eval" if dataset_id in own else "catalog"

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}All datasets — corpus-checker{% endblock %}
+{% block content %}
+<section class="intro">
+  <h1>All datasets</h1>
+  <p>Every dataset in the catalog, checked against every model's training corpus. Rows are datasets, grouped by
+     kind; columns are models, in alphabetical order. Click a cell for the full finding.</p>
+  <p class="legend-line muted">
+    <span class="grid-chip v-present">Yes</span> PRESENT ·
+    <span class="grid-chip v-not-present">No</span> NOT PRESENT ·
+    <span class="grid-chip v-inconclusive">?</span> INCONCLUSIVE ·
+    <span class="grid-chip v-not-checkable">n/c</span> NOT CHECKABLE ·
+    <span class="empty-cell">–</span> not checked ·
+    <span class="legend-outline">outlined</span> this model's paper reported an evaluation on this dataset ·
+    ◐ provisional identity
+  </p>
+</section>
+
+<p class="grid-filter" hidden>
+  <label for="grid-filter-q">Filter datasets</label>
+  <input type="search" id="grid-filter-q" placeholder="Norman, Zheng68K, perturbation…">
+</p>
+
+<div class="grid-scroll">
+  <table class="grid">
+    <caption class="sr-only">Verdict for each catalog dataset against each model's training corpus, by stage. Each cell is one model/dataset pair; there is no per-model total.</caption>
+    <thead>
+      <tr>
+        <th scope="col" class="grid-corner">Dataset</th>
+      {% for model in grid_models %}
+        <th scope="col" class="grid-model"><a href="models/{{ model.id }}.html"><span>{{ model.name }}{% if model.draft %} (draft){% endif %}</span></a></th>
+      {% endfor %}
+      </tr>
+    </thead>
+  {% for group in grid_groups %}
+    <tbody class="grid-group" data-kind="{{ group.kind }}">
+      <tr class="kind-group"><th scope="rowgroup" colspan="{{ grid_models|length + 1 }}">{{ group.label }}</th></tr>
+    {% for row in group.rows %}
+      <tr class="grid-row" data-name="{{ row.name|lower }} {{ row.id }} {{ group.kind }}">
+        <th scope="row"><a href="datasets/{{ row.id }}.html">{{ row.name }}</a></th>
+      {% for model in grid_models %}
+        {% set cell = row.cells[model.id] %}
+        <td{% if cell.reported_eval %} class="reported-eval" title="{{ model.name }}'s paper reported an evaluation on {{ row.name }}"{% endif %}>
+        {% for f in cell.findings %}
+          <a class="grid-chip v-{{ f.verdict|verdictslug }}" href="models/{{ model.id }}.html#finding-{{ row.id }}-{{ f.stage }}" title="{{ model.name }} ({{ f.stage }}): {{ f.verdict }}{% if f.provisional %} · provisional identity{% endif %}">{{ f.short }}{% if f.provisional %}◐{% endif %}{% if model.multi_stage %}<span class="stage-tag">{{ f.stage }}</span>{% endif %}<span class="sr-only"> — {{ f.verdict }}</span></a>
+        {% else %}
+          <span class="empty-cell" title="Not checked">–</span>
+        {% endfor %}
+        {% if cell.reported_eval %}<span class="sr-only">(reported eval)</span>{% endif %}
+        </td>
+      {% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  {% endfor %}
+  </table>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  var box = document.querySelector(".grid-filter");
+  var input = document.getElementById("grid-filter-q");
+  if (!box || !input) return;
+  box.hidden = false;
+  input.addEventListener("input", function () {
+    var q = input.value.trim().toLowerCase();
+    document.querySelectorAll(".grid-group").forEach(function (group) {
+      var shown = 0;
+      group.querySelectorAll(".grid-row").forEach(function (row) {
+        var match = !q || row.getAttribute("data-name").indexOf(q) !== -1;
+        row.hidden = !match;
+        if (match) shown += 1;
+      });
+      group.hidden = shown === 0;
+    });
+  });
+})();
+</script>
+{% endblock %}

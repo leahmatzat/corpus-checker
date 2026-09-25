@@ -149,7 +149,7 @@ CASES = [
 
 WARNING_CASES = [
     ("G05", "manifest as_of older than the threshold", lambda e: corpus(e)["manifest"].update(as_of="2024-01-01")),
-    ("G17", "self-eval dataset never checked", lambda e: e["evaluated_on"].append({"dataset": "beta2021", "task": "x"})),
+    ("G17", "reported-eval dataset never checked", lambda e: e["evaluated_on"].append({"dataset": "beta2021", "task": "x"})),
     ("G18", "NOT PRESENT while discovery is incomplete", lambda e: e["discovery"].update(hf_model_card={"checked": False})),
 ]
 

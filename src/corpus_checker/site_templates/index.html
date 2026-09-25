@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "macros.html" as m %}
-{% block title %}corpus-checker — models × datasets{% endblock %}
+{% block title %}corpus-checker — reported evals by model{% endblock %}
 {% block content %}
 <section class="intro">
   <h1>corpus-checker</h1>
@@ -17,77 +17,80 @@
   <p class="muted">Or <a href="lookup.html">paste a list of datasets</a> to check several at once.</p>
 </section>
 
-<section class="legend" aria-labelledby="legend-h">
-  <h2 id="legend-h">Reading the matrix</h2>
-  <dl class="verdict-legend">
-  {% for v, desc in verdict_explanations.items() %}
-    <div class="legend-row"><dt>{{ m.verdict_chip(v) }}</dt><dd>{{ desc }}</dd></div>
-  {% endfor %}
-    <div class="legend-row"><dt>{{ m.self_eval_marker() }}</dt><dd>The model's own paper evaluated on this dataset. Every other finding checks the dataset against the shared catalog.</dd></div>
-    <div class="legend-row"><dt>{{ m.draft_badge() }}</dt><dd>Drafted but not yet signed off by a verifier — shown wherever this model appears.</dd></div>
-  </dl>
-  <p class="empty-cell-note"><span class="empty-cell" aria-hidden="true">–</span> An empty cell means that model/dataset pair has not been checked — it is not a verdict.</p>
-</section>
-
-<section class="matrix-section" aria-labelledby="matrix-h">
-  <h2 id="matrix-h">Models × datasets</h2>
-  <p>Rows are datasets, columns are models, in alphabetical order. Each cell shows one chip per training stage checked for that pair — click a chip for the full finding, evidence and caveats.</p>
-  <div class="matrix-scroll">
-    <table class="matrix">
-      <caption class="sr-only">Verdict for each benchmark dataset against each model, by training stage. Each cell is a finding for one pair, never a per-model summary.</caption>
+<section class="by-model-section" aria-labelledby="by-model-h">
+  <h2 id="by-model-h">Reported evals by model</h2>
+  <p>Each row is one training stage of one model. Its reported evals — the datasets the model's own paper
+     evaluated on — are sorted by whether they were found in that stage's training corpus. Click a dataset for the
+     full finding and evidence.</p>
+  <p class="legend-line muted">
+    <span class="eval-chip v-present">In training corpus</span> PRESENT ·
+    <span class="eval-chip v-not-present">Not in training corpus</span> NOT PRESENT ·
+    <span class="eval-chip v-inconclusive">can't tell</span> INCONCLUSIVE ·
+    <span class="eval-chip v-not-checkable">unknown</span> NOT CHECKABLE ·
+    ◐ provisional identity ·
+    <a href="about.html#howto-h">how to read a verdict</a>
+  </p>
+  <div class="table-scroll by-model-scroll">
+    <table class="by-model">
+      <caption class="sr-only">Each model's reported evals, by training stage, sorted by whether they were found in that stage's training corpus. There is no per-model score.</caption>
       <thead>
         <tr>
-          <th scope="col">Dataset</th>
-        {% for model in matrix_models %}
-          <th scope="col">
+          <th scope="col">Model</th>
+          <th scope="col">Training stage</th>
+          <th scope="col">In training corpus</th>
+          <th scope="col">Not in training corpus</th>
+          <th scope="col">Can't tell / unknown</th>
+        </tr>
+      </thead>
+    {% for model in model_rows %}
+      <tbody class="by-model-group">
+      {% for s in model.stages %}
+        <tr>
+        {% if loop.first %}
+          <th scope="rowgroup" rowspan="{{ model.stages|length }}" class="by-model-name">
             <a href="models/{{ model.id }}.html">{{ model.name }}</a>
           {% if model.draft %}
             <br>{{ m.draft_badge() }}
           {% endif %}
           </th>
-        {% endfor %}
+        {% endif %}
+          <td class="by-model-stage">
+            <a href="models/{{ model.id }}.html#corpus-{{ s.stage }}">{{ s.stage }}</a>
+            <span class="manifest-short">type {{ s.manifest_type }}{% if s.manifest_short %} · {{ s.manifest_short }}{% endif %}</span>
+          </td>
+          <td class="answer" data-label="In training corpus">{% for chip in s.present %}{{ m.eval_chip(chip) }} {% endfor %}</td>
+          <td class="answer" data-label="Not in training corpus">{% for chip in s.not_present %}{{ m.eval_chip(chip) }} {% endfor %}</td>
+          <td class="answer" data-label="Can't tell / unknown">{% for chip in s.unclear %}{{ m.eval_chip(chip) }} {% endfor %}</td>
         </tr>
+      {% endfor %}
+      </tbody>
+    {% endfor %}
+    </table>
+  </div>
+  <p class="muted">To compare every model against every dataset in the catalog, see <a href="all-datasets.html">All datasets</a>.</p>
+</section>
+
+<section class="reuse" aria-labelledby="reuse-h">
+  <h2 id="reuse-h">Reuse</h2>
+  <p>Datasets that are in one model's training corpus and among another model's reported evals.</p>
+{% if reuse_rows %}
+  <div class="table-scroll">
+    <table class="reuse-table">
+      <caption class="sr-only">Datasets found in one model's training corpus that another model reports an evaluation on</caption>
+      <thead>
+        <tr><th scope="col">Dataset</th><th scope="col">In training corpus of</th><th scope="col">Reported eval of</th></tr>
       </thead>
       <tbody>
-      {% for row in matrix_rows %}
+      {% for row in reuse_rows %}
         <tr>
           <th scope="row"><a href="datasets/{{ row.id }}.html">{{ row.name }}</a></th>
-        {% for model in matrix_models %}
-          <td>
-          {% set cell = row.cells.get(model.id) %}
-          {% if cell %}
-            {% for f in cell %}
-            <a class="cell-finding" href="models/{{ model.id }}.html#finding-{{ row.id }}-{{ f.stage }}">
-              {{ m.verdict_chip(f.verdict) }}
-            {% if matrix_multi_stage %}
-              <span class="stage-tag">{{ f.stage }}</span>
-            {% endif %}
-            {% if f.relation == "self-eval" %}
-              {{ m.self_eval_marker() }}
-            {% endif %}
-            </a>
-            {% endfor %}
-          {% else %}
-            <span class="empty-cell" title="Not checked">–</span>
-          {% endif %}
-          </td>
-        {% endfor %}
+          <td>{% for t in row.trained %}<a href="models/{{ t.id }}.html">{{ t.name }}</a> ({{ t.stage }}){% if t.draft %} {{ m.draft_badge() }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+          <td>{% for e in row.evaluated %}<a href="models/{{ e.id }}.html">{{ e.name }}</a>{% if e.draft %} {{ m.draft_badge() }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</td>
         </tr>
       {% endfor %}
       </tbody>
     </table>
   </div>
-</section>
-
-<section class="reuse" aria-labelledby="reuse-h">
-  <h2 id="reuse-h">Reuse</h2>
-  <p>The same dataset can be training data for one model and evaluation data for another — that overlap is what this section surfaces.</p>
-{% if reuse_sentences %}
-  <ul>
-  {% for s in reuse_sentences %}
-    <li>{{ m.reuse_sentence("", s.dataset_id, s.dataset_name, s.train_id, s.train_name, s.stage, s.eval_id, s.eval_name) }}</li>
-  {% endfor %}
-  </ul>
 {% else %}
   <p>No cross-model reuse found in the current registry.</p>
 {% endif %}

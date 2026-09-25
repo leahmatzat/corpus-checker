@@ -20,7 +20,7 @@ tests, so a guard cannot be dropped without a visible diff.
     G14  NOT PRESENT without every required key attempted
     G15  an attempted exact key has no confirmed identifier in datasets/
     G16  the same dataset appears twice in one corpus's findings
-    G17  a self-eval dataset has no finding in any corpus                      [warning]
+    G17  a reported-eval dataset has no finding in any corpus                  [warning]
     G18  NOT PRESENT while discovery is incomplete                             [warning]
     G19  a manifest source's roles name a column not in its `columns`
     G20  a committed snapshot is missing or no longer matches its sha256
@@ -274,7 +274,7 @@ def check_entry(path: Path, doc: object, root: Path, catalog: dict[str, dict],
 
     for i, ev in enumerate(doc["evaluated_on"]):
         if ev["dataset"] in catalog and ev["dataset"] not in found_anywhere:
-            add("G17", f"evaluated_on[{i}]", f"self-eval dataset {ev['dataset']!r} has no finding in any corpus", WARNING)
+            add("G17", f"evaluated_on[{i}]", f"reported-eval dataset {ev['dataset']!r} has no finding in any corpus", WARNING)
 
     if opts.check_sources:
         issues.extend(_check_sources(rel, doc, opts))

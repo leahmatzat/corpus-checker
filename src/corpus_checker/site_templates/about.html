@@ -14,9 +14,11 @@
       <div class="legend-row"><dt>{{ m.verdict_chip(v) }}</dt><dd>{{ desc }}</dd></div>
     {% endfor %}
     </dl>
-    <p><strong>Self-eval vs. catalog.</strong> A finding is {{ m.self_eval_marker() }} when the model's own paper
-       evaluated on that dataset. Every other dataset in the shared catalog is checked too and shown as a
-       <em>catalog</em> finding — cross-model reuse is exactly what a catalog finding can surface.</p>
+    <p><strong>Reported evals and the catalog.</strong> A finding is a {{ m.reported_eval_marker() }} when the model's
+       own paper reported an evaluation on that dataset — the home page sorts these by whether they were found in the
+       model's training corpus. Every other dataset in the shared catalog is checked too and shown as a
+       <em>catalog</em> finding; cross-model reuse is exactly what a catalog finding can surface. The
+       <a href="all-datasets.html">All datasets</a> page shows every model against every dataset.</p>
     <p><strong>{{ m.draft_badge() }}</strong> means the entry has not yet been signed off by a verifier listed in
        <code>verifiers.yaml</code>. Draft entries can still be inspected — every source and finding is shown exactly
        as recorded — but no person has confirmed the claims yet.</p>

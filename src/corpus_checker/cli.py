@@ -175,11 +175,11 @@ def _cmd_check(args, root: Path) -> int:
         print(json.dumps(rows, indent=2))
         return EXIT_OK
 
-    order = {"self-eval": 0, "catalog": 1}
+    order = {"reported-eval": 0, "catalog": 1}
     for header, sub, section in sections:
         print(header)
         print(f"  {sub}\n")
-        print(f"  {'RELATION':10} {'DATASET':20} {'VERDICT':14} {'KEYS TRIED':16} EVIDENCE")
+        print(f"  {'RELATION':13} {'DATASET':20} {'VERDICT':14} {'KEYS TRIED':16} EVIDENCE")
         for r in sorted(section, key=lambda r: (order[r["relation"]], r["dataset"])):
             evidence = _evidence(r["verdict"], r["samples"], r["cells"], r["reason"])
             if r.get("identity") == "provisional":
@@ -188,7 +188,7 @@ def _cmd_check(args, root: Path) -> int:
                 evidence = f"[{r['registry']}{': ' + r['registry_verdict'] if r.get('registry_verdict') else ''}] {evidence}"
             if len(evidence) > 110:
                 evidence = evidence[:109] + "…   (--format json for the full reason)"
-            print(f"  {r['relation']:10} {r['dataset']:20} {r['verdict']:14} {','.join(r['keys_attempted']) or '-':16} {evidence}")
+            print(f"  {r['relation']:13} {r['dataset']:20} {r['verdict']:14} {','.join(r['keys_attempted']) or '-':16} {evidence}")
         print()
     print(_EXPOSURE_NOTE)
     return EXIT_OK
@@ -216,7 +216,7 @@ def _cmd_ledger(args, root: Path) -> int:
         print(f"  evaluated by: {', '.join(d['evaluated_by']) or '—'}")
         for r in (r for r in ledger["rows"] if r["dataset"] == d_id):
             draft = "  [draft]" if models[r["model"]]["draft"] else ""
-            print(f"  {r['model']:18} {r['stage']:14} {r['relation']:10} {r['verdict']}{draft}")
+            print(f"  {r['model']:18} {r['stage']:14} {r['relation']:13} {r['verdict']}{draft}")
         for x in d["reuse"]:
             print(f"  ★ in {x['in_training_of']}'s {x['stage']} data, and {x['evaluated_by']} evaluates on it")
         print()

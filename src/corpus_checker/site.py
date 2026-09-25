@@ -1,7 +1,8 @@
 """Generates the static site from `build_ledger()`. DERIVED — never a data source.
 
-Pages: `index.html` (the models x datasets matrix + reuse map), `models/<id>.html`,
-`datasets/<id>.html`, `about.html` (docs/DATA_FLOW.md rendered) and one `style.css`.
+Pages: `index.html` (reported evals by model + the reuse table), `all-datasets.html` (the full
+datasets x models grid), `models/<id>.html`, `datasets/<id>.html`, `about.html`
+(docs/DATA_FLOW.md rendered), `lookup.html` and one `style.css`.
 No server, no external assets besides the optional Mermaid script on the about page,
 no analytics, no cookies.
 
@@ -37,14 +38,8 @@ PLACEHOLDER_REPO_URL = "https://github.com/OWNER/corpus-checker"
 EXPOSURE_NOTE = ("Exposure, not effect: overlap does not by itself mean a reported number is "
                   "inflated. NOT CHECKABLE is a finding about what was published, not an error.")
 
-INTRO_PARAGRAPH = (
-    "corpus-checker checks, for each single-cell foundation model in the registry, whether the "
-    "datasets it is evaluated on also appear in that model's own published pretraining corpus. "
-    "This is exposure, not effect: overlap does not by itself mean a reported number is inflated "
-    "— it means the evaluation data was available to see during training, which is worth knowing "
-    "regardless of impact. Every verdict below is for one model, one training stage and one "
-    "dataset; there is no per-model score, grade or rank anywhere on this site."
-)
+INTRO_PARAGRAPH = ("The tool checks whether evaluation datasets are contained in single-cell foundation "
+                   "model training sets.")
 
 # Kept in this order deliberately — it is the order the legend and "how to read a verdict"
 # render in, and matches docs/DATA_FLOW.md's own verdict table.
@@ -67,6 +62,31 @@ MANIFEST_TYPE_EXPLANATION = {
                "to check against any one dataset.",
     "D": "No description of training sources was published.",
 }
+
+# The few words under each stage on the home page; the full explanation is on the model page.
+MANIFEST_TYPE_SHORT = {
+    "A": "file list",
+    "A+": "file list + corpus",
+    "B": "superset",
+    "C-named": "named in prose",
+    "C-vague": "prose only",
+    "D": "not published",
+}
+
+# Home page columns. Every reported eval lands in exactly one, by its finding for that stage.
+ANSWER_COLUMN = {
+    "PRESENT": "present",
+    "NOT PRESENT": "not_present",
+    "INCONCLUSIVE": "unclear",
+    "NOT CHECKABLE": "unclear",
+}
+UNCLEAR_SUFFIX = {"INCONCLUSIVE": "can't tell", "NOT CHECKABLE": "unknown", None: "not checked"}
+
+# "All datasets" grid cells are narrow: a short word, with the full verdict in the title.
+GRID_SHORT = {"PRESENT": "Yes", "NOT PRESENT": "No", "INCONCLUSIVE": "?", "NOT CHECKABLE": "n/c"}
+
+# Row groups on the grid, in this order; any other kind follows alphabetically, then "other".
+KIND_ORDER = ("perturbation", "observational", "multimodal")
 
 CONFIRMATION_EXPLANATION = {
     "url_hash": "downloaded from the publisher or repo URL; the hash is of those bytes",
@@ -202,54 +222,106 @@ def _environment() -> jinja2.Environment:
 
 # --------------------------------------------------------------------------------- page context builders
 
-def _build_matrix(ledger: dict) -> tuple[list[dict], list[dict], bool]:
-    """Rows = datasets (alphabetical), columns = models (alphabetical). No per-model total."""
+def _model_order(models: dict) -> list[str]:
+    return sorted(models, key=lambda mid: (models[mid]["model"].lower(), mid))
+
+
+def _dataset_name(datasets: dict, did: str) -> str:
+    return (datasets.get(did) or {}).get("name") or did
+
+
+def _build_model_rows(ledger: dict) -> list[dict]:
+    """Home page: one entry per model, one stage row per corpus, each reported eval in exactly
+    one answer column. Alphabetical models; no counts, totals or ordering by verdict."""
+    models, datasets = ledger["models"], ledger["datasets"]
+    by_key = {(r["model"], r["stage"], r["dataset"]): r for r in ledger["rows"]}
+    out = []
+    for mid in _model_order(models):
+        m = models[mid]
+        evals = list(dict.fromkeys(e["dataset"] for e in m["evaluated_on"]))
+        stages = []
+        for c in m["corpora"]:
+            cols: dict[str, list[dict]] = {"present": [], "not_present": [], "unclear": []}
+            for did in evals:
+                r = by_key.get((mid, c["stage"], did))
+                verdict = r["verdict"] if r else None
+                provisional = bool(r and r.get("identity") == "provisional")
+                title = verdict or "not checked"
+                if provisional:
+                    title += " · provisional identity"
+                cols[ANSWER_COLUMN.get(verdict, "unclear")].append({
+                    "dataset": did,
+                    "name": _dataset_name(datasets, did),
+                    "verdict": verdict,
+                    "suffix": UNCLEAR_SUFFIX.get(verdict) if ANSWER_COLUMN.get(verdict, "unclear") == "unclear" else None,
+                    "provisional": provisional,
+                    "title": title,
+                    "href": (f"models/{mid}.html#finding-{did}-{c['stage']}" if r else f"datasets/{did}.html"),
+                })
+            for chips in cols.values():
+                chips.sort(key=lambda x: (x["name"].lower(), x["dataset"]))
+            stages.append({"stage": c["stage"], "manifest_type": c["manifest_type"],
+                           "manifest_short": MANIFEST_TYPE_SHORT.get(c["manifest_type"], ""), **cols})
+        out.append({"id": mid, "name": m["model"], "draft": m["draft"], "stages": stages})
+    return out
+
+
+def _build_reuse_table(ledger: dict) -> list[dict]:
+    """One row per dataset that is in one model's training corpus and another model's reported evals."""
+    models, datasets = ledger["models"], ledger["datasets"]
+    out = []
+    for did in sorted(datasets, key=lambda did: (_dataset_name(datasets, did).lower(), did)):
+        reuse = datasets[did].get("reuse") or ()
+        if not reuse:
+            continue
+        trained = sorted({(x["in_training_of"], x["stage"]) for x in reuse},
+                         key=lambda p: (models[p[0]]["model"].lower(), p[0], p[1]))
+        evaluated = sorted({x["evaluated_by"] for x in reuse}, key=lambda mid: (models[mid]["model"].lower(), mid))
+        out.append({
+            "id": did, "name": _dataset_name(datasets, did),
+            "trained": [{"id": mid, "name": models[mid]["model"], "draft": models[mid]["draft"], "stage": stage}
+                        for mid, stage in trained],
+            "evaluated": [{"id": mid, "name": models[mid]["model"], "draft": models[mid]["draft"]} for mid in evaluated],
+        })
+    return out
+
+
+def _build_grid(ledger: dict) -> tuple[list[dict], list[dict]]:
+    """"All datasets" page: datasets (grouped by kind) x models. Cells only ever hold findings for
+    one pair; a reported eval is marked on its cell. No per-model or per-dataset total."""
+    models, datasets = ledger["models"], ledger["datasets"]
     rows_by_pair: dict[tuple[str, str], list[dict]] = {}
-    stages_seen: set[str] = set()
     for r in ledger["rows"]:
         rows_by_pair.setdefault((r["dataset"], r["model"]), []).append(r)
-        stages_seen.add(r["stage"])
-    for pair_rows in rows_by_pair.values():
-        pair_rows.sort(key=lambda r: r["stage"])
+    stage_order = {mid: [c["stage"] for c in models[mid]["corpora"]] for mid in models}
 
-    models = ledger["models"]
-    matrix_models = [
-        {"id": mid, "name": models[mid]["model"], "draft": models[mid]["draft"]}
-        for mid in sorted(models, key=lambda mid: (models[mid]["model"].lower(), mid))
-    ]
+    grid_models = [{"id": mid, "name": models[mid]["model"], "draft": models[mid]["draft"],
+                    "multi_stage": len(models[mid]["corpora"]) > 1} for mid in _model_order(models)]
 
-    datasets = ledger["datasets"]
-    matrix_rows = []
-    for did in sorted(datasets, key=lambda did: ((datasets[did].get("name") or did).lower(), did)):
+    def kind_key(kind):
+        if kind in KIND_ORDER:
+            return (0, KIND_ORDER.index(kind), "")
+        return (1, 0, kind) if kind else (2, 0, "")
+
+    groups: dict[str | None, list[dict]] = {}
+    for did in sorted(datasets, key=lambda did: (_dataset_name(datasets, did).lower(), did)):
         d = datasets[did]
+        evaluated_by = set(d.get("evaluated_by") or ())
         cells = {}
-        for model in matrix_models:
-            pair_rows = rows_by_pair.get((did, model["id"]))
-            if pair_rows:
-                cells[model["id"]] = [{"stage": r["stage"], "verdict": r["verdict"], "relation": r["relation"]}
-                                       for r in pair_rows]
-        matrix_rows.append({"id": did, "name": d.get("name") or did, "cells": cells})
+        for gm in grid_models:
+            pair = sorted(rows_by_pair.get((did, gm["id"]), ()),
+                          key=lambda r: (stage_order[gm["id"]].index(r["stage"])
+                                         if r["stage"] in stage_order[gm["id"]] else len(stage_order[gm["id"]]), r["stage"]))
+            cells[gm["id"]] = {
+                "reported_eval": gm["id"] in evaluated_by,
+                "findings": [{"stage": r["stage"], "verdict": r["verdict"], "short": GRID_SHORT.get(r["verdict"], r["verdict"]),
+                              "provisional": r.get("identity") == "provisional"} for r in pair],
+            }
+        groups.setdefault(d.get("kind"), []).append({"id": did, "name": _dataset_name(datasets, did), "cells": cells})
 
-    return matrix_rows, matrix_models, len(stages_seen) > 1
-
-
-def _reuse_sentences(ledger: dict) -> list[dict]:
-    models = ledger["models"]
-    datasets = ledger["datasets"]
-    out = []
-    for did in sorted(datasets, key=lambda did: ((datasets[did].get("name") or did).lower(), did)):
-        d = datasets[did]
-        reuse = sorted(d.get("reuse") or (),
-                        key=lambda x: (models[x["in_training_of"]]["model"].lower(),
-                                       models[x["evaluated_by"]]["model"].lower()))
-        for x in reuse:
-            out.append({
-                "dataset_id": did, "dataset_name": d.get("name") or did,
-                "train_id": x["in_training_of"], "train_name": models[x["in_training_of"]]["model"],
-                "stage": x["stage"],
-                "eval_id": x["evaluated_by"], "eval_name": models[x["evaluated_by"]]["model"],
-            })
-    return out
+    grid_groups = [{"kind": k or "other", "label": (k or "other").capitalize(), "rows": groups[k]}
+                   for k in sorted(groups, key=kind_key)]
+    return grid_groups, grid_models
 
 
 def _model_page_corpora(model_id: str, model: dict, ledger: dict) -> list[dict]:
@@ -281,11 +353,11 @@ def _model_page_corpora(model_id: str, model: dict, ledger: dict) -> list[dict]:
     corpora = []
     for c in model["corpora"]:
         stage_rows = rows_by_stage.get(c["stage"], [])
-        self_eval = sorted((_finding(r) for r in stage_rows if r["relation"] == "self-eval"),
-                            key=lambda f: f["dataset_name"].lower())
+        reported_eval = sorted((_finding(r) for r in stage_rows if r["relation"] == "reported-eval"),
+                                key=lambda f: f["dataset_name"].lower())
         catalog = sorted((_finding(r) for r in stage_rows if r["relation"] == "catalog"),
                           key=lambda f: f["dataset_name"].lower())
-        corpora.append({**c, "self_eval_findings": self_eval, "catalog_findings": catalog})
+        corpora.append({**c, "reported_eval_findings": reported_eval, "catalog_findings": catalog})
     return corpora
 
 
@@ -360,14 +432,20 @@ def build_site(root: Path, out: Path, repo_url: str) -> list[Path]:
         confirmation_explanations=CONFIRMATION_EXPLANATION, model_class_explanations=MODEL_CLASS_EXPLANATION,
     )
 
-    # -- index.html ---------------------------------------------------------------------
-    matrix_rows, matrix_models, matrix_multi_stage = _build_matrix(ledger)
+    # -- index.html: reported evals by model -------------------------------------------
     _write(out / "index.html", env.get_template("index.html").render(
         **common, root_prefix="", page_kind="index",
         correction_url=_correction_url(repo_url, "site index"), source_url=None,
         intro_paragraph=INTRO_PARAGRAPH,
-        matrix_rows=matrix_rows, matrix_models=matrix_models, matrix_multi_stage=matrix_multi_stage,
-        reuse_sentences=_reuse_sentences(ledger),
+        model_rows=_build_model_rows(ledger), reuse_rows=_build_reuse_table(ledger),
+    ))
+
+    # -- all-datasets.html: the full datasets x models grid ----------------------------------
+    grid_groups, grid_models = _build_grid(ledger)
+    _write(out / "all-datasets.html", env.get_template("grid.html").render(
+        **common, root_prefix="", page_kind="grid",
+        correction_url=_correction_url(repo_url, "all datasets"), source_url=None,
+        grid_groups=grid_groups, grid_models=grid_models,
     ))
 
     # -- about.html -----------------------------------------------------------------------

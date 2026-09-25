@@ -1,12 +1,12 @@
-{# Shared building blocks. Every macro that renders a verdict or a draft/self-eval marker
+{# Shared building blocks. Every macro that renders a verdict or a draft/reported-eval marker
    keeps the TEXT label as the primary signal — colour is decoration, never the only cue. #}
 
 {% macro verdict_chip(verdict) -%}
 <span class="verdict v-{{ verdict|verdictslug }}">{{ verdict }}</span>
 {%- endmacro %}
 
-{% macro self_eval_marker() -%}
-<span class="self-marker" title="This model's own paper evaluated on this dataset">self-eval</span>
+{% macro reported_eval_marker() -%}
+<span class="reported-eval-marker" title="This model's paper reported an evaluation on this dataset">reported eval</span>
 {%- endmacro %}
 
 {% macro draft_badge() -%}
@@ -25,4 +25,12 @@
    (models/ or datasets/). Kept to one line so no stray whitespace lands in the sentence. #}
 {% macro reuse_sentence(prefix, dataset_id, dataset_name, train_id, train_name, stage, eval_id, eval_name) -%}
 <a href="{{ prefix }}datasets/{{ dataset_id }}.html">{{ dataset_name }}</a> is in <a href="{{ prefix }}models/{{ train_id }}.html">{{ train_name }}</a>'s {{ stage }} corpus, and <a href="{{ prefix }}models/{{ eval_id }}.html">{{ eval_name }}</a> evaluates on it.
+{%- endmacro %}
+
+
+{# One reported eval on the home page. The column it sits in says the answer; the chip keeps its
+   verdict style, spells out "can't tell" / "unknown" / "not checked" in the last column, and
+   carries the full verdict in its title. #}
+{% macro eval_chip(chip) -%}
+<a class="eval-chip {% if chip.verdict %}v-{{ chip.verdict|verdictslug }}{% else %}v-not-checked{% endif %}" data-dataset="{{ chip.dataset }}" href="{{ chip.href }}" title="{{ chip.name }}: {{ chip.title }}">{{ chip.name }}{% if chip.suffix %} · {{ chip.suffix }}{% endif %}{% if chip.provisional %} <span aria-label="provisional identity">◐</span>{% endif %}</a>
 {%- endmacro %}

@@ -13,7 +13,7 @@ flowchart TD
   U["Supplied file<br/>from submitter or author"] --> M
   M["Manifest source<br/>sha256 + confirmation"] --> R["Resolver<br/>one per manifest type"]
   R --> MA["Match<br/>every key tried, hits reported"]
-  CAT[("datasets/ catalog<br/>shared benchmarks + self-evals")] --> X["Crosswalk<br/>accession, PMID, DOI (committed cache)"]
+  CAT[("datasets/ catalog<br/>shared benchmarks + reported evals")] --> X["Crosswalk<br/>accession, PMID, DOI (committed cache)"]
   X --> MA
   MA --> V{"Verdict rules<br/>superset cap, title/keyword cap,<br/>unconfirmed-file cap"}
   V --> F["Finding per model × stage × dataset"]
@@ -97,7 +97,7 @@ flowchart TD
 
 The **ledger** is derived by inverting every registry entry on dataset. It is never written by hand, so it cannot disagree with the entries.
 
-- **Model page** — the model's own evaluation datasets first (`self-eval`), then every other benchmark in the catalog (`catalog`).
+- **Model page** — the datasets the model's own paper reported an evaluation on first (`reported-eval`), then every other benchmark in the catalog (`catalog`).
 - **Dataset page** — for one benchmark, which models trained on it (and at which stage) and which evaluated on it. **This is the reuse map**: the same dataset can be training data for one model and evaluation data for another. *Norman 2019 is in scFoundation's pretraining corpus and is an evaluation dataset for scFoundation, scGPT and GEARS users.*
 
 > **Exposure, not effect.** Overlap does not by itself mean a reported number is inflated — Geneformer's own in/out experiment found essentially equivalent results for cells inside and outside its pretraining corpus.

@@ -28,9 +28,9 @@
   --v-notcheckable-fg: #3a3d45;
   --v-notcheckable-border: #8a8f99;
 
-  --self-bg: #f1e9fb;
-  --self-fg: #43266f;
-  --self-border: #8a5fc9;
+  --reported-bg: #f1e9fb;
+  --reported-fg: #43266f;
+  --reported-border: #8a5fc9;
 
   --draft-bg: #f4f5f7;
   --draft-fg: #4a4f59;
@@ -63,9 +63,9 @@
     --v-notcheckable-fg: #cfd2d9;
     --v-notcheckable-border: #8a8f99;
 
-    --self-bg: #2e2143;
-    --self-fg: #dcc9f7;
-    --self-border: #a984e0;
+    --reported-bg: #2e2143;
+    --reported-fg: #dcc9f7;
+    --reported-border: #a984e0;
 
     --draft-bg: #24272e;
     --draft-fg: #c7cbd3;
@@ -162,7 +162,7 @@ h4 { font-size: 1em; margin-top: 1em; }
 
 /* ------------------------------------------------------------------ chips & markers */
 
-.verdict, .self-marker, .draft-badge, .unconfirmed {
+.verdict, .reported-eval-marker, .draft-badge, .unconfirmed {
   display: inline-block;
   font-size: 0.8em;
   font-weight: 600;
@@ -179,8 +179,8 @@ h4 { font-size: 1em; margin-top: 1em; }
 .v-inconclusive  { background: var(--v-inconclusive-bg);   color: var(--v-inconclusive-fg);   border-color: var(--v-inconclusive-border); border-style: dashed; }
 .v-not-checkable { background: var(--v-notcheckable-bg);   color: var(--v-notcheckable-fg);   border-color: var(--v-notcheckable-border); border-style: dotted; font-weight: 500; }
 
-.self-marker {
-  background: var(--self-bg); color: var(--self-fg); border-color: var(--self-border);
+.reported-eval-marker {
+  background: var(--reported-bg); color: var(--reported-fg); border-color: var(--reported-border);
   font-weight: 600;
 }
 .draft-badge {
@@ -211,7 +211,7 @@ h4 { font-size: 1em; margin-top: 1em; }
 
 /* ------------------------------------------------------------------ tables */
 
-.table-scroll, .matrix-scroll {
+.table-scroll, .grid-scroll {
   overflow-x: auto;
   border: 1px solid var(--border);
   border-radius: 0.4em;
@@ -237,19 +237,78 @@ thead th {
   top: 0;
 }
 
-.matrix th, .matrix td { text-align: center; }
-.matrix thead th:first-child, .matrix tbody th { text-align: left; }
-.matrix tbody th {
-  position: sticky;
-  left: 0;
-  background: var(--bg);
+/* ------------------------------------------------------------------ home: reported evals by model */
+
+.legend-line { font-size: 0.9em; line-height: 2; }
+
+.eval-chip, .grid-chip {
+  display: inline-block;
+  font-size: 0.85em;
+  padding: 0.05em 0.5em;
+  margin: 0.1em 0.15em 0.1em 0;
+  border-radius: 0.35em;
+  border: 1.5px solid;
+  white-space: nowrap;
+  line-height: 1.5;
+  text-decoration: none;
+}
+.eval-chip.v-present, .grid-chip.v-present { font-weight: 600; }
+.v-not-checked {
+  background: transparent; color: var(--muted); border-color: var(--border); border-style: dotted;
+}
+/* Chips are links: keep the verdict colour, visited or not. */
+a.v-present, a.v-present:visited { color: var(--v-present-fg); }
+a.v-not-present, a.v-not-present:visited { color: var(--v-notpresent-fg); }
+a.v-inconclusive, a.v-inconclusive:visited { color: var(--v-inconclusive-fg); }
+a.v-not-checkable, a.v-not-checkable:visited { color: var(--v-notcheckable-fg); }
+a.v-not-checked, a.v-not-checked:visited { color: var(--muted); }
+a.eval-chip:hover, a.grid-chip:hover { text-decoration: underline; }
+
+.by-model { min-width: 0; table-layout: fixed; }
+.by-model th:nth-child(1) { width: 9em; }
+.by-model th:nth-child(2) { width: 9em; }
+.by-model-group + .by-model-group { border-top: 2px solid var(--border); }
+.by-model-name { font-weight: 600; background: var(--bg); }
+.by-model-name .draft-badge { white-space: normal; margin-top: 0.3em; font-weight: 500; }
+.manifest-short { display: block; font-size: 0.8em; color: var(--muted); }
+.by-model td.answer { white-space: normal; }
+
+.reuse-table { min-width: 0; }
+
+/* ------------------------------------------------------------------ all datasets: the grid */
+
+.grid-filter { display: flex; flex-wrap: wrap; gap: 0.5em; align-items: center; }
+.grid-filter[hidden] { display: none; }
+.grid-filter input {
+  flex: 1 1 14em; max-width: 24em;
+  padding: 0.4em 0.6em; border: 1px solid var(--border); border-radius: 0.3em;
+  background: var(--bg); color: var(--fg); font: inherit;
+}
+
+.grid-scroll { max-height: 80vh; overflow: auto; }
+.grid { font-size: 0.85em; width: auto; }
+.grid td { min-width: 3.2em; }
+.grid th, .grid td { padding: 0.3em 0.4em; text-align: center; vertical-align: middle; }
+.grid thead th { z-index: 2; }
+.grid .grid-corner { text-align: left; left: 0; z-index: 3; vertical-align: bottom; }
+.grid .grid-model { vertical-align: bottom; }
+.grid .grid-model a { writing-mode: vertical-rl; transform: rotate(180deg); display: inline-block; max-height: 11em; white-space: nowrap; }
+.grid tbody th[scope="row"] {
+  position: sticky; left: 0; z-index: 1;
+  text-align: left; white-space: nowrap; background: var(--bg);
   border-right: 1px solid var(--border);
 }
-.matrix .cell-finding {
-  display: block;
-  text-decoration: none;
-  padding: 0.15em 0;
+.grid .kind-group th {
+  text-align: left; background: var(--bg-alt); color: var(--muted);
+  font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.04em;
+  position: sticky; left: 0;
 }
+.grid .grid-chip { font-size: 0.9em; margin: 0.05em; }
+.grid .stage-tag { margin-left: 0.25em; }
+.grid td.reported-eval { outline: 2px solid var(--reported-border); outline-offset: -3px; }
+.legend-outline { outline: 2px solid var(--reported-border); outline-offset: 1px; padding: 0 0.3em; }
+.grid-row[hidden], .grid-group[hidden] { display: none; }
+
 .empty-cell {
   color: var(--muted);
 }
@@ -486,4 +545,18 @@ thead th {
   h2 { font-size: 1.15em; }
   .model-meta { grid-template-columns: 1fr; }
   .model-meta dt { margin-top: 0.4em; }
+
+  /* reported evals by model: each stage row becomes a block, answer cells stack with labels */
+  .by-model-scroll { border: none; overflow: visible; }
+  .by-model, .by-model tbody, .by-model tr, .by-model th, .by-model td { display: block; width: auto !important; }
+  .by-model thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .by-model-group { border: 1px solid var(--border); border-radius: 0.4em; margin-bottom: 0.8em; }
+  .by-model-group + .by-model-group { border-top: 1px solid var(--border); }
+  .by-model-name { border-bottom: none; background: var(--bg-alt); }
+  .by-model tr { border-bottom: 1px solid var(--border); }
+  .by-model td { border-bottom: none; padding: 0.3em 0.7em; }
+  .by-model td.answer:empty { display: none; }
+  .by-model td.answer::before {
+    content: attr(data-label); display: block; font-size: 0.8em; color: var(--muted); font-weight: 600;
+  }
 }
