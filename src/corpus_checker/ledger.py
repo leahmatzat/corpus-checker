@@ -8,7 +8,7 @@ comparing models on a shared benchmark needs.
 site renders (LEDGER_VERSION bumps on any breaking change):
 
     {
-      "ledger_version": 1,
+      "ledger_version": 2,
       "models":   {model_id: {model, version, model_class, paper, draft, verified_by,
                               verified_date, disputed, evaluated_on: [{dataset, task,
                               obtained_from}], corpora: [{stage, name, manifest_type,
@@ -28,7 +28,7 @@ from pathlib import Path
 
 from .registry import load_catalog, load_yaml, registry_paths, relation
 
-LEDGER_VERSION = 1
+LEDGER_VERSION = 2
 _ROW_FIELDS = ("keys_attempted", "matched_on", "match_level", "identity_note", "identity", "identity_basis", "overlap_level", "samples",
                "sample_ids", "cells", "reason", "note")
 

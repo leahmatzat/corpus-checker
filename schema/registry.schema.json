@@ -88,9 +88,9 @@
     },
     "evaluated_on": {
       "type": "array",
-      "description": "SELF-EVALUATION: datasets/ catalog ids this model's own paper evaluated on. A finding whose dataset is listed here is shown with relation=self-eval; every other finding is relation=catalog. The relation is DERIVED from this list, never authored on the finding.",
+      "description": "REPORTED EVALUATIONS: datasets/ catalog ids this model's own paper reported an evaluation on. A finding whose dataset is listed here is shown with relation=reported-eval; every other finding is relation=catalog. The relation is DERIVED from this list, never authored on the finding.",
       "items": {
-        "$ref": "#/$defs/selfEval"
+        "$ref": "#/$defs/reportedEval"
       }
     },
     "corpora": {
@@ -269,7 +269,7 @@
         }
       ]
     },
-    "selfEval": {
+    "reportedEval": {
       "type": "object",
       "required": [
         "dataset",
@@ -990,7 +990,7 @@
       "properties": {
         "dataset": {
           "$ref": "#/$defs/slug",
-          "description": "A datasets/ catalog id (G02). Whether this is a self-eval or catalog finding is derived from evaluated_on."
+          "description": "A datasets/ catalog id (G02). Whether this is a reported-eval or catalog finding is derived from evaluated_on."
         },
         "verdict": {
           "enum": [

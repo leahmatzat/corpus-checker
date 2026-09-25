@@ -34,7 +34,7 @@
   </ul>
 {% endif %}
 
-  <h2>Evaluated by</h2>
+  <h2>Evaluated by <span class="section-note">— models whose paper reports an evaluation on this dataset</span></h2>
 {% if dataset.evaluated_by_models %}
   <ul>
   {% for model in dataset.evaluated_by_models %}
@@ -57,7 +57,7 @@
       <tr>
         <td><a href="../models/{{ r.model_id }}.html#finding-{{ dataset.id }}-{{ r.stage }}">{{ r.model_name }}</a>{% if r.model_draft %} {{ m.draft_badge() }}{% endif %}</td>
         <td>{{ r.stage }}</td>
-        <td>{{ r.relation }}{% if r.relation == "self-eval" %} {{ m.self_eval_marker() }}{% endif %}</td>
+        <td>{% if r.relation == "reported-eval" %}{{ m.reported_eval_marker() }}{% else %}{{ r.relation }}{% endif %}</td>
         <td>{{ m.verdict_chip(r.verdict) }}{% if r.identity == "provisional" %} {{ m.identity_badge(r.identity_basis) }}{% endif %}</td>
         <td>{{ r.evidence }}</td>
       </tr>

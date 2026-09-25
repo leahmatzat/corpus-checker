@@ -43,5 +43,5 @@ def test_no_unexpected_entries_with_errors(issues):
 
 def test_relation_is_derived_from_evaluated_on():
     entries = {p.stem: load_yaml(p) for p in registry_paths(REPO)}
-    assert relation(entries["scfoundation"], "norman2019") == "self-eval"
+    assert relation(entries["scfoundation"], "norman2019") == "reported-eval"
     assert relation(entries["scfoundation"], "cheng2021-myeloid") == "catalog"

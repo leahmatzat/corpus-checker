@@ -105,9 +105,14 @@ def test_every_dataset_has_a_page(site_dir, ledger):
 
 # --------------------------------------------------------------------------------- content rules
 
-def test_norman_reuse_sentence_on_index_and_dataset_page(site_dir):
+def test_norman_reuse_row_on_index_and_sentence_on_dataset_page(site_dir):
+    index_html = _read(site_dir, "index.html")
+    table = re.search(r'<table class="reuse-table">.*?</table>', index_html, re.DOTALL)
+    assert table, "no reuse table on the index"
+    row = _visible_text(re.search(r"<tbody>.*?</tbody>", table.group(0), re.DOTALL).group(0))
+    assert "Norman 2019" in row and "scFoundation (pretraining)" in row and "Toy Draft" in row
+
     sentence = "Norman 2019 is in scFoundation's pretraining corpus, and Toy Draft evaluates on it."
-    assert sentence in _visible_text(_read(site_dir, "index.html"))
     assert sentence in _visible_text(_read(site_dir, "datasets/norman2019.html"))
 
 
@@ -120,9 +125,10 @@ def test_draft_label_on_draft_model_pages(site_dir):
 
 
 def test_draft_label_follows_model_everywhere_it_appears(site_dir):
-    # The toy draft appears on the index matrix, its own page, and every dataset page
-    # that lists it — the label must travel with it, not just live on its own page.
+    # The toy draft appears on the index, the all-datasets grid, its own page, and every dataset
+    # page that lists it — the label must travel with it, not just live on its own page.
     assert "Draft — not yet verified" in _visible_text(_read(site_dir, "index.html"))
+    assert "Toy Draft (draft)" in _visible_text(_read(site_dir, "all-datasets.html"))
     assert "Draft — not yet verified" in _visible_text(_read(site_dir, "datasets/norman2019.html"))
 
 
@@ -174,7 +180,7 @@ def test_not_checkable_is_not_styled_as_a_failure(site_dir):
 
 _ABSOLUTE_FORBIDDEN = ("contaminat", "leak", "cheat", "dirty")
 
-# The one permitted phrasing (rule 1). It appears verbatim in EXPOSURE_NOTE, INTRO_PARAGRAPH and
+# The one permitted phrasing (rule 1). It appears verbatim in EXPOSURE_NOTE (every page's footer) and
 # (after this task's edit) docs/DATA_FLOW.md's own hedge sentence — removing this fragment
 # wherever it occurs covers all of those at once, regardless of the sentence around it.
 _CANONICAL_HEDGE_FRAGMENT = "does not by itself mean a reported number is inflated"
@@ -229,23 +235,108 @@ def test_canonical_hedge_sentence_is_exact(site_dir):
 
 # --------------------------------------------------------------------------------- structure (rule 2)
 
-def test_matrix_has_no_per_model_total_or_score_column(site_dir, ledger):
-    index_html = _read(site_dir, "index.html")
-    table_match = re.search(r'<table class="matrix">.*?</table>', index_html, re.DOTALL)
-    assert table_match, "no matrix table found"
-    matrix_html = table_match.group(0)
+_SCORE_WORDS = ("total", "score", "rank", "grade", "average", "sort by")
 
+
+def _table(html_text: str, cls: str) -> str:
+    m = re.search(rf'<table class="{cls}">.*?</table>', html_text, re.DOTALL)
+    assert m, f"no {cls} table found"
+    return m.group(0)
+
+
+def test_by_model_table_has_no_per_model_total_or_score_column(site_dir, ledger):
+    table = _table(_read(site_dir, "index.html"), "by-model")
+    thead = re.search(r"<thead>.*?</thead>", table, re.DOTALL).group(0)
+    headers = [_visible_text(h).strip() for h in re.findall(r"<th\b.*?</th>", thead, re.DOTALL)]
+    assert headers == ["Model", "Training stage", "In training corpus", "Not in training corpus", "Can't tell / unknown"]
+    body_text = _visible_text(re.sub(r"<caption.*?</caption>", "", table, flags=re.DOTALL)).lower()
+    for forbidden in _SCORE_WORDS:
+        assert forbidden not in body_text
+
+
+def _by_model_stage_rows(site_dir) -> dict[tuple[str, str], dict[str, list[str]]]:
+    """(model id, stage) -> {column label: [dataset ids of the chips in it]}."""
+    table = _table(_read(site_dir, "index.html"), "by-model")
+    out = {}
+    for group in re.findall(r'<tbody class="by-model-group">.*?</tbody>', table, re.DOTALL):
+        model_id = re.search(r'href="models/([^"#]+)\.html"', group).group(1)
+        for row in re.findall(r"<tr>.*?</tr>", group, re.DOTALL):
+            stage = re.search(r'href="models/[^"]+#corpus-([^"]+)"', row).group(1)
+            cols = {}
+            for label, cell in re.findall(r'<td class="answer" data-label="([^"]+)">(.*?)</td>', row, re.DOTALL):
+                cols[label.replace("&#39;", "'")] = re.findall(r'data-dataset="([^"]+)"', cell)
+            out[(model_id, stage)] = cols
+    return out
+
+
+def test_every_reported_eval_sits_in_exactly_one_answer_column(site_dir, ledger):
+    rows = _by_model_stage_rows(site_dir)
+    by_key = {(r["model"], r["stage"], r["dataset"]): r["verdict"] for r in ledger["rows"]}
+    expected_col = {"PRESENT": "In training corpus", "NOT PRESENT": "Not in training corpus",
+                    "INCONCLUSIVE": "Can't tell / unknown", "NOT CHECKABLE": "Can't tell / unknown",
+                    None: "Can't tell / unknown"}
+    for model_id, m in ledger["models"].items():
+        for c in m["corpora"]:
+            cols = rows[(model_id, c["stage"])]
+            for ev in m["evaluated_on"]:
+                where = [label for label, ids in cols.items() if ev["dataset"] in ids]
+                assert where == [expected_col[by_key.get((model_id, c["stage"], ev["dataset"]))]], (model_id, c["stage"], ev["dataset"], where)
+
+
+def test_by_model_covers_all_three_columns_and_not_checked(site_dir):
+    index_text = _visible_text(_read(site_dir, "index.html"))
+    rows = _by_model_stage_rows(site_dir)
+    assert "norman2019" in rows[("scfoundation", "pretraining")]["In training corpus"]
+    assert "adamson2016" in rows[("scfoundation", "pretraining")]["Not in training corpus"]
+    assert "norman2019" in rows[("toy-draft", "pretraining")]["Can't tell / unknown"]
+    assert "Norman 2019 · unknown" in index_text          # NOT CHECKABLE, spelled out
+    assert "Norman 2019 · not checked" in index_text      # toy draft's fine-tuning stage has no finding
+    assert "Zheng68K ◐" in index_text                     # provisional identity travels with the chip
+
+
+def test_index_shows_the_short_intro_verbatim(site_dir):
+    assert ("The tool checks whether evaluation datasets are contained in single-cell foundation model "
+            "training sets.") in _visible_text(_read(site_dir, "index.html"))
+
+
+def test_all_datasets_grid_has_one_cell_per_model_and_no_totals(site_dir, ledger):
+    table = _table(_read(site_dir, "all-datasets.html"), "grid")
     n_models = len(ledger["models"])
-    thead = re.search(r"<thead>.*?</thead>", matrix_html, re.DOTALL).group(0)
+    thead = re.search(r"<thead>.*?</thead>", table, re.DOTALL).group(0)
     assert len(re.findall(r"<th\b", thead)) == n_models + 1  # "Dataset" + one per model, nothing more
+    body_rows = re.findall(r'<tr class="grid-row".*?</tr>', table, re.DOTALL)
+    assert len(body_rows) == len(ledger["datasets"])
+    for row in body_rows:
+        assert len(re.findall(r"<td\b", row)) == n_models
+    body_text = _visible_text(re.sub(r"<caption.*?</caption>", "", table, flags=re.DOTALL)).lower()
+    for forbidden in _SCORE_WORDS:
+        assert forbidden not in body_text
 
-    tbody = re.search(r"<tbody>.*?</tbody>", matrix_html, re.DOTALL).group(0)
-    for row in re.findall(r"<tr>.*?</tr>", tbody, re.DOTALL):
-        assert len(re.findall(r"<td\b", row)) == n_models  # no extra trailing "total" cell
 
-    matrix_text = _visible_text(matrix_html).lower()
-    for forbidden in ("total", "overall score", "overall rank", "grade", "average", "sort by"):
-        assert forbidden not in matrix_text
+def test_all_datasets_grid_outlines_exactly_the_reported_evals(site_dir, ledger):
+    table = _table(_read(site_dir, "all-datasets.html"), "grid")
+    model_order = sorted(ledger["models"], key=lambda mid: (ledger["models"][mid]["model"].lower(), mid))
+    outlined, expected = set(), set()
+    for row in re.findall(r'<tr class="grid-row".*?</tr>', table, re.DOTALL):
+        did = re.search(r'href="datasets/([^"]+)\.html"', row).group(1)
+        for mid, td in zip(model_order, re.findall(r"<td\b[^>]*>", row)):
+            if 'class="reported-eval"' in td:
+                outlined.add((did, mid))
+    for mid, m in ledger["models"].items():
+        for ev in m["evaluated_on"]:
+            expected.add((ev["dataset"], mid))
+    assert outlined == expected
+
+
+def test_no_page_says_self_eval(site_dir):
+    for f in sorted(site_dir.rglob("*")):
+        if f.is_file() and f.suffix in (".html", ".js", ".mjs", ".css", ".json"):
+            assert "self-eval" not in f.read_text(encoding="utf-8").lower(), f
+
+
+def test_all_datasets_page_in_every_page_nav(site_dir):
+    for f in sorted(site_dir.rglob("*.html")):
+        assert "all-datasets.html" in f.read_text(encoding="utf-8"), f
 
 
 def test_no_model_level_score_key_on_any_model_page(site_dir, ledger):

@@ -75,7 +75,7 @@ Does the paper point to a file listing its training data?
 > `GSE133344` → eUtils `esearch db=gds` → UID `200133344` → `esummary` → `pubmedids: ["31395745"]` → NCBI ID Converter → `10.1126/science.aax4438`
 > ★★ `esummary` **also returns every sample accession with its title** — *"sgRNA perturb-seq experiment"* — which is a **better perturbation detector than grepping study titles** *(grepping "screen" pulled in a thalamic-development collection)*.
 
-**10. Tag which task each dataset serves** in `evaluated_on`. *A model can be clean on one task and exposed on another.* These become the model's **self-eval** findings; the rest of the catalog is checked too and shown as **catalog** findings.
+**10. Tag which task each dataset serves** in `evaluated_on`. *A model can be clean on one task and exposed on another.* These become the model's **reported-eval** findings; the rest of the catalog is checked too and shown as **catalog** findings.
 
 **10a. One corpus per training stage.** If the model trains in stages with different data *(STATE: embedding pretraining, then perturbation training)*, each stage gets its own `corpora[]` entry with its own manifest and findings.
 

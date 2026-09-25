@@ -40,7 +40,7 @@
 {% endif %}
 
 {% for corpus in model.corpora %}
-  <section class="corpus" aria-labelledby="corpus-h-{{ corpus.stage }}">
+  <section class="corpus" id="corpus-{{ corpus.stage }}" aria-labelledby="corpus-h-{{ corpus.stage }}">
     <h2 id="corpus-h-{{ corpus.stage }}">{{ corpus.name or corpus.stage }} <span class="stage-label">({{ corpus.stage }})</span></h2>
 
     <p class="manifest-type">Manifest type <strong>{{ corpus.manifest_type }}</strong>
@@ -98,14 +98,14 @@
   {% endif %}
 
     <h3>Findings</h3>
-  {% if corpus.self_eval_findings %}
-    <h4>Self-evaluation <span class="section-note">— this model's own evaluation datasets</span></h4>
+  {% if corpus.reported_eval_findings %}
+    <h4>Reported evals <span class="section-note">— datasets this model's paper evaluated on, checked against this training corpus</span></h4>
     <ul class="findings">
-    {% for f in corpus.self_eval_findings %}
+    {% for f in corpus.reported_eval_findings %}
       <li id="finding-{{ f.dataset }}-{{ f.stage }}" class="finding">
         <a href="../datasets/{{ f.dataset }}.html">{{ f.dataset_name }}</a>
         {{ m.verdict_chip(f.verdict) }}
-        {{ m.self_eval_marker() }}
+        {{ m.reported_eval_marker() }}
       {% if f.identity == "provisional" %}
         {{ m.identity_badge(f.identity_basis) }}
       {% endif %}
@@ -125,7 +125,7 @@
     </ul>
   {% endif %}
   {% if corpus.catalog_findings %}
-    <h4>Catalog <span class="section-note">— every other dataset in the shared benchmark catalog</span></h4>
+    <h4>Other catalog datasets <span class="section-note">— every other dataset in the shared benchmark catalog</span></h4>
     <ul class="findings">
     {% for f in corpus.catalog_findings %}
       <li id="finding-{{ f.dataset }}-{{ f.stage }}" class="finding">
