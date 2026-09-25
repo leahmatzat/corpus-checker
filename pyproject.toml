@@ -17,7 +17,8 @@ dependencies = [
 [project.optional-dependencies]
 # Read publisher XLSX manifests directly. Tests use committed CSV extracts.
 xlsx = ["openpyxl>=3"]
-dev = ["pytest>=8"]
+# Everything the full test suite needs (CI installs .[dev]).
+dev = ["pytest>=8", "jinja2>=3", "markdown>=3", "openpyxl>=3"]
 # `corpus-checker build-site` renders the static Space from the ledger.
 site = ["jinja2>=3", "markdown>=3"]
 # scripts/deploy_space.py pushes the built static site to a Hugging Face Space. The
