@@ -16,7 +16,7 @@ site renders (LEDGER_VERSION bumps on any breaking change):
                               caveats}]}},
       "datasets": {dataset_id: {name, kind, organism, identifiers, sources, note,
                                 evaluated_by: [model_id], exposure: [row], reuse: [...]}},
-      "rows":     [{dataset, model, stage, relation, verdict, keys_attempted, matched_on,
+      "rows":     [{dataset, model, stage, relation, verdict, keys_attempted, keys_absent, matched_on,
                     overlap_level, samples, sample_ids, cells, reason, note}]
     }
 
@@ -29,7 +29,7 @@ from pathlib import Path
 from .registry import load_catalog, load_yaml, registry_paths, relation
 
 LEDGER_VERSION = 2
-_ROW_FIELDS = ("keys_attempted", "matched_on", "match_level", "identity_note", "identity", "identity_basis", "overlap_level", "samples",
+_ROW_FIELDS = ("keys_attempted", "keys_absent", "matched_on", "match_level", "identity_note", "identity", "identity_basis", "overlap_level", "samples",
                "sample_ids", "cells", "reason", "note")
 
 

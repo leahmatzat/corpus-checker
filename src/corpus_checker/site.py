@@ -161,6 +161,9 @@ def _evidence_text(row: dict) -> str:
         if row.get("cells") is not None:
             parts.append(f"{row['cells']:,} cells")
         return " · ".join(parts) or "—"
+    if row.get("keys_absent"):
+        none = "none exists: " + ", ".join(k.upper() if k in ("pmid", "doi") else k for k in row["keys_absent"])
+        return f"{row['reason']} · {none}" if row.get("reason") else none
     return row.get("reason") or "—"
 
 
@@ -339,6 +342,7 @@ def _model_page_corpora(model_id: str, model: dict, ledger: dict) -> list[dict]:
             "verdict": r["verdict"],
             "relation": r["relation"],
             "keys_attempted": r.get("keys_attempted") or [],
+            "keys_absent": r.get("keys_absent") or [],
             "matched_on": r.get("matched_on") or [],
             "samples": r.get("samples"),
             "sample_ids": r.get("sample_ids") or [],

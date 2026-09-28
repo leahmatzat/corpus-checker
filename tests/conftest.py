@@ -35,6 +35,12 @@ DATASETS = {
             {"type": "pmid", "value": "5", "confirmed": True},
         ],
     },
+    "delta2023": {   # no PMID exists — like the NeurIPS BMMC benchmark; recorded, with a basis
+        "schema_version": 1, "id": "delta2023", "name": "Delta 2023",
+        "identifiers": [{"type": "geo", "value": "GSE4", "confirmed": True}],
+        "absent": [{"key": "pmid", "checked": "2026-09-28",
+                    "basis": "GEO lists no PubMed ID and PubMed has no record of the paper."}],
+    },
     "gamma2022": {
         "schema_version": 1, "id": "gamma2022", "name": "Gamma 2022",
         "identifiers": [

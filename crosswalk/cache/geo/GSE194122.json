@@ -1,0 +1,171 @@
+{
+  "accessions": [
+    "GSE194122",
+    "PRJNA799242"
+  ],
+  "doi": null,
+  "organism": "Homo sapiens",
+  "pmcid": null,
+  "pmids": [],
+  "query": "GSE194122",
+  "retrieved": "2026-09-28",
+  "samples": [
+    [
+      "GSM5828456",
+      "Site 1 Donor 1 Cite (GEX & ADT)"
+    ],
+    [
+      "GSM5828457",
+      "Site 1 Donor 2 Cite (GEX & ADT)"
+    ],
+    [
+      "GSM5828458",
+      "Site 1 Donor 3 Cite (GEX & ADT)"
+    ],
+    [
+      "GSM5828459",
+      "Site 2 Donor 1 Cite (GEX & ADT)"
+    ],
+    [
+      "GSM5828460",
+      "Site 2 Donor 4 Cite (GEX & ADT)"
+    ],
+    [
+      "GSM5828461",
+      "Site 2 Donor 5 Cite (GEX & ADT)"
+    ],
+    [
+      "GSM5828462",
+      "Site 3 Donor 1 Cite (GEX & ADT)"
+    ],
+    [
+      "GSM5828463",
+      "Site 3 Donor 6 Cite (GEX & ADT)"
+    ],
+    [
+      "GSM5828464",
+      "Site 3 Donor 7 Cite (GEX & ADT)"
+    ],
+    [
+      "GSM5828465",
+      "Site 4 Donor 1 Cite (GEX & ADT)"
+    ],
+    [
+      "GSM5828466",
+      "Site 4 Donor 8 Cite (GEX & ADT)"
+    ],
+    [
+      "GSM5828467",
+      "Site 4 Donor 9 Cite (GEX & ADT)"
+    ],
+    [
+      "GSM5828468",
+      "Site 1 Donor 1 Multiome (GEX)"
+    ],
+    [
+      "GSM5828469",
+      "Site 1 Donor 2 Multiome (GEX)"
+    ],
+    [
+      "GSM5828470",
+      "Site 1 Donor 3 Multiome (GEX)"
+    ],
+    [
+      "GSM5828471",
+      "Site 2 Donor 1 Multiome (GEX)"
+    ],
+    [
+      "GSM5828472",
+      "Site 2 Donor 4 Multiome (GEX)"
+    ],
+    [
+      "GSM5828473",
+      "Site 2 Donor 5 Multiome (GEX)"
+    ],
+    [
+      "GSM5828474",
+      "Site 3 Donor 10 Multiome (GEX)"
+    ],
+    [
+      "GSM5828475",
+      "Site 3 Donor 3 Multiome (GEX)"
+    ],
+    [
+      "GSM5828476",
+      "Site 3 Donor 6 Multiome (GEX)"
+    ],
+    [
+      "GSM5828477",
+      "Site 3 Donor 7 Multiome (GEX)"
+    ],
+    [
+      "GSM5828478",
+      "Site 4 Donor 1 Multiome (GEX)"
+    ],
+    [
+      "GSM5828479",
+      "Site 4 Donor 8 Multiome (GEX)"
+    ],
+    [
+      "GSM5828480",
+      "Site 4 Donor 9 Multiome (GEX)"
+    ],
+    [
+      "GSM5828481",
+      "Site 1 Donor 1 Multiome (ATAC)"
+    ],
+    [
+      "GSM5828482",
+      "Site 1 Donor 2 Multiome (ATAC)"
+    ],
+    [
+      "GSM5828483",
+      "Site 1 Donor 3 Multiome (ATAC)"
+    ],
+    [
+      "GSM5828484",
+      "Site 2 Donor 1 Multiome (ATAC)"
+    ],
+    [
+      "GSM5828485",
+      "Site 2 Donor 4 Multiome (ATAC)"
+    ],
+    [
+      "GSM5828486",
+      "Site 2 Donor 5 Multiome (ATAC)"
+    ],
+    [
+      "GSM5828487",
+      "Site 3 Donor 10 Multiome (ATAC)"
+    ],
+    [
+      "GSM5828488",
+      "Site 3 Donor 3 Multiome (ATAC)"
+    ],
+    [
+      "GSM5828489",
+      "Site 3 Donor 6 Multiome (ATAC)"
+    ],
+    [
+      "GSM5828490",
+      "Site 3 Donor 7 Multiome (ATAC)"
+    ],
+    [
+      "GSM5828491",
+      "Site 4 Donor 1 Multiome (ATAC)"
+    ],
+    [
+      "GSM5828492",
+      "Site 4 Donor 8 Multiome (ATAC)"
+    ],
+    [
+      "GSM5828493",
+      "Site 4 Donor 9 Multiome (ATAC)"
+    ]
+  ],
+  "sources": [
+    "esearch.fcgi?db=gds",
+    "esummary.fcgi?db=gds"
+  ],
+  "title": "A sandbox for prediction and integration of DNA, RNA, and proteins in single cells"
+}

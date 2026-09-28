@@ -13,7 +13,7 @@ How corpus-checker decides what it can claim, how those rules are enforced, and 
 | Verdict | Means | Must carry |
 |---|---|---|
 | `PRESENT` | The dataset's own accession was found in the training-data manifest (a PMID or DOI alone identifies only the paper) | The keys that matched, the match level (dataset), the overlap level (study, sample or cell), and the matched samples or cell count |
-| `NOT PRESENT` | An exact match was attempted on every required key, against every manifest file, and nothing matched | The list of sources searched and the keys attempted |
+| `NOT PRESENT` | Every required key was searched (or is recorded as not existing for the dataset), against every manifest file, and nothing matched | The list of sources searched, the keys attempted, and any key recorded as not existing |
 | `INCONCLUSIVE` | Something matched only weakly, or absence can't be established | A reason |
 | `NOT CHECKABLE` | The paper did not publish enough to answer the question | The verbatim data-availability statement and a complete record of where we looked. **This is a finding, not an error** |
 
@@ -22,10 +22,14 @@ How corpus-checker decides what it can claim, how those rules are enforced, and 
 - **A PMID or DOI identifies a paper, not a dataset.** One paper can publish several datasets (Zheng 2017 released a mouse-brain dataset and the PBMC data; Replogle 2022 released K562 and RPE1 screens). A match on the paper alone is capped at `INCONCLUSIVE` ("same publication"), and shows the accession the manifest lists so a person can compare. `PRESENT` needs a dataset-level match: the accession, or a verifier's recorded `identity_note` explaining why the paper-level match is the same dataset.
 - **A title or keyword match is never enough.** It is capped at `INCONCLUSIVE`. Author names and titles collide. For example, "Zheng" matches a 2020 immune atlas as well as the Zheng68K benchmark.
 - **A superset cannot prove presence.** When a paper names a versioned public corpus (e.g. a CELLxGENE census release) that the model trained on a *subset* of, absence from the corpus proves absence from the model's data, but presence proves nothing. The best such a match can reach is `INCONCLUSIVE`.
-- **Absence needs every required key.** Some manifests leave identifiers blank; one had PMIDs missing for 161 of 522 studies. For those manifests, `NOT PRESENT` requires both the accession and the PMID to be searched.
+- **Absence needs every required key covered.** Some manifests list datasets in more than one way. scFoundation, for example, lists some studies only by accession and some only by PMID. For a manifest like that, a dataset can only be `NOT PRESENT` if every one of those keys is covered. A key is covered in one of two ways:
+  1. **Searched.** The dataset's catalog entry has a confirmed identifier of that kind, and it was searched with no match.
+  2. **Recorded as not existing.** The catalog entry states that the dataset has no identifier of that kind, with the evidence and the date it was checked.
+
+  If a key is neither searched nor recorded as not existing, the verdict stays `INCONCLUSIVE`. "We haven't found one" is not the same as "none exists". A recorded absence is a factual claim, so it needs evidence someone else can recheck, anyone can dispute it through a correction, and if the identifier turns up later it replaces the absence and the finding is re-run. At least one key must still actually be searched: a dataset recorded as having no identifiers of any kind can never be `NOT PRESENT`. The finding shows a recorded absence as "none exists" next to the key, so it is never mistaken for a search.
 - **Only confirmed identifiers count.** A dataset's accession must be confirmed against a primary source before a search on it counts. Searching the wrong accession is not a search.
 - **Identity can be provisional.** Some datasets live outside GEO, and no primary source links their accession to the paper; the link rests on metadata such as a title and a submitter. Zheng68K's SRA experiment is an example. Such an identifier is searched, but any finding that relies on it carries the qualifier **provisional identity**, with the basis stated, e.g. `NOT PRESENT · provisional identity`. The verdict describes the search; the qualifier describes how sure we are which dataset was searched for.
-- **A supplied file has to be confirmed.** A manifest file that was handed to us, rather than downloaded from the publisher, supports `PRESENT` or `NOT PRESENT` only after it is confirmed as the paper's file. Confirmation can come from matching the publisher's download, from its contents adding up to totals printed in the paper, or from the authors. Until then, the verdict is `INCONCLUSIVE`.
+- **A supplied file has to be confirmed.** A manifest file that was handed to us, rather than downloaded from the publisher, has to be confirmed as the paper's file. Confirmation can come from matching the publisher's download, from its contents adding up to totals printed in the paper, or from the authors. Until then, it can't support `NOT PRESENT`, because the real file might list the dataset. A match found inside a file that *is* confirmed counts as `PRESENT`, whatever the other files' status.
 - **Every manifest file must be searched.** A `NOT PRESENT` from one of two files is not allowed.
 
 ## Guard codes
@@ -43,12 +47,12 @@ How corpus-checker decides what it can claim, how those rules are enforced, and 
 | G06 | the regression test stops reproducing a known result (scFoundation / Norman 2019: 8 samples, 125,081 cells) |
 | G07 | `sources_searched` names a file the manifest doesn't list |
 | G08 | `NOT PRESENT` without searching every manifest file |
-| G09 | `PRESENT` or `NOT PRESENT` rests on an unconfirmed, supplied file |
+| G09 | `NOT PRESENT` from a manifest with an unconfirmed, supplied file, or `PRESENT` when every file is unconfirmed |
 | G10 | `verified_by` is empty, or names someone not in `verifiers.yaml` |
 | G11 | `NOT CHECKABLE` without every place a manifest could be published having been checked |
 | G12 | an entry's id doesn't match its file name, or is duplicated |
 | G13 | a finding uses a key the manifest doesn't carry |
-| G14 | `NOT PRESENT` without attempting every required key |
+| G14 | `NOT PRESENT` with a required key that was neither searched nor recorded as not existing |
 | G15 | a finding claims an identifier search with no confirmed identifier behind it |
 | G16 | the same dataset appears twice in one corpus's findings |
 | G17 | *(warning)* a model's own evaluation dataset has no finding |
@@ -58,6 +62,7 @@ How corpus-checker decides what it can claim, how those rules are enforced, and 
 | G21 | `PRESENT` rests on a paper-level match (PMID or DOI only) without a verifier's `identity_note` |
 | G22 | a committed manifest extract is missing, or doesn't name the publisher file it was derived from |
 | G23 | a finding's identity (provisional or not) disagrees with the catalog identifiers it searched |
+| G24 | a recorded absence disagrees with the catalog: a finding's "none exists" keys don't match the dataset's recorded absences, or a key recorded as not existing also has an identifier |
 
 Exit codes never encode verdicts: `0` means the check ran, `1` a tool error, `2` a rule violation and `3` bad usage.
 
@@ -72,7 +77,7 @@ Exit codes never encode verdicts: `0` means the check ran, `1` a tool error, `2`
 
 > **PMIDs and DOIs identify papers, not datasets.** One paper can publish several datasets (Zheng 2017 released a mouse-brain dataset and the PBMC data; Replogle 2022 released K562 and RPE1 screens). A match on a PMID or DOI alone cannot tell which of them a model trained on. Search by accession (GSE…, E-MTAB…, a CELLxGENE ID) whenever you can.
 
-To make an answer permanent, use the *Add a dataset* form. The dataset then gets its own page and appears in the models × datasets matrix.
+To make an answer permanent, use the *Add a dataset* form. The dataset then gets its own page and appears on the All datasets page.
 
 ## Who signs an entry
 

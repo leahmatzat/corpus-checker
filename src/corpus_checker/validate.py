@@ -12,12 +12,12 @@ tests, so a guard cannot be dropped without a visible diff.
     G06  canary regression — lives in tests/test_canary.py, not here
     G07  sources_searched names a source the manifest does not list
     G08  NOT PRESENT from a manifest whose sources were not all searched
-    G09  PRESENT / NOT PRESENT from a manifest with an unconfirmed source
+    G09  NOT PRESENT from a manifest with an unconfirmed source (PRESENT only from a confirmed one)
     G10  verified_by empty, or not a person listed in verifiers.yaml
     G11  NOT CHECKABLE without every discovery location checked
     G12  id does not match file name, or is duplicated
     G13  keys_attempted / matched_on outside manifest.keys_available, or matched ⊄ attempted
-    G14  NOT PRESENT without every required key attempted
+    G14  NOT PRESENT without every required key attempted or recorded as not existing
     G15  an attempted exact key has no confirmed identifier in datasets/
     G16  the same dataset appears twice in one corpus's findings
     G17  a reported-eval dataset has no finding in any corpus                  [warning]
@@ -27,6 +27,8 @@ tests, so a guard cannot be dropped without a visible diff.
     G21  PRESENT on a publication-level match (PMID/DOI only) without a verifier's identity_note
     G22  a committed extract is missing or does not declare its source's sha256
     G23  a finding's identity (provisional or not) disagrees with the catalog identifiers it attempted
+    G24  a recorded absence contradicts the catalog: keys_absent differs from datasets/ absent:, or a key
+         recorded as not existing also has a usable identifier
 """
 from __future__ import annotations
 
@@ -46,6 +48,7 @@ from .check import extract_parent_sha256
 from .registry import (
     EXACT_KEYS,
     WEAK_KEYS,
+    absent_keys,
     confirmed_keys,
     identity_of,
     load_catalog,
@@ -107,6 +110,12 @@ def check_dataset(path: Path, doc: object, root: Path) -> list[Issue]:
               for e in _validator(root, "dataset.schema.json").iter_errors(doc)]
     if not issues and doc.get("id") != path.stem:
         issues.append(Issue("G12", ERROR, rel, "id", f"id {doc.get('id')!r} must equal the file name stem {path.stem!r}"))
+    if not issues:
+        # G24 — "none exists" cannot stand beside an identifier of that very kind
+        for key in sorted(absent_keys(doc) & confirmed_keys(doc)):
+            issues.append(Issue("G24", ERROR, rel, "absent",
+                                f"{key} is recorded as not existing, but the catalog has a usable {key} identifier; "
+                                "remove the absence (an identifier that turns up replaces it)"))
     return issues
 
 
@@ -234,11 +243,19 @@ def check_entry(path: Path, doc: object, root: Path, catalog: dict[str, dict],
             for key in sorted(attempted & EXACT_KEYS - backed):
                 add("G15", where, f"keys_attempted includes {key!r} but datasets/{ds}.yaml has no confirmed identifier of that kind")
 
+            # G24 — a recorded absence is derived from the catalog, so it cannot disagree with it
+            absent = set(f.get("keys_absent", []))
+            derived_absent = absent_keys(catalog[ds]) & keys_available & EXACT_KEYS - attempted
+            if absent != derived_absent:
+                add("G24", where, f"keys_absent should be {sorted(derived_absent)} given datasets/{ds}.yaml absent: "
+                                  f"and keys_attempted {sorted(attempted)}; recorded {sorted(absent)}")
+
             if verdict == "NOT PRESENT":
-                # G14 — dual-key rule, mechanically
-                if missing := requires - attempted:
+                # G14 — required keys, mechanically: each searched, or recorded as not existing
+                if missing := requires - attempted - (absent & derived_absent):
                     add("G14", where,
-                        f"NOT PRESENT against this manifest requires keys {sorted(requires)}; not attempted: {sorted(missing)}")
+                        f"NOT PRESENT against this manifest requires keys {sorted(requires)}; neither attempted nor "
+                        f"recorded as not existing: {sorted(missing)}")
                 if skipped := (backed & keys_available & EXACT_KEYS) - attempted:
                     add("G14", where,
                         f"the dataset has confirmed {sorted(skipped)} identifiers this manifest can match on, but they were not attempted")
@@ -261,9 +278,12 @@ def check_entry(path: Path, doc: object, root: Path, catalog: dict[str, dict],
                 add("G23", where, f"identity should be {derived or 'confirmed (omitted)'} given the catalog identifiers "
                                   f"behind keys_attempted {sorted(attempted)}; recorded {f.get('identity') or 'confirmed'}")
 
-            # G09 — an unconfirmed file cannot support a definite verdict
-            if unconfirmed and verdict in ("PRESENT", "NOT PRESENT"):
-                add("G09", where, f"{verdict} rests on unconfirmed manifest source(s) {unconfirmed}; cap at INCONCLUSIVE")
+            # G09 — an unconfirmed file cannot support absence. (A PRESENT is allowed when the match
+            # is in a confirmed file; `check --rerun` and the canary confirm where it matched.)
+            if unconfirmed and verdict == "NOT PRESENT":
+                add("G09", where, f"NOT PRESENT rests on unconfirmed manifest source(s) {unconfirmed}; cap at INCONCLUSIVE")
+            if unconfirmed and verdict == "PRESENT" and set(unconfirmed) >= set(source_names):
+                add("G09", where, f"PRESENT needs a match in a confirmed source; every source is unconfirmed {unconfirmed}")
 
             # G11 — "the paper did not publish enough" is a public claim; prove we looked
             if verdict == "NOT CHECKABLE" and unchecked:

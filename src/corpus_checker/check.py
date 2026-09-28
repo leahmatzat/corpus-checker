@@ -12,7 +12,7 @@ from typing import Callable
 from urllib.parse import unquote, urlparse
 
 from .match import RecordIndex, match
-from .registry import EXACT_KEYS, confirmed_keys, identity_of, relation
+from .registry import EXACT_KEYS, absent_keys, confirmed_keys, identity_of, relation
 from .resolvers import get_resolver
 from .verdict import Decision, decide
 
@@ -97,6 +97,7 @@ class FindingResult:
     match_level: str | None = None
     identity: str | None = None           # "provisional" when an attempted key rests only on provisional identifiers
     identity_basis: str | None = None
+    keys_absent: tuple[str, ...] = ()     # keys the catalog records as not existing for this dataset
 
     @property
     def verdict(self) -> str:
@@ -107,6 +108,8 @@ class FindingResult:
         f: dict = {"dataset": self.dataset, "verdict": self.verdict}
         if self.verdict != "NOT CHECKABLE":
             f["keys_attempted"] = list(self.keys_attempted)
+            if self.keys_absent:
+                f["keys_absent"] = list(self.keys_absent)
         if self.matched_on:
             f["matched_on"] = list(self.matched_on)
         if self.match_level:
@@ -160,15 +163,17 @@ def check_corpus(entry: dict, corpus: dict, catalog: dict[str, dict], locate: Lo
     for d in ids:
         dataset = catalog[d]
         keys = sorted(confirmed_keys(dataset, accession_types) & exact_available)
+        absent = tuple(sorted(absent_keys(dataset) & exact_available - set(keys)))
         m = match(index, dataset, keys, accession_types)
         decision = decide(manifest_type=manifest["type"], can_prove_presence=resolver.can_prove_presence,
-                          match=m, requires_keys=requires, unconfirmed_sources=unconfirmed)
+                          match=m, requires_keys=requires, unconfirmed_sources=unconfirmed,
+                          keys_absent=frozenset(absent))
         identity, basis = identity_of(dataset, keys, accession_types)
         results.append(FindingResult(
             dataset=d, relation=relation(entry, d), decision=decision,
             keys_attempted=tuple(keys), matched_on=m.keys_hit, overlap_level=m.overlap_level,
             sample_ids=m.sample_ids, cells=m.cells, match_level=m.match_level,
-            identity=identity, identity_basis=basis,
+            identity=identity, identity_basis=basis, keys_absent=absent,
         ))
     return CorpusCheck(corpus["stage"], tuple(searched), index, tuple(results))
 
@@ -191,6 +196,7 @@ def compare(corpus: dict, check: CorpusCheck) -> list[Discrepancy]:
             continue
         pairs = [("verdict", f["verdict"], r.verdict),
                  ("keys_attempted", sorted(f.get("keys_attempted", [])), sorted(r.keys_attempted)),
+                 ("keys_absent", sorted(f.get("keys_absent", [])), sorted(r.keys_absent)),
                  ("identity", f.get("identity"), r.identity)]
         if f["verdict"] == "PRESENT" or r.verdict == "PRESENT":
             pairs += [("matched_on", sorted(f.get("matched_on", [])), sorted(r.matched_on)),

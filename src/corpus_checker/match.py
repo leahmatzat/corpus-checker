@@ -54,6 +54,11 @@ class Match:
     def any_hit(self) -> bool:
         return bool(self.keys_hit)
 
+    def keys_hit_outside(self, sources) -> tuple[str, ...]:
+        """Keys hit on at least one row that does not come from `sources` (e.g. the unconfirmed files)."""
+        skip = set(sources)
+        return tuple(k for k in self.keys_attempted if any(r.source not in skip for r in self.hits.get(k, ())))
+
     @property
     def sample_ids(self) -> tuple[str, ...]:
         ids = []

@@ -36,19 +36,31 @@ class Decision:
 def decide_from(*, manifest_type: str, can_prove_presence: bool, checkable: bool = True,
                 keys_attempted: Iterable[str] = (), keys_hit: Iterable[str] = (),
                 listed_accessions: Iterable[str] = (), requires_keys: Iterable[str] = (),
-                unconfirmed_sources: Iterable[str] = (), unsearched_sources: Iterable[str] = ()) -> Decision:
+                unconfirmed_sources: Iterable[str] = (), unsearched_sources: Iterable[str] = (),
+                keys_absent: Iterable[str] = (), keys_hit_confirmed: Iterable[str] | None = None) -> Decision:
+    """keys_absent: required keys the catalog records as not existing for this dataset, with a basis —
+    they count as covered for NOT PRESENT, never as searched. keys_hit_confirmed: the keys hit on rows
+    from confirmed sources; None means "not known", which is read conservatively (no confirmed hit)
+    whenever a source is unconfirmed."""
     attempted, hit = set(keys_attempted), set(keys_hit)
     requires, listed = set(requires_keys), sorted(listed_accessions)
     unconfirmed, unsearched = list(unconfirmed_sources), list(unsearched_sources)
+    absent = set(keys_absent) - attempted
 
     if manifest_type in ("C-vague", "D") or not checkable:
         return Decision(NOT_CHECKABLE, "no manifest was published to search", "no_manifest")
 
     if unconfirmed:
-        state = "matched" if hit else "did not match"
-        return Decision(INCONCLUSIVE, f"the manifest {state}, but source(s) {unconfirmed} are not confirmed as the "
-                                      "paper's file (supplied, no url_hash / totals / author confirmation)",
-                        "unconfirmed_source")
+        # A match inside a confirmed file is still a match; an unconfirmed file can only ever
+        # weaken absence. So presence is decided on the confirmed-file hits alone.
+        confirmed_hit = set(keys_hit_confirmed or ()) & hit
+        if not confirmed_hit & EXACT_KEYS:
+            state = "matched" if hit else "did not match"
+            where = " (only in an unconfirmed file)" if hit else ""
+            return Decision(INCONCLUSIVE, f"the manifest {state}{where}, but source(s) {unconfirmed} are not confirmed "
+                                          "as the paper's file (supplied, no url_hash / totals / author confirmation)",
+                            "unconfirmed_source")
+        hit = confirmed_hit
 
     if hit & EXACT_KEYS:
         paper_only = "accession" not in hit
@@ -69,19 +81,22 @@ def decide_from(*, manifest_type: str, can_prove_presence: bool, checkable: bool
     if not attempted & EXACT_KEYS:
         return Decision(INCONCLUSIVE, "no exact key could be attempted: the dataset has no confirmed identifier "
                                       "of a kind this manifest carries", "no_exact_key")
-    if missing := requires - attempted:
+    if missing := requires - attempted - absent:
         return Decision(INCONCLUSIVE, f"no match on {sorted(attempted)}, but this manifest needs {sorted(requires)} "
                                       f"attempted before absence can be claimed; the dataset has no confirmed "
-                                      f"{'/'.join(sorted(missing))} identifier", "missing_required_key")
+                                      f"{'/'.join(sorted(missing))} identifier, and none is recorded as not existing",
+                        "missing_required_key")
     return Decision(NOT_PRESENT, None, "not_present")
 
 
 def decide(*, manifest_type: str, can_prove_presence: bool, match: Match | None,
            requires_keys: frozenset[str] = frozenset(), unconfirmed_sources: tuple[str, ...] = (),
-           unsearched_sources: tuple[str, ...] = ()) -> Decision:
+           unsearched_sources: tuple[str, ...] = (), keys_absent: frozenset[str] = frozenset()) -> Decision:
     if match is None:
         return decide_from(manifest_type=manifest_type, can_prove_presence=can_prove_presence, checkable=False)
     return decide_from(manifest_type=manifest_type, can_prove_presence=can_prove_presence,
                        keys_attempted=match.keys_attempted, keys_hit=match.keys_hit,
                        listed_accessions=match.listed_accessions, requires_keys=requires_keys,
-                       unconfirmed_sources=unconfirmed_sources, unsearched_sources=unsearched_sources)
+                       unconfirmed_sources=unconfirmed_sources, unsearched_sources=unsearched_sources,
+                       keys_absent=keys_absent,
+                       keys_hit_confirmed=match.keys_hit_outside(unconfirmed_sources))

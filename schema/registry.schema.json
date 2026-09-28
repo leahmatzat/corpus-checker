@@ -1008,6 +1008,14 @@
           },
           "description": "Per finding, not per result: which keys were actually tried for THIS dataset. A key only counts if the dataset has a confirmed identifier of that kind in datasets/."
         },
+        "keys_absent": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/matchKey"
+          },
+          "description": "Keys this manifest can match on that the catalog records as not existing for this dataset (datasets/ absent:). They cover a required key for NOT PRESENT (G14) but were not searched. Derived, and checked against the catalog (G24)."
+        },
         "matched_on": {
           "type": "array",
           "uniqueItems": true,
