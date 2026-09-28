@@ -12,6 +12,19 @@ identifiers:
     value: 10.1101/2022.10.12.511898
     confirmed: true
     via: collection_doi of that collection in CELLxGENE census 2023-05-15 (snapshots/cellxgene-census/2023-05-15/datasets.csv)
+  - type: pmid
+    value: "37824663"
+    confirmed: true
+    via: >-
+      PubMed record of Siletti et al., Science 2023, "Transcriptomic diversity of cell types across the
+      adult human brain" (esummary db=pubmed — NCBI E-utilities, 2026-09-28). CELLxGENE now cites this
+      paper for the collection (next identifier).
+  - type: doi
+    value: 10.1126/science.add7046
+    confirmed: true
+    via: >-
+      The collection's doi in the CELLxGENE curation API (collections/283d65eb-dd53-496d-adb7-7570c7caa443,
+      checked 2026-09-28): the published version of the bioRxiv preprint above.
 subsets:
   - id: prg
     name: "Dissection: Cerebral cortex (Cx) - Perirhinal gyrus (PRG) - A35-A36"

@@ -686,7 +686,7 @@
     "answers": [
      {
       "cells": null,
-      "code": "not_present",
+      "code": "recorded",
       "identity": null,
       "keys_attempted": [
        "accession",
@@ -695,7 +695,7 @@
       "match_level": null,
       "matched_on": [],
       "model": "scfoundation",
-      "recorded": false,
+      "recorded": true,
       "samples": null,
       "stage": "pretraining",
       "verdict": "NOT PRESENT"
@@ -1099,7 +1099,7 @@
     "answers": [
      {
       "cells": null,
-      "code": "not_present",
+      "code": "recorded",
       "identity": null,
       "keys_attempted": [
        "accession",
@@ -1108,7 +1108,7 @@
       "match_level": null,
       "matched_on": [],
       "model": "scfoundation",
-      "recorded": false,
+      "recorded": true,
       "samples": null,
       "stage": "pretraining",
       "verdict": "NOT PRESENT"

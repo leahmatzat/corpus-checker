@@ -6,6 +6,13 @@ organism: [human]
 identifiers:
   - {type: pmid, value: "35688146",                 confirmed: true, via: "esearch db=pubmed \"10.1016/j.cell.2022.05.013\"[DOI] — NCBI E-utilities, 2026-09-23"}
   - {type: doi,  value: 10.1016/j.cell.2022.05.013, confirmed: true, via: "esummary db=pubmed id=35688146 — NCBI E-utilities, 2026-09-23"}
+  - type: bioproject
+    value: PRJNA831566
+    confirmed: true
+    via: >-
+      The paper's Data and code availability section: "Raw sequencing data are deposited on SRA under
+      BioProject PRJNA831566" (PMC9380471, full text via Europe PMC, 2026-09-28). The BioProject's title
+      is the paper's title (esummary db=bioproject — NCBI E-utilities, 2026-09-28).
 subsets:
   - {id: k562-genome-wide, name: K562 genome-wide}
   - {id: k562-essential,   name: K562 essential}
@@ -15,6 +22,7 @@ sources:
     url: https://gwps.wi.mit.edu/
     note: Where scGPT obtained it (scGPT data availability statement).
 note: >
-  No GEO accession; distributed via gwps.wi.mit.edu and figshare (figshare identifier not
-  yet resolved). Subset names are from the source publication and are not yet tied to
+  No GEO accession. Raw sequencing data is in SRA under BioProject PRJNA831566 (7,883 SRA
+  experiments on 2026-09-28); processed data is distributed via gwps.wi.mit.edu and figshare
+  (figshare identifier not yet resolved). Subset names are from the source publication and are not yet tied to
   file identifiers — which subset each model evaluated on must be read from that model's paper.

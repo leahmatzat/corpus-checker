@@ -147,6 +147,25 @@ corpora:
         - dataset: segerstolpe2016
           verdict: NOT PRESENT
           keys_attempted: [accession, pmid]
+        - dataset: cheng2021-myeloid
+          verdict: NOT PRESENT
+          keys_attempted: [accession, pmid]
+        - dataset: replogle2022
+          verdict: NOT PRESENT
+          keys_attempted: [accession, pmid]
+          note: >
+            Searched on BioProject PRJNA831566 (named in the paper's data availability statement)
+            and PMID 35688146. The manifest lists some SRA data by experiment or BioSample rather
+            than by BioProject, so those rows were also checked directly: none of its 157 SRX or
+            54 SAMN accessions belongs to PRJNA831566 (NCBI E-utilities, 2026-09-28).
+        - dataset: siletti2022-perirhinal
+          verdict: NOT PRESENT
+          keys_attempted: [accession, pmid]
+          note: >
+            Searched on the CELLxGENE collection ID and PMID 37824663 (the published Science 2023
+            paper; CELLxGENE now cites it for this collection). The manifest does carry CELLxGENE
+            IDs (91 of them), so the accession search is a real one. Checked at collection level,
+            which covers the perirhinal dissections within it.
 
       caveats:
         - >
