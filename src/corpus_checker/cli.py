@@ -149,6 +149,7 @@ def _cmd_check(args, root: Path) -> int:
                          else "differs from registry" if any(ds == r.dataset for ds, _ in diffs) else "= registry")
                 section.append({"stage": corpus["stage"], "relation": r.relation, "dataset": r.dataset,
                                 "verdict": r.verdict, "keys_attempted": list(r.keys_attempted),
+                                "keys_absent": list(r.keys_absent),
                                 "matched_on": list(r.matched_on), "samples": len(r.sample_ids) or None,
                                 "cells": r.cells, "reason": r.decision.reason, "registry": agree,
                                 "identity": r.identity, "identity_basis": r.identity_basis,
@@ -162,7 +163,8 @@ def _cmd_check(args, root: Path) -> int:
                     continue
                 section.append({"stage": corpus["stage"], "relation": relation(entry, f["dataset"]),
                                 "dataset": f["dataset"], "verdict": f["verdict"],
-                                "keys_attempted": f.get("keys_attempted", []), "matched_on": f.get("matched_on", []),
+                                "keys_attempted": f.get("keys_attempted", []), "keys_absent": f.get("keys_absent", []),
+                                "matched_on": f.get("matched_on", []),
                                 "samples": f.get("samples"), "cells": f.get("cells"), "reason": f.get("reason"),
                                 "identity": f.get("identity"), "identity_basis": f.get("identity_basis")})
             prov = entry["provenance"]
@@ -188,6 +190,8 @@ def _cmd_check(args, root: Path) -> int:
                 evidence = f"[{r['registry']}{': ' + r['registry_verdict'] if r.get('registry_verdict') else ''}] {evidence}"
             if len(evidence) > 110:
                 evidence = evidence[:109] + "…   (--format json for the full reason)"
+            if r.get("keys_absent"):
+                evidence = f"· none exists: {', '.join(r['keys_absent'])} {evidence}".strip()
             print(f"  {r['relation']:13} {r['dataset']:20} {r['verdict']:14} {','.join(r['keys_attempted']) or '-':16} {evidence}")
         print()
     print(_EXPOSURE_NOTE)

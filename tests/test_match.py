@@ -108,3 +108,37 @@ def test_an_accession_match_is_dataset_level():
     m = match(index, _dataset(("geo", "GSE1", True), ("pmid", "7", True)), ["accession", "pmid"])
     assert m.match_level == "dataset"
     assert decide(manifest_type="A", can_prove_presence=True, match=m).verdict == "PRESENT"
+
+
+def test_a_recorded_absence_covers_a_required_key():
+    """BMMC: no PMID exists, so the accession search is enough for NOT PRESENT."""
+    empty = match(RecordIndex([]), _dataset(("geo", "GSE1", True)), ["accession"])
+    d = decide(manifest_type="A", can_prove_presence=True, match=empty,
+               requires_keys=frozenset({"accession", "pmid"}), keys_absent=frozenset({"pmid"}))
+    assert (d.verdict, d.code) == ("NOT PRESENT", "not_present")
+
+
+def test_a_missing_key_without_a_recorded_absence_still_blocks():
+    empty = match(RecordIndex([]), _dataset(("geo", "GSE1", True)), ["accession"])
+    d = decide(manifest_type="A", can_prove_presence=True, match=empty, requires_keys=frozenset({"accession", "pmid"}))
+    assert (d.verdict, d.code) == ("INCONCLUSIVE", "missing_required_key")
+
+
+def test_a_recorded_absence_is_never_a_search():
+    empty = match(RecordIndex([]), _dataset(), [])
+    d = decide(manifest_type="A", can_prove_presence=True, match=empty,
+               requires_keys=frozenset({"accession", "pmid"}), keys_absent=frozenset({"accession", "pmid"}))
+    assert (d.verdict, d.code) == ("INCONCLUSIVE", "no_exact_key")
+
+
+def test_a_match_in_a_confirmed_file_is_present_beside_an_unconfirmed_file():
+    index = RecordIndex([CanonicalRecord(accessions=("GSE1",), pmids=("7",), project="GEO-GSE1", source="S1", row=1)])
+    m = match(index, _dataset(("geo", "GSE1", True), ("pmid", "7", True)), ["accession", "pmid"])
+    assert decide(manifest_type="A", can_prove_presence=True, match=m, unconfirmed_sources=("S2",)).verdict == "PRESENT"
+
+
+def test_a_match_only_in_the_unconfirmed_file_is_not_presence():
+    index = RecordIndex([CanonicalRecord(accessions=("GSE1",), project="GEO-GSE1", source="S2", row=1)])
+    m = match(index, _dataset(("geo", "GSE1", True)), ["accession"])
+    d = decide(manifest_type="A", can_prove_presence=True, match=m, unconfirmed_sources=("S2",))
+    assert (d.verdict, d.code) == ("INCONCLUSIVE", "unconfirmed_source")

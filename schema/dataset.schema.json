@@ -19,6 +19,20 @@
       "minItems": 1,
       "items": { "$ref": "#/$defs/identifier" }
     },
+    "absent": {
+      "type": "array",
+      "description": "Match keys this dataset has NO identifier of — e.g. a paper PubMed does not index has no PMID. A recorded absence covers that key when a manifest requires it for NOT PRESENT (the manifest cannot list the dataset under an identifier it does not have), but it is never a search. It is a factual claim: it needs evidence someone can recheck and the date it was checked, and it is removed if an identifier turns up (G24).",
+      "items": {
+        "type": "object",
+        "required": ["key", "basis", "checked"],
+        "additionalProperties": false,
+        "properties": {
+          "key":     { "enum": ["accession", "pmid", "doi"] },
+          "basis":   { "type": "string", "minLength": 20, "description": "The evidence that no such identifier exists, specific enough to recheck." },
+          "checked": { "type": "string", "format": "date" }
+        }
+      }
+    },
     "subsets": {
       "type": "array",
       "description": "When one publication or accession holds several datasets that are evaluated separately — Replogle 2022 K562-GW / K562-essential / RPE1.",

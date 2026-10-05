@@ -105,6 +105,7 @@ test("search() matches every lookup vector (verified-only and with drafts)", () 
       assert.equal(a.cells, exp.cells, `${label}[${i}]: cells`);
       assert.equal(a.recorded, exp.recorded, `${label}[${i}]: recorded`);
       assert.equal(a.identity, exp.identity, `${label}[${i}]: identity`);
+      assert.deepEqual(a.keys_absent ?? [], exp.keys_absent, `${label}[${i}]: keys_absent`);
     });
   }
 });

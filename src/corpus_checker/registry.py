@@ -117,6 +117,16 @@ def confirmed_keys(dataset: dict, accession_types: list[str] | None = None) -> s
     return {identifier_key(i["type"]) for i in usable_identifiers(dataset, accession_types)}
 
 
+def absent_keys(dataset: dict) -> set[str]:
+    """Match keys the catalog records as NOT EXISTING for this dataset (`absent:`, each with a basis).
+
+    A recorded absence covers a required key for NOT PRESENT — the manifest cannot list a
+    dataset under an identifier the dataset does not have — but it is never a search.
+    G24 rejects an absence that contradicts a usable identifier of the same key.
+    """
+    return {a["key"] for a in dataset.get("absent", []) if a.get("key") in EXACT_KEYS}
+
+
 def provisional_keys(dataset: dict, accession_types: list[str] | None = None) -> tuple[set[str], tuple[str, ...]]:
     """Keys whose ONLY usable identifiers are provisional, and the bases of those identifiers.
 

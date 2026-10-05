@@ -305,6 +305,119 @@
     ]
    },
    "name": "absent from superset"
+  },
+  {
+   "expected": {
+    "code": "not_present",
+    "verdict": "NOT PRESENT"
+   },
+   "input": {
+    "can_prove_presence": true,
+    "keys_absent": [
+     "pmid"
+    ],
+    "keys_attempted": [
+     "accession"
+    ],
+    "manifest_type": "A",
+    "requires_keys": [
+     "accession",
+     "pmid"
+    ]
+   },
+   "name": "absent, PMID recorded as not existing"
+  },
+  {
+   "expected": {
+    "code": "no_exact_key",
+    "verdict": "INCONCLUSIVE"
+   },
+   "input": {
+    "can_prove_presence": true,
+    "keys_absent": [
+     "accession",
+     "pmid"
+    ],
+    "keys_attempted": [],
+    "manifest_type": "A",
+    "requires_keys": [
+     "accession",
+     "pmid"
+    ]
+   },
+   "name": "a recorded absence is never a search"
+  },
+  {
+   "expected": {
+    "code": "unconfirmed_source",
+    "verdict": "INCONCLUSIVE"
+   },
+   "input": {
+    "can_prove_presence": true,
+    "keys_attempted": [
+     "accession"
+    ],
+    "keys_hit": [
+     "accession"
+    ],
+    "keys_hit_confirmed": [],
+    "manifest_type": "A",
+    "unconfirmed_sources": [
+     "S2"
+    ]
+   },
+   "name": "unconfirmed source, hit only in the unconfirmed file"
+  },
+  {
+   "expected": {
+    "code": "present",
+    "verdict": "PRESENT"
+   },
+   "input": {
+    "can_prove_presence": true,
+    "keys_attempted": [
+     "accession",
+     "pmid"
+    ],
+    "keys_hit": [
+     "accession",
+     "pmid"
+    ],
+    "keys_hit_confirmed": [
+     "accession",
+     "pmid"
+    ],
+    "manifest_type": "A",
+    "unconfirmed_sources": [
+     "S2"
+    ]
+   },
+   "name": "unconfirmed source, hit in a confirmed file"
+  },
+  {
+   "expected": {
+    "code": "same_publication",
+    "verdict": "INCONCLUSIVE"
+   },
+   "input": {
+    "can_prove_presence": true,
+    "keys_attempted": [
+     "accession",
+     "pmid"
+    ],
+    "keys_hit": [
+     "accession",
+     "pmid"
+    ],
+    "keys_hit_confirmed": [
+     "pmid"
+    ],
+    "manifest_type": "A",
+    "unconfirmed_sources": [
+     "S2"
+    ]
+   },
+   "name": "unconfirmed source, confirmed hit is paper only"
   }
  ],
  "lookup": [
@@ -316,6 +429,7 @@
       "cells": 125081,
       "code": "recorded",
       "identity": null,
+      "keys_absent": [],
       "keys_attempted": [
        "accession",
        "pmid"
@@ -360,6 +474,7 @@
       "cells": 125081,
       "code": "present",
       "identity": null,
+      "keys_absent": [],
       "keys_attempted": [
        "accession"
       ],
@@ -394,6 +509,7 @@
       "cells": 125081,
       "code": "present",
       "identity": null,
+      "keys_absent": [],
       "keys_attempted": [
        "accession",
        "pmid"
@@ -434,6 +550,7 @@
       "cells": 125081,
       "code": "same_publication",
       "identity": null,
+      "keys_absent": [],
       "keys_attempted": [
        "pmid"
       ],
@@ -472,6 +589,7 @@
       "cells": null,
       "code": "not_present",
       "identity": null,
+      "keys_absent": [],
       "keys_attempted": [
        "accession",
        "pmid"
@@ -521,6 +639,7 @@
       "cells": null,
       "code": "not_present",
       "identity": null,
+      "keys_absent": [],
       "keys_attempted": [
        "accession",
        "pmid"
@@ -558,6 +677,7 @@
       "cells": null,
       "code": "missing_required_key",
       "identity": null,
+      "keys_absent": [],
       "keys_attempted": [
        "accession"
       ],
@@ -590,6 +710,7 @@
       "cells": null,
       "code": "not_present",
       "identity": "provisional",
+      "keys_absent": [],
       "keys_attempted": [
        "accession",
        "pmid"
@@ -639,6 +760,7 @@
       "cells": null,
       "code": "recorded",
       "identity": "provisional",
+      "keys_absent": [],
       "keys_attempted": [
        "accession",
        "pmid"
@@ -686,8 +808,9 @@
     "answers": [
      {
       "cells": null,
-      "code": "not_present",
+      "code": "recorded",
       "identity": null,
+      "keys_absent": [],
       "keys_attempted": [
        "accession",
        "pmid"
@@ -695,7 +818,7 @@
       "match_level": null,
       "matched_on": [],
       "model": "scfoundation",
-      "recorded": false,
+      "recorded": true,
       "samples": null,
       "stage": "pretraining",
       "verdict": "NOT PRESENT"
@@ -720,6 +843,74 @@
    "include_drafts": false,
    "kind": "dataset",
    "name": "myeloid, catalog dataset"
+  },
+  {
+   "catalog_id": "luecken2021-bmmc",
+   "expected": {
+    "answers": [
+     {
+      "cells": null,
+      "code": "recorded",
+      "identity": null,
+      "keys_absent": [
+       "pmid"
+      ],
+      "keys_attempted": [
+       "accession"
+      ],
+      "match_level": null,
+      "matched_on": [],
+      "model": "scfoundation",
+      "recorded": true,
+      "samples": null,
+      "stage": "pretraining",
+      "verdict": "NOT PRESENT"
+     }
+    ],
+    "paper_level_warning": false
+   },
+   "identifiers": [
+    [
+     "geo",
+     "GSE194122"
+    ]
+   ],
+   "include_drafts": false,
+   "kind": "dataset",
+   "name": "BMMC, catalog dataset with no PMID"
+  },
+  {
+   "catalog_id": null,
+   "expected": {
+    "answers": [
+     {
+      "cells": null,
+      "code": "missing_required_key",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [
+       "accession"
+      ],
+      "match_level": null,
+      "matched_on": [],
+      "model": "scfoundation",
+      "recorded": false,
+      "samples": null,
+      "stage": "pretraining",
+      "verdict": "INCONCLUSIVE"
+     }
+    ],
+    "paper_level_warning": false
+   },
+   "identifiers": [
+    [
+     "geo",
+     "GSE194122"
+    ]
+   ],
+   "include_drafts": false,
+   "kind": "dataset",
+   "name": "BMMC accession only, not via catalog"
   },
   {
    "catalog_id": "norman2019",
@@ -729,6 +920,7 @@
       "cells": 125081,
       "code": "recorded",
       "identity": null,
+      "keys_absent": [],
       "keys_attempted": [
        "accession",
        "pmid"
@@ -773,6 +965,7 @@
       "cells": 125081,
       "code": "present",
       "identity": null,
+      "keys_absent": [],
       "keys_attempted": [
        "accession"
       ],
@@ -807,6 +1000,7 @@
       "cells": 125081,
       "code": "present",
       "identity": null,
+      "keys_absent": [],
       "keys_attempted": [
        "accession",
        "pmid"
@@ -847,6 +1041,7 @@
       "cells": 125081,
       "code": "same_publication",
       "identity": null,
+      "keys_absent": [],
       "keys_attempted": [
        "pmid"
       ],
@@ -885,6 +1080,7 @@
       "cells": null,
       "code": "not_present",
       "identity": null,
+      "keys_absent": [],
       "keys_attempted": [
        "accession",
        "pmid"
@@ -934,6 +1130,7 @@
       "cells": null,
       "code": "not_present",
       "identity": null,
+      "keys_absent": [],
       "keys_attempted": [
        "accession",
        "pmid"
@@ -971,6 +1168,7 @@
       "cells": null,
       "code": "missing_required_key",
       "identity": null,
+      "keys_absent": [],
       "keys_attempted": [
        "accession"
       ],
@@ -1003,6 +1201,7 @@
       "cells": null,
       "code": "not_present",
       "identity": "provisional",
+      "keys_absent": [],
       "keys_attempted": [
        "accession",
        "pmid"
@@ -1052,6 +1251,7 @@
       "cells": null,
       "code": "recorded",
       "identity": "provisional",
+      "keys_absent": [],
       "keys_attempted": [
        "accession",
        "pmid"
@@ -1099,8 +1299,9 @@
     "answers": [
      {
       "cells": null,
-      "code": "not_present",
+      "code": "recorded",
       "identity": null,
+      "keys_absent": [],
       "keys_attempted": [
        "accession",
        "pmid"
@@ -1108,7 +1309,7 @@
       "match_level": null,
       "matched_on": [],
       "model": "scfoundation",
-      "recorded": false,
+      "recorded": true,
       "samples": null,
       "stage": "pretraining",
       "verdict": "NOT PRESENT"
@@ -1133,6 +1334,74 @@
    "include_drafts": true,
    "kind": "dataset",
    "name": "myeloid, catalog dataset"
+  },
+  {
+   "catalog_id": "luecken2021-bmmc",
+   "expected": {
+    "answers": [
+     {
+      "cells": null,
+      "code": "recorded",
+      "identity": null,
+      "keys_absent": [
+       "pmid"
+      ],
+      "keys_attempted": [
+       "accession"
+      ],
+      "match_level": null,
+      "matched_on": [],
+      "model": "scfoundation",
+      "recorded": true,
+      "samples": null,
+      "stage": "pretraining",
+      "verdict": "NOT PRESENT"
+     }
+    ],
+    "paper_level_warning": false
+   },
+   "identifiers": [
+    [
+     "geo",
+     "GSE194122"
+    ]
+   ],
+   "include_drafts": true,
+   "kind": "dataset",
+   "name": "BMMC, catalog dataset with no PMID"
+  },
+  {
+   "catalog_id": null,
+   "expected": {
+    "answers": [
+     {
+      "cells": null,
+      "code": "missing_required_key",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [
+       "accession"
+      ],
+      "match_level": null,
+      "matched_on": [],
+      "model": "scfoundation",
+      "recorded": false,
+      "samples": null,
+      "stage": "pretraining",
+      "verdict": "INCONCLUSIVE"
+     }
+    ],
+    "paper_level_warning": false
+   },
+   "identifiers": [
+    [
+     "geo",
+     "GSE194122"
+    ]
+   ],
+   "include_drafts": true,
+   "kind": "dataset",
+   "name": "BMMC accession only, not via catalog"
   }
  ],
  "parse": [

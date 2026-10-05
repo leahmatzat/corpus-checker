@@ -82,6 +82,7 @@ class Answer:
     verified_by: str | None
     verified_date: str | None
     draft: bool
+    keys_absent: tuple[str, ...] = ()      # recorded findings only: keys the catalog records as not existing
 
 
 @dataclass(frozen=True)
@@ -277,7 +278,8 @@ def _recorded(corpus: _Corpus, finding: dict) -> Answer:
                   sample_ids=tuple(finding.get("sample_ids", [])), listed_accessions=(),
                   sources_searched=corpus.sources_searched, recorded=True,
                   identity=finding.get("identity"), identity_basis=finding.get("identity_basis"),
-                  verified_by=corpus.verified_by, verified_date=corpus.verified_date, draft=corpus.draft)
+                  verified_by=corpus.verified_by, verified_date=corpus.verified_date, draft=corpus.draft,
+                  keys_absent=tuple(finding.get("keys_absent", [])))
 
 
 def search(query: Query, corpora: list[_Corpus], recorded_rows: list[dict]) -> LookupResult:
@@ -320,7 +322,9 @@ def answer_text(a: Answer, *, lead: bool = True) -> str:
         body = f"in {where}" + (f": {size}" if size else "") + (f" (matched on {keys})" if keys else "") + "."
     elif a.verdict == "NOT PRESENT":
         body = (f"not in {where}; searched {', '.join(a.sources_searched)} "
-                f"on {' and '.join(name(k) for k in a.keys_attempted)}.")
+                f"on {' and '.join(name(k) for k in a.keys_attempted)}"
+                + (f" (no {' or '.join(name(k) for k in a.keys_absent)} exists for this dataset)" if a.keys_absent else "")
+                + ".")
     elif a.verdict == "NOT CHECKABLE":
         body = f"{a.model_name} did not publish a training-data list for its {a.stage} stage."
     else:

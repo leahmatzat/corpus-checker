@@ -92,7 +92,10 @@ CASES = [
     ("G07", "sources_searched names an unknown file", lambda e: corpus(e)["result"]["sources_searched"].append("S3")),
     ("G08", "NOT PRESENT from one of two manifest files", lambda e: corpus(e)["result"].update(sources_searched=["S1"])),
     # --- G09: unconfirmed manifest source
-    ("G09", "definite verdicts from an unconfirmed supplied file", _supplied),
+    ("G09", "NOT PRESENT from a manifest with an unconfirmed supplied file", _supplied),
+    ("G09", "PRESENT when every manifest file is unconfirmed",
+     lambda e: (_supplied(e), corpus(e)["manifest"]["sources"][0].update(
+         acquired="supplied", supplied_by="LM", confirmation={"method": "none"}))),
     # --- G10: provenance
     ("G10", "verified_by empty", lambda e: e["provenance"].update(verified_by="", verified_date=None)),
     ("G10", "verified_by not a listed verifier", lambda e: e["provenance"].update(verified_by="ZZ")),
@@ -111,6 +114,15 @@ CASES = [
      lambda e: finding(e, 1).update(keys_attempted=["accession"])),
     ("G14", "NOT PRESENT for a PMID-only dataset (the Zheng68K case)",
      lambda e: corpus(e)["result"]["findings"].append({"dataset": "beta2021", "verdict": "NOT PRESENT", "keys_attempted": ["pmid"]})),
+    ("G14", "NOT PRESENT for a no-PMID dataset without its recorded absence",
+     lambda e: corpus(e)["result"]["findings"].append({"dataset": "delta2023", "verdict": "NOT PRESENT", "keys_attempted": ["accession"]})),
+    # --- G24: a recorded absence is derived from the catalog
+    ("G24", "claims a PMID does not exist for a dataset whose PMID is in the catalog",
+     lambda e: finding(e, 1).update(keys_attempted=["accession"], keys_absent=["pmid"])),
+    ("G24", "omits the absence the catalog records",
+     lambda e: corpus(e)["result"]["findings"].append(
+         {"dataset": "delta2023", "verdict": "INCONCLUSIVE", "keys_attempted": ["accession"],
+          "reason": "no match on ['accession'], but this manifest needs ['accession', 'pmid']"})),
     # --- G15: claimed attempt with no confirmed identifier behind it
     ("G15", "claims an accession attempt using an unconfirmed accession",
      lambda e: corpus(e)["result"]["findings"].append(
@@ -302,3 +314,34 @@ def test_g03_follows_renames(git_repo, entry):
     _git(git_repo, "add", "-A")
     issues = validate(git_repo, opts=Options(today=TODAY, base_ref="main"))
     assert "G03" in codes(issues)
+
+
+def test_a_recorded_absence_covers_a_required_key(toy_repo, entry):
+    """No PMID exists for delta2023, recorded with a basis: the accession search is enough."""
+    corpus(entry)["result"]["findings"].append(
+        {"dataset": "delta2023", "verdict": "NOT PRESENT", "keys_attempted": ["accession"], "keys_absent": ["pmid"]})
+    assert codes(run(toy_repo, entry)) == set()
+
+
+def test_an_absence_beside_an_identifier_of_that_kind_is_rejected(toy_repo):
+    write_yaml(toy_repo / "datasets" / "gamma2022.yaml", {
+        "schema_version": 1, "id": "gamma2022", "name": "Gamma 2022",
+        "identifiers": [{"type": "geo", "value": "GSE3", "confirmed": True},
+                        {"type": "pmid", "value": "3", "confirmed": True}],
+        "absent": [{"key": "pmid", "checked": "2026-09-28", "basis": "claimed, but the PMID is right there above"}]})
+    assert any(i.code == "G24" and i.path == "datasets/gamma2022.yaml" for i in run(toy_repo))
+
+
+def test_absence_needs_evidence(toy_repo):
+    write_yaml(toy_repo / "datasets" / "delta2023.yaml", {
+        "schema_version": 1, "id": "delta2023", "name": "Delta 2023",
+        "identifiers": [{"type": "geo", "value": "GSE4", "confirmed": True}],
+        "absent": [{"key": "pmid", "checked": "2026-09-28", "basis": "none"}]})
+    assert "G00" in codes(run(toy_repo))
+
+
+def test_present_from_a_confirmed_file_stands_beside_an_unconfirmed_one(toy_repo, entry):
+    """A match in the confirmed file is PRESENT; the unconfirmed file only blocks absence."""
+    _supplied(entry)
+    corpus(entry)["result"]["findings"] = [finding(entry, 0)]
+    assert "G09" not in codes(run(toy_repo, entry))

@@ -110,26 +110,34 @@ export function decideFrom({
   manifest_type, can_prove_presence, checkable = true,
   keys_attempted = [], keys_hit = [], listed_accessions = [], requires_keys = [],
   unconfirmed_sources = [], unsearched_sources = [],
+  keys_absent = [], keys_hit_confirmed = null,
 } = {}) {
   const attempted = new Set(keys_attempted);
-  const hit = new Set(keys_hit);
+  let hit = new Set(keys_hit);
   const requires = new Set(requires_keys);
   const listed = [...listed_accessions].sort();
   const unconfirmed = [...unconfirmed_sources];
   const unsearched = [...unsearched_sources];
+  const absent = new Set([...keys_absent].filter((k) => !attempted.has(k)));
 
   if (manifest_type === "C-vague" || manifest_type === "D" || !checkable) {
     return { verdict: NOT_CHECKABLE, reason: "no manifest was published to search", code: "no_manifest" };
   }
 
   if (unconfirmed.length) {
-    const state = hit.size ? "matched" : "did not match";
-    return {
-      verdict: INCONCLUSIVE,
-      reason: `the manifest ${state}, but source(s) ${pyRepr(unconfirmed)} are not confirmed as the paper's `
-        + "file (supplied, no url_hash / totals / author confirmation)",
-      code: "unconfirmed_source",
-    };
+    // A match inside a confirmed file is still a match; presence is decided on those hits alone.
+    const confirmedHit = new Set([...(keys_hit_confirmed || [])].filter((k) => hit.has(k)));
+    if (![...confirmedHit].some((k) => EXACT_KEYS.has(k))) {
+      const state = hit.size ? "matched" : "did not match";
+      const where = hit.size ? " (only in an unconfirmed file)" : "";
+      return {
+        verdict: INCONCLUSIVE,
+        reason: `the manifest ${state}${where}, but source(s) ${pyRepr(unconfirmed)} are not confirmed as the paper's `
+          + "file (supplied, no url_hash / totals / author confirmation)",
+        code: "unconfirmed_source",
+      };
+    }
+    hit = confirmedHit;
   }
 
   const hitExact = [...hit].filter((k) => EXACT_KEYS.has(k));
@@ -179,12 +187,13 @@ export function decideFrom({
       code: "no_exact_key",
     };
   }
-  const missing = [...requires].filter((k) => !attempted.has(k)).sort();
+  const missing = [...requires].filter((k) => !attempted.has(k) && !absent.has(k)).sort();
   if (missing.length) {
     return {
       verdict: INCONCLUSIVE,
       reason: `no match on ${pyRepr([...attempted].sort())}, but this manifest needs ${pyRepr([...requires].sort())} `
-        + `attempted before absence can be claimed; the dataset has no confirmed ${missing.join("/")} identifier`,
+        + `attempted before absence can be claimed; the dataset has no confirmed ${missing.join("/")} identifier, `
+        + "and none is recorded as not existing",
       code: "missing_required_key",
     };
   }
@@ -285,6 +294,12 @@ function matchRecords(corpus, dataset, keys, accessionTypes) {
 
 function keysHitOf(mr) {
   return mr.keys_attempted.filter((k) => mr.hits[k] && mr.hits[k].length > 0);
+}
+
+/** match.Match.keys_hit_outside(): keys hit on at least one row not from `sources`. */
+function keysHitOutside(mr, sources) {
+  const skip = new Set(sources);
+  return mr.keys_attempted.filter((k) => (mr.hits[k] || []).some((r) => !skip.has(r.source)));
 }
 
 function matchLevelOf(hit) {
@@ -466,6 +481,7 @@ function answerFor(corpus, query) {
     manifest_type: corpus.manifest_type, can_prove_presence: corpus.can_prove_presence,
     keys_attempted: keys, keys_hit: hit, listed_accessions: listedAccessions,
     requires_keys: corpus.requires_keys, unconfirmed_sources: corpus.unconfirmed_sources,
+    keys_hit_confirmed: keysHitOutside(mr, corpus.unconfirmed_sources),
   });
   const { identity, identity_basis } = identityOf(dataset, keys, accessionTypes);
   return {
@@ -487,6 +503,7 @@ function recordedAnswer(corpus, finding) {
     sources_searched: corpus.sources_searched, recorded: true,
     identity: finding.identity ?? null, identity_basis: finding.identity_basis ?? null,
     verified_by: corpus.verified_by, verified_date: corpus.verified_date, draft: corpus.draft,
+    keys_absent: finding.keys_absent ?? [],
   };
 }
 
@@ -540,7 +557,9 @@ export function answerText(a, { lead = true } = {}) {
     const keys = a.matched_on.map(name).join(" and ");
     body = `in ${where}` + (size ? `: ${size}` : "") + (keys ? ` (matched on ${keys})` : "") + ".";
   } else if (a.verdict === "NOT PRESENT") {
-    body = `not in ${where}; searched ${a.sources_searched.join(", ")} on ${a.keys_attempted.map(name).join(" and ")}.`;
+    const absentKeys = a.keys_absent || [];
+    const none = absentKeys.length ? ` (no ${absentKeys.map(name).join(" or ")} exists for this dataset)` : "";
+    body = `not in ${where}; searched ${a.sources_searched.join(", ")} on ${a.keys_attempted.map(name).join(" and ")}${none}.`;
   } else if (a.verdict === "NOT CHECKABLE") {
     body = `${a.model_name} did not publish a training-data list for its ${a.stage} stage.`;
   } else {

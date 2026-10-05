@@ -111,6 +111,7 @@
       {% endif %}
         <div class="finding-detail">
         {% if f.keys_attempted %}<p>Keys attempted: {{ f.keys_attempted | join(", ") }}</p>{% endif %}
+        {% if f.keys_absent %}<p>None exists (recorded in the catalog, not searched): {{ f.keys_absent | join(", ") }}</p>{% endif %}
         {% if f.matched_on %}<p>Matched on: {{ f.matched_on | join(", ") }}</p>{% endif %}
         {% if f.samples is not none or f.cells is not none %}
           <p>{% if f.samples is not none %}{{ f.samples }} sample(s){% endif %}{% if f.cells is not none %} · {{ "{:,}".format(f.cells) }} cells{% endif %}</p>
@@ -136,6 +137,7 @@
       {% endif %}
         <div class="finding-detail">
         {% if f.keys_attempted %}<p>Keys attempted: {{ f.keys_attempted | join(", ") }}</p>{% endif %}
+        {% if f.keys_absent %}<p>None exists (recorded in the catalog, not searched): {{ f.keys_absent | join(", ") }}</p>{% endif %}
         {% if f.matched_on %}<p>Matched on: {{ f.matched_on | join(", ") }}</p>{% endif %}
         {% if f.samples is not none or f.cells is not none %}
           <p>{% if f.samples is not none %}{{ f.samples }} sample(s){% endif %}{% if f.cells is not none %} · {{ "{:,}".format(f.cells) }} cells{% endif %}</p>

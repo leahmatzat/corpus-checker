@@ -62,6 +62,24 @@ DECIDE_CASES = [
                     requires_keys=["accession", "pmid"])),
     ("absent from superset", dict(manifest_type="B", can_prove_presence=False, keys_attempted=["doi"],
                                   requires_keys=["doi"])),
+    ("absent, PMID recorded as not existing", dict(manifest_type="A", can_prove_presence=True,
+                                                   keys_attempted=["accession"], requires_keys=["accession", "pmid"],
+                                                   keys_absent=["pmid"])),
+    ("a recorded absence is never a search", dict(manifest_type="A", can_prove_presence=True, keys_attempted=[],
+                                                  requires_keys=["accession", "pmid"],
+                                                  keys_absent=["accession", "pmid"])),
+    ("unconfirmed source, hit only in the unconfirmed file", dict(manifest_type="A", can_prove_presence=True,
+                                                                  keys_attempted=["accession"], keys_hit=["accession"],
+                                                                  keys_hit_confirmed=[], unconfirmed_sources=["S2"])),
+    ("unconfirmed source, hit in a confirmed file", dict(manifest_type="A", can_prove_presence=True,
+                                                         keys_attempted=["accession", "pmid"],
+                                                         keys_hit=["accession", "pmid"],
+                                                         keys_hit_confirmed=["accession", "pmid"],
+                                                         unconfirmed_sources=["S2"])),
+    ("unconfirmed source, confirmed hit is paper only", dict(manifest_type="A", can_prove_presence=True,
+                                                             keys_attempted=["accession", "pmid"],
+                                                             keys_hit=["accession", "pmid"], keys_hit_confirmed=["pmid"],
+                                                             unconfirmed_sources=["S2"])),
 ]
 
 # Pre-expanded queries (no network): what the browser has after its NCBI step.
@@ -85,13 +103,16 @@ LOOKUP_CASES = [
       ["sra", "SRR3561754", "provisional", "SRA title and submitter only"]]),
     ("myeloid, catalog dataset", "dataset", "cheng2021-myeloid",
      [["geo", "GSE154763"], ["pmid", "33545035"], ["doi", "10.1016/j.cell.2021.01.010"]]),
+    ("BMMC, catalog dataset with no PMID", "dataset", "luecken2021-bmmc", [["geo", "GSE194122"]]),
+    ("BMMC accession only, not via catalog", "dataset", None, [["geo", "GSE194122"]]),
 ]
 
 
 def _answers(result) -> list[dict]:
     return [{"model": a.model, "stage": a.stage, "verdict": a.verdict, "code": a.code, "match_level": a.match_level,
              "keys_attempted": list(a.keys_attempted), "matched_on": list(a.matched_on),
-             "samples": a.samples, "cells": a.cells, "recorded": a.recorded, "identity": a.identity}
+             "samples": a.samples, "cells": a.cells, "recorded": a.recorded, "identity": a.identity,
+             "keys_absent": list(a.keys_absent)}
             for a in result.answers]
 
 

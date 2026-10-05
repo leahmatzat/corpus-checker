@@ -24,10 +24,11 @@ This compares the branch with `main`. Each error names a guard code, a file and 
 |---|---|---|
 | **G03** | A signed entry changed since it was signed | Review the change (section 3) and re-sign (section 4) |
 | **G10** | `verified_by` is empty: a draft | Review and sign, fix and then sign, or keep it out of this merge (section 5) |
-| **G14** | `NOT PRESENT` without every key the manifest needs (usually a missing accession) | Find and confirm the dataset's accession in `datasets/`, or accept `INCONCLUSIVE` |
-| **G09** | A verdict rests on a supplied file nobody has confirmed | Confirm the file (publisher download matches its hash, totals match the paper, or the authors confirm), or accept `INCONCLUSIVE` |
+| **G14** | `NOT PRESENT` without every key the manifest needs (usually a missing accession or PMID) | Find and confirm the missing identifier in `datasets/`; or, if it genuinely doesn't exist, record that under `absent:` with the evidence and the date; or accept `INCONCLUSIVE` |
+| **G09** | `NOT PRESENT` (or a `PRESENT` with no confirmed file to match in) rests on a supplied file nobody has confirmed | Confirm the file (publisher download matches its hash, totals match the paper, or the authors confirm), or accept `INCONCLUSIVE` |
 | **G21** | `PRESENT` on a paper-level match (PMID/DOI only) | Add an `identity_note` saying why it is the same dataset, or accept `INCONCLUSIVE` |
 | **G23** | A finding's provisional identity disagrees with the catalog | Make `identity` / `identity_basis` match the dataset's identifiers |
+| **G24** | A finding's "none exists" keys disagree with the catalog, or a key recorded as not existing also has an identifier | Re-run `check <model> --rerun` and copy its `keys_absent`; if an identifier has turned up, remove the absence from `datasets/` |
 | **G04** | A manifest re-downloaded from its URL no longer matches its hash | Download it, find out what changed, and re-check the entry |
 | G05 *(warning)* | A manifest was last checked over a year ago | Re-check when convenient |
 | G18 *(warning)* | `NOT PRESENT` while some places a manifest could live are unchecked | Check them, or accept the risk knowingly |
