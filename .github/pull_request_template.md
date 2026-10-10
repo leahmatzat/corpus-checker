@@ -1,7 +1,8 @@
 <!--
 Thanks for contributing to the registry. This checklist exists because every merged entry makes a public claim
 about someone else's paper — docs/RULES.md and docs/ADDING_A_MODEL.md explain why each item here matters.
-CI (.github/workflows/validate.yml) re-checks the mechanical parts; the rest needs a human to have actually done it.
+CI (.github/workflows/validate.yml) re-checks the mechanical parts: hashes, re-running every finding, every rule.
+The rest needs a person to have actually looked: that's the review (docs/REVIEWING.md).
 -->
 
 ## What this PR does
@@ -10,10 +11,10 @@ CI (.github/workflows/validate.yml) re-checks the mechanical parts; the rest nee
 
 ## Contributor checklist
 
-- [ ] Ran `corpus-checker validate --allow-draft` locally, and the **only** remaining item is **G10** (empty
-      `verified_by` — that one is for the verifier, not you).
-- [ ] `provenance.verified_by` is left **empty**. Code and contributors never fill this in — only a human listed in
-      `verifiers.yaml` signs it.
+- [ ] Ran `corpus-checker validate --allow-draft` locally, and the **only** remaining item is **G10** (the entry is
+      Unreviewed — that one is for the reviewer, not you).
+- [ ] The `review:` block is left **empty** (`by: ""`). Code and contributors never fill this in — only a person
+      listed in `reviewers.yaml`, with `corpus-checker review`.
 - [ ] `result.sources_searched` is populated on every finding that needs it (non-empty for any manifest type other
       than `C-vague` / `D`) — no `NOT PRESENT` without saying what was searched.
 - [ ] The `discovery` block is filled in for every one of the nine locations, **including the ones where you found
@@ -24,8 +25,8 @@ CI (.github/workflows/validate.yml) re-checks the mechanical parts; the rest nee
   - [ ] Any dataset that could plausibly be training data *or* evaluation data, and which way you read it
   - [ ] Any match that is title- or keyword-only (these must be `INCONCLUSIVE`, never `PRESENT` / `NOT PRESENT` —
         CI's G01 will block it if not)
-- [ ] If this PR touches an existing entry's `corpora` or `evaluated_on`, I know CI will require a verifier to
-      re-sign (`verified_date` updated) before it can merge — that's G03, not a bug in the workflow.
+- [ ] If this PR touches an existing entry's `corpora` or `evaluated_on`, I know CI will require someone to review
+      it again before it can merge — that's G03, not a bug in the workflow.
 
 ## Judgment calls made in this PR
 
@@ -39,15 +40,15 @@ useful; "looks fine" is not.
 
 ---
 
-## For the verifier
+## For the reviewer
 
-*Step-by-step: [docs/VERIFYING.md](https://github.com/leahmatzat/corpus-checker/blob/main/docs/VERIFYING.md). Run `corpus-checker validate --base-ref main` and `corpus-checker check <id> --rerun` first.*
+*What a review covers and how to record it: [docs/REVIEWING.md](https://github.com/leahmatzat/corpus-checker/blob/main/docs/REVIEWING.md). CI has already checked the hashes, re-run every finding and applied every rule; your job is what it can't check.*
 
-- [ ] I re-read the quoted availability statement(s) against the source, not just against this diff.
-- [ ] I confirmed every `manifestSource` this PR relies on has a `confirmation.method` that actually supports the
-      verdicts drawn from it (`none` caps everything at `INCONCLUSIVE` — G09).
-- [ ] I checked `keys_attempted` on every `NOT PRESENT` finding against the manifest's `requires_keys` (G14) and
-      that every attempted key is backed by a *confirmed* `datasets/` identifier (G15), not an assumed one.
-- [ ] I checked every judgment call the contributor flagged above and either agree with it or changed it.
-- [ ] I am listed in `verifiers.yaml`, and I am filling in `verified_by` / `verified_date` myself — not on someone
-      else's behalf.
+- [ ] **Paper:** the published version, with the right DOI and PMID.
+- [ ] **Manifest:** for each training stage, the listed file or statement is the paper's training-data list, and the
+      quote matches the paper (read against the source, not just this diff).
+- [ ] **Evaluation list:** the reported evals match what the paper evaluates on.
+- [ ] **Judgment calls:** each one flagged above, and each provisional identity, recorded absence, identity note and
+      caveat, reads right — or I changed it.
+- [ ] **Plausibility:** the results make sense; nothing surprising goes unexplained.
+- [ ] I recorded the review myself with `corpus-checker review <id>`, ticking only what I actually looked at.

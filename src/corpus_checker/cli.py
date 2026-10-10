@@ -35,10 +35,10 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--root", type=Path, help="repository root (default: found from the current directory)")
     sub = p.add_subparsers(dest="command", required=True, parser_class=_Parser)
 
-    v = sub.add_parser("validate", help="check registry/ and datasets/ against the schema and guards G00–G20")
+    v = sub.add_parser("validate", help="check registry/ and datasets/ against the schema and guards G00–G26")
     v.add_argument("paths", nargs="*", type=Path, help="files to check (default: all of registry/ and datasets/)")
-    v.add_argument("--base-ref", help="git ref to diff against for G03 (stale verification). CI passes the PR base.")
-    v.add_argument("--allow-draft", action="store_true", help="report an empty verified_by as a warning, not an error")
+    v.add_argument("--base-ref", help="git ref to diff against for G03 (changed since its review). CI passes the PR base.")
+    v.add_argument("--allow-draft", action="store_true", help="report an Unreviewed entry (empty review.by) as a warning, not an error")
     v.add_argument("--check-sources", action="store_true", help="re-fetch manifest sources and compare sha256 (G04; network)")
     v.add_argument("--stale-months", type=int, default=12, help="warn when a manifest's as_of is older than this (G05)")
 
@@ -63,8 +63,12 @@ def _build_parser() -> argparse.ArgumentParser:
     lk.add_argument("--file", type=Path, help="read queries from a file, one per line (# comments allowed)")
     lk.add_argument("--model", action="append", help="only these registry ids (repeatable) — 'is it in model X?'")
     lk.add_argument("--no-network", action="store_true", help="expand identifiers from the committed crosswalk cache only")
-    lk.add_argument("--include-drafts", action="store_true", help="also search draft (unverified) entries, marked as drafts")
+    lk.add_argument("--include-drafts", action="store_true", help="also search Unreviewed (draft) entries, marked as such")
     lk.add_argument("--manifests", type=Path, help="directory of publisher manifest files, for entries without committed extracts")
+
+    rv = sub.add_parser("review", help="record your review of one entry (runs only in your own terminal)")
+    rv.add_argument("model", help="registry id, e.g. scfoundation")
+    rv.add_argument("--base-ref", default="main", help="show what changed since this git ref (default: main)")
 
     bs = sub.add_parser("build-site", help="generate the static site (matrix, model/dataset pages, about) from the ledger")
     bs.add_argument("--out", type=Path, required=True, help="output directory, e.g. site/_build")
@@ -117,7 +121,7 @@ def _evidence(verdict: str, samples: int | None, cells: int | None, reason: str 
 
 def _cmd_check(args, root: Path) -> int:
     from .check import SourceError, check_corpus, compare, locate_in_dir, locate_committed
-    from .registry import load_catalog, load_yaml, relation
+    from .registry import load_catalog, load_yaml, relation, review_of
 
     path = root / "registry" / f"{args.model}.yaml"
     if not path.is_file():
@@ -167,8 +171,8 @@ def _cmd_check(args, root: Path) -> int:
                                 "matched_on": f.get("matched_on", []),
                                 "samples": f.get("samples"), "cells": f.get("cells"), "reason": f.get("reason"),
                                 "identity": f.get("identity"), "identity_basis": f.get("identity_basis")})
-            prov = entry["provenance"]
-            signed = f"verified by {prov['verified_by']} {prov['verified_date']}" if prov["verified_by"] else "DRAFT — not verified"
+            by, date, _ = review_of(entry)
+            signed = f"reviewed by {by} {date}" if by else "UNREVIEWED draft"
             sections.append((header, f"as recorded in registry/{args.model}.yaml · {signed} · "
                                      f"searched: {', '.join(corpus['result']['sources_searched']) or '(nothing to search)'}", section))
         rows += section
@@ -294,7 +298,7 @@ def _cmd_lookup(args, root: Path) -> int:
         print()
     searched = results[0].searched if results else ()
     print(f"Searched {len(searched)} {'entry' if len(searched) == 1 else 'entries'}: {', '.join(searched) or '—'}"
-          f"{' (including drafts)' if args.include_drafts else ' (verified only)'}. Models not in the registry are not covered.")
+          f"{' (including Unreviewed drafts)' if args.include_drafts else ' (reviewed only)'}. Models not in the registry are not covered.")
     if paper_level:
         print(f"\n⚠ {PAPER_LEVEL_DISCLAIMER}")
     print(_EXPOSURE_NOTE)
@@ -345,6 +349,9 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_resolve(args, root)
     if args.command == "build-site":
         return _cmd_build_site(args, root)
+    if args.command == "review":
+        from .review import run_review
+        return run_review(root, args.model, args.base_ref)
     return EXIT_USAGE
 
 

@@ -29,7 +29,7 @@
       <tr>
         <th scope="col" class="grid-corner">Dataset</th>
       {% for model in grid_models %}
-        <th scope="col" class="grid-model"><a href="models/{{ model.id }}.html"><span>{{ model.name }}{% if model.draft %} (draft){% endif %}</span></a></th>
+        <th scope="col" class="grid-model"><a href="models/{{ model.id }}.html"><span>{{ model.name }}{% if model.draft %} (unreviewed){% endif %}</span></a></th>
       {% endfor %}
       </tr>
     </thead>

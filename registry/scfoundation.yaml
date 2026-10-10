@@ -1,6 +1,6 @@
 # Worked example. Every claim carries a source quote — see docs/ADDING_A_MODEL.md.
 
-schema_version: 2
+schema_version: 3
 id: scfoundation
 model: scFoundation
 version: "100M parameters, checkpoint 01B-resolution"
@@ -185,8 +185,13 @@ corpora:
           equivalent" downstream results for cells included vs excluded from pretraining,
           so overlap does not by itself imply an inflated number.
 
+# Who reviewed this entry and what the review covered. Written by `corpus-checker review scfoundation`,
+# run by the reviewer in their own terminal — never by code (docs/REVIEWING.md).
+review:
+  by: LM
+  date: 2026-10-05
+  checked: []
+
 provenance:
-  verified_by: LM
-  verified_date: 2026-10-05
   method: original audit script (2026-09-08); reproduced by `corpus-checker check scfoundation --manifests DIR`
   reproducible: true

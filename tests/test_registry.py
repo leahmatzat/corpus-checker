@@ -1,6 +1,6 @@
 """The real registry/ and datasets/, validated as committed.
 
-The expected error sets are the OPEN ISSUES in the data. When a verifier resolves one,
+The expected error sets are the OPEN ISSUES in the data. When a reviewer resolves one,
 this test is updated in the same PR — so an issue can't disappear silently.
 """
 from __future__ import annotations

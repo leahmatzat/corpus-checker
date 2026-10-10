@@ -78,22 +78,22 @@ only holds if `main` is actually protected:
 
 **Settings → Branches → Add branch protection rule** for `main`:
 - Require status checks to pass before merging → select the `guards` job from the `validate`
-  workflow (`.github/workflows/validate.yml`) — this is what runs the schema, the G00–G23 guards,
-  and the stale-verification check (G03). *GitHub only lists a check here after it has run once,
+  workflow (`.github/workflows/validate.yml`) — this is what runs the schema, the G00–G26 guards,
+  and the changed-since-review check (G03). *GitHub only lists a check here after it has run once,
   so open the first pull request before setting this.*
 - Require a pull request before merging, with **at least one approving review from a code owner**.
-- ⚠ **Leave "Do not allow bypassing the above settings" unticked while you are the only verifier.**
+- ⚠ **Leave "Do not allow bypassing the above settings" unticked while you are the only reviewer.**
   GitHub never lets you approve your own pull request, so a strict rule would stop you merging
   your own changes. Bypass lets repository admins (you) merge their own PRs once the checks pass;
-  everyone else still needs your review. Revisit this when a second verifier joins.
+  everyone else still needs your review. Revisit this when a second reviewer joins.
 
 ### CODEOWNERS
 
 `.github/CODEOWNERS` makes `@leahmatzat` the required reviewer for everything that carries the
-registry's claims — `registry/`, `datasets/`, `snapshots/`, `schema/`, `verifiers.yaml` and the
+registry's claims — `registry/`, `datasets/`, `snapshots/`, `schema/`, `reviewers.yaml` and the
 workflows themselves. It only binds once branch protection's "require review from a code owner"
-is on — without it, a contributor could approve (or re-sign) their own change to a verdict.
-Add a second verifier here and in `verifiers.yaml` in the same reviewed PR.
+is on — without it, a contributor could approve (or re-review) their own change to a verdict.
+Add a second reviewer here and in `reviewers.yaml` in the same reviewed PR.
 
 ---
 

@@ -373,8 +373,8 @@ function buildCorpus(c) {
     sources: c.sources || [],
     sources_searched: c.sources_searched || [],
     unconfirmed_sources: c.unconfirmed_sources || [],
-    verified_by: c.verified_by,
-    verified_date: c.verified_date,
+    reviewed_by: c.reviewed_by,
+    reviewed_date: c.reviewed_date,
     draft: c.draft,
     records,
     lookup(key, value) {
@@ -428,8 +428,8 @@ export function catalogMatch(raw, accessions, catalog) {
 function answerFor(corpus, query) {
   const base = {
     model: corpus.model, model_name: corpus.model_name, stage: corpus.stage,
-    sources_searched: corpus.sources_searched, verified_by: corpus.verified_by,
-    verified_date: corpus.verified_date, draft: corpus.draft, recorded: false,
+    sources_searched: corpus.sources_searched, reviewed_by: corpus.reviewed_by,
+    reviewed_date: corpus.reviewed_date, draft: corpus.draft, recorded: false,
   };
   const unknownIdentity = { identity: null, identity_basis: null };
   if (!corpus.checkable) {
@@ -502,7 +502,7 @@ function recordedAnswer(corpus, finding) {
     sample_ids: finding.sample_ids ?? [], listed_accessions: [],
     sources_searched: corpus.sources_searched, recorded: true,
     identity: finding.identity ?? null, identity_basis: finding.identity_basis ?? null,
-    verified_by: corpus.verified_by, verified_date: corpus.verified_date, draft: corpus.draft,
+    reviewed_by: corpus.reviewed_by, reviewed_date: corpus.reviewed_date, draft: corpus.draft,
     keys_absent: finding.keys_absent ?? [],
   };
 }
@@ -579,6 +579,6 @@ export function identifierLabel(kind, value) {
 }
 
 export function provenanceText(a) {
-  if (a.draft) return "draft entry — not yet verified";
-  return `manifest recorded by ${a.verified_by}, ${a.verified_date}`;
+  if (a.draft) return "Unreviewed draft";
+  return `reviewed by ${a.reviewed_by}, ${a.reviewed_date}`;
 }

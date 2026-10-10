@@ -27,8 +27,9 @@ from urllib.parse import quote as _urlquote
 import jinja2
 import markdown as _markdown
 
-from .ledger import build_ledger
+from .ledger import build_ledger, judgment_calls
 from .lookup import build_lookup_index
+from .registry import REVIEW_CHECKS
 from .verdict import PAPER_LEVEL_DISCLAIMER
 
 # --------------------------------------------------------------------------------- constants
@@ -87,6 +88,19 @@ GRID_SHORT = {"PRESENT": "Yes", "NOT PRESENT": "No", "INCONCLUSIVE": "?", "NOT C
 
 # Row groups on the grid, in this order; any other kind follows alphabetically, then "other".
 KIND_ORDER = ("perturbation", "observational", "multimodal")
+
+# Plain names for the places a paper can describe its training data (registry `discovery`).
+DISCOVERY_LABEL = {
+    "data_availability": "the data availability statement",
+    "code_availability": "the code availability statement",
+    "supplementary_files": "the supplementary files",
+    "methods": "the Methods section",
+    "github_repo": "the GitHub repository",
+    "hf_model_card": "the Hugging Face model card",
+    "hf_dataset_card": "the Hugging Face dataset card",
+    "archive_deposits": "archive deposits (Zenodo, Figshare and the like)",
+    "preprint_vs_published": "the preprint versus the published version",
+}
 
 CONFIRMATION_EXPLANATION = {
     "url_hash": "downloaded from the publisher or repo URL; the hash is of those bytes",
@@ -365,6 +379,46 @@ def _model_page_corpora(model_id: str, model: dict, ledger: dict) -> list[dict]:
     return corpora
 
 
+def _how_checked(model: dict, ledger: dict) -> dict:
+    """The three lists on a model page: what the tool checks, what a person reviewed, what isn't checked.
+
+    Every line must be true of THIS entry, so each is derived from its sources and findings.
+    """
+    datasets = ledger["datasets"]
+    tool: list[str] = []
+    sources = [s for c in model["corpora"] for s in c.get("sources") or []]
+    methods = [((s.get("confirmation") or {}).get("method")) for s in sources]
+    if (n := methods.count("url_hash")):
+        tool.append(f"{'Its manifest file matches' if n == 1 else f'Its {n} manifest files match'} the publisher's "
+                    "download (SHA-256), and the downloads are re-checked weekly.")
+    if (n := methods.count("api_snapshot")):
+        tool.append(f"{'Its corpus snapshot is' if n == 1 else f'Its {n} corpus snapshots are'} a re-runnable export "
+                    "of the corpus itself, fixed by SHA-256.")
+    rerun = [c for c in model["corpora"] if c.get("sources") and all(s.get("committed") for s in c["sources"])]
+    if rerun:
+        stages = ", ".join(c["stage"] for c in rerun)
+        tool.append(f"Every finding is re-run from the committed manifest on every change, and must match ({stages}).")
+    if (others := [c["stage"] for c in model["corpora"] if c.get("sources") and c not in rerun]):
+        tool.append(f"Findings for {', '.join(others)} can be re-run only with the publisher's files, which aren't "
+                    "stored here.")
+    tool.append("Every registry rule passes on every change (docs/RULES.md).")
+    tool.append("Dataset identifiers are confirmed against NCBI or the dataset's own archive; any that aren't "
+                "are marked provisional.")
+
+    calls = judgment_calls(ledger, model["id"])
+
+    checked = set(model.get("review_checked") or ())
+    reviewed = [{"key": k, "text": text, "calls": calls if k == "judgment_calls" else []}
+                for k, text in REVIEW_CHECKS.items() if k in checked]
+    # With no scope recorded we can't say which checks were skipped, only that the record is missing.
+    not_checked = [text for k, text in REVIEW_CHECKS.items() if k not in checked] if checked else []
+    if unchecked := model.get("discovery_unchecked"):
+        not_checked.append("Not yet searched for a description of the training data: "
+                           + ", ".join(DISCOVERY_LABEL.get(k, k) for k in unchecked) + ".")
+    return {"tool": tool, "reviewed": reviewed, "not_checked": not_checked,
+            "scope_recorded": bool(checked)}
+
+
 def _dataset_page_context(dataset_id: str, dataset: dict, ledger: dict) -> dict:
     models = ledger["models"]
 
@@ -465,7 +519,8 @@ def build_site(root: Path, out: Path, repo_url: str) -> list[Path]:
     model_template = env.get_template("model.html")
     for model_id in sorted(ledger["models"]):
         model = ledger["models"][model_id]
-        page_model = {**model, "id": model_id, "corpora": _model_page_corpora(model_id, model, ledger)}
+        page_model = {**model, "id": model_id, "corpora": _model_page_corpora(model_id, model, ledger),
+                      "how_checked": _how_checked({**model, "id": model_id}, ledger)}
         _write(out / "models" / f"{model_id}.html", model_template.render(
             **common, root_prefix="../", page_kind="model",
             correction_url=_correction_url(repo_url, model["model"]),

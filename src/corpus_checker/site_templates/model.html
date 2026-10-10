@@ -14,14 +14,64 @@
     {% if model.paper.journal %} · {{ model.paper.journal }}{% endif %}
     {% if model.paper.published %} · {{ model.paper.published }}{% endif %}
     </dd></div>
-    <div><dt>Verified</dt><dd>
+    <div><dt>Reviewed</dt><dd>
     {% if model.draft %}
-      {{ m.draft_badge() }} — no verifier has signed this entry yet.
+      {{ m.draft_badge() }} — no reviewer has looked at this entry yet.
     {% else %}
-      {{ model.verified_by }} on {{ model.verified_date }}
+      by {{ model.reviewed_by }} on {{ model.reviewed_date }} · <a href="#how-checked">what that covers</a>
     {% endif %}
     </dd></div>
   </dl>
+
+  <section class="how-checked" id="how-checked" aria-labelledby="how-checked-h">
+    <h2 id="how-checked-h">How this entry was checked</h2>
+    <div class="how-checked-cols">
+      <div>
+        <h3>Checked by the tool</h3>
+        <ul>
+        {% for line in model.how_checked.tool %}
+          <li>{{ line }}</li>
+        {% endfor %}
+        </ul>
+      </div>
+      <div>
+      {% if model.draft %}
+        <h3>Reviewed by a person</h3>
+        <p class="muted">Not yet. {{ m.draft_badge() }}</p>
+      {% else %}
+        <h3>Reviewed by {{ model.reviewed_by }}, {{ model.reviewed_date }}</h3>
+        {% if model.how_checked.scope_recorded %}
+        <ul>
+          {% for item in model.how_checked.reviewed %}
+          <li>{{ item.text }}
+            {% if item.calls %}
+            <ul class="calls">
+              {% for c in item.calls %}<li>{{ c }}</li>{% endfor %}
+            </ul>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">The reviewer hasn't recorded which checks this review covered yet.</p>
+        {% endif %}
+      {% endif %}
+        <p class="muted small">A review means a named person looked at what the tool can't check — the inputs it takes on trust and the judgment calls — and found nothing wrong. It is not an independent replication.</p>
+      </div>
+      <div>
+        <h3>Not checked yet</h3>
+      {% if model.how_checked.not_checked %}
+        <ul>
+        {% for line in model.how_checked.not_checked %}
+          <li>{{ line }}</li>
+        {% endfor %}
+        </ul>
+      {% else %}
+        <p class="muted">Nothing outstanding.</p>
+      {% endif %}
+      </div>
+    </div>
+  </section>
 
 {% if model.paper.note %}
   <p class="note">{{ model.paper.note }}</p>

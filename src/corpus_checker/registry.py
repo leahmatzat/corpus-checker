@@ -80,12 +80,42 @@ def load_catalog(root: Path) -> dict[str, dict]:
     return catalog
 
 
-def load_verifiers(root: Path) -> set[str]:
-    path = root / "verifiers.yaml"
+def load_reviewers(root: Path) -> set[str]:
+    path = root / "reviewers.yaml"
     if not path.is_file():
         return set()
     doc = load_yaml(path) or {}
-    return {v["initials"] for v in doc.get("verifiers", []) if v.get("initials")}
+    return {v["initials"] for v in doc.get("reviewers", []) if v.get("initials")}
+
+
+# The five checks only a person can do. The tool does the mechanical ones (hashes, re-running
+# every finding, the rules) on every change, so a review never has to redo those.
+# Order and wording are shared by the review command, the site and docs/REVIEWING.md.
+REVIEW_CHECKS = {
+    "paper": "The paper is the published version, with the right DOI and PMID.",
+    "manifest": "For each training stage, the listed file or statement is the paper's training-data list, "
+                "and the quote matches the paper.",
+    "evaluated_on": "The reported evals match what the paper evaluates on.",
+    "judgment_calls": "Each judgment call reads right: provisional identities, recorded absences, "
+                      "identity notes and caveat wording.",
+    "plausibility": "The results make sense; nothing surprising goes unexplained.",
+}
+
+
+def review_of(entry: dict) -> tuple[str, str | None, tuple[str, ...]]:
+    """(by, date, checked) for an entry, from schema v3 `review` or v2 `provenance.verified_*`.
+
+    v2 is read only so that a base version from before the rename still compares (G03).
+    """
+    if isinstance(entry.get("review"), dict):
+        r = entry["review"]
+        return (r.get("by") or "").strip(), r.get("date"), tuple(r.get("checked") or ())
+    prov = entry.get("provenance") or {}
+    return (prov.get("verified_by") or "").strip(), prov.get("verified_date"), ()
+
+
+def is_unreviewed(entry: dict) -> bool:
+    return not review_of(entry)[0]
 
 
 def identifier_key(identifier_type: str) -> str | None:

@@ -89,7 +89,7 @@ def test_engine_output_always_passes_the_validator(run, tmp_path):
     shutil.copytree(REPO / "schema", tmp_path / "schema")
     shutil.copytree(REPO / "datasets", tmp_path / "datasets")
     shutil.copytree(REPO / "extracts", tmp_path / "extracts")
-    shutil.copy(REPO / "verifiers.yaml", tmp_path / "verifiers.yaml")
+    shutil.copy(REPO / "reviewers.yaml", tmp_path / "reviewers.yaml")
     entry = load_yaml(REPO / "registry" / "scfoundation.yaml")
     entry["corpora"][0]["result"]["findings"] = [r.as_finding() for r in run.results]
     write_yaml(tmp_path / "registry" / "scfoundation.yaml", entry)
@@ -100,7 +100,7 @@ def test_engine_output_always_passes_the_validator(run, tmp_path):
 def _repo_copy(tmp_path):
     for d in ("schema", "datasets", "registry", "extracts"):
         shutil.copytree(REPO / d, tmp_path / d)
-    shutil.copy(REPO / "verifiers.yaml", tmp_path / "verifiers.yaml")
+    shutil.copy(REPO / "reviewers.yaml", tmp_path / "reviewers.yaml")
     return tmp_path
 
 

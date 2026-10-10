@@ -1,0 +1,8 @@
+# People who may review an entry: fill review.by (guard G10).
+#
+# A review means a named person looked at the entry's inputs and judgment calls and found nothing
+# wrong (docs/REVIEWING.md). Adding someone here is a governance decision, made by an existing
+# reviewer in a reviewed PR — never by a contributor for themselves.
+reviewers:
+  - initials: LM
+    name: Leah Matzat

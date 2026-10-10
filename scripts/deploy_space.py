@@ -52,7 +52,7 @@ short_description: find data overlaps in single cell FM training corpus
 ---
 
 corpus-checker reports whether single-cell foundation models' evaluation datasets appear in
-their published pretraining corpora, drawn from a curated, human-verified registry. It reports
+their published pretraining corpora, drawn from a curated, human-reviewed registry. It reports
 exposure, not effect: overlap between a model's evaluation data and its training corpus does
 not by itself mean a result is inflated.
 

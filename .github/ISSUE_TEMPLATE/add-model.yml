@@ -9,7 +9,7 @@ body:
         Thanks for submitting a model. A few things worth knowing before you fill this in:
 
         - A maintainer reviews every submission and drafts the registry entry. A `PRESENT` / `NOT PRESENT` /
-          `INCONCLUSIVE` / `NOT CHECKABLE` finding is only ever recorded once a human verifier signs it
+          `INCONCLUSIVE` / `NOT CHECKABLE` finding is only ever published once a person reviews it
           (see `docs/RULES.md`).
         - The registry reports **exposure, not effect**. Overlap between a model's evaluation data and its training
           corpus does not by itself mean a result is inflated.

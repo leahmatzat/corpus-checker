@@ -21,9 +21,9 @@ from conftest import REPO
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node is not on PATH")
 def test_node_lookup_core_matches_the_vectors(tmp_path: Path) -> None:
-    verified = tmp_path / "lookup-index-verified.json"
+    reviewed = tmp_path / "lookup-index-reviewed.json"
     drafts = tmp_path / "lookup-index-drafts.json"
-    verified.write_text(json.dumps(build_lookup_index(REPO, include_drafts=False), sort_keys=True, separators=(",", ":")),
+    reviewed.write_text(json.dumps(build_lookup_index(REPO, include_drafts=False), sort_keys=True, separators=(",", ":")),
                         encoding="utf-8")
     drafts.write_text(json.dumps(build_lookup_index(REPO, include_drafts=True), sort_keys=True, separators=(",", ":")),
                       encoding="utf-8")
@@ -34,7 +34,7 @@ def test_node_lookup_core_matches_the_vectors(tmp_path: Path) -> None:
     result = subprocess.run(
         ["node", "--test", *[str(p) for p in test_files]],
         cwd=REPO,
-        env={"LOOKUP_INDEX_VERIFIED": str(verified), "LOOKUP_INDEX_DRAFTS": str(drafts),
+        env={"LOOKUP_INDEX_REVIEWED": str(reviewed), "LOOKUP_INDEX_DRAFTS": str(drafts),
              "PATH": __import__("os").environ.get("PATH", "")},
         capture_output=True, text=True,
     )

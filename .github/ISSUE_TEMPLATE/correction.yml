@@ -58,4 +58,4 @@ body:
       value: |
         ---
         CI re-runs every guard (`docs/RULES.md`) on any PR that results from this — including G03, which requires
-        a verifier to re-sign the entry before the correction can merge.
+        a reviewer to review the entry again before the correction can merge.

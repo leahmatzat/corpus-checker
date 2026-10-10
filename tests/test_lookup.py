@@ -33,7 +33,7 @@ def test_norman_is_in_scfoundation_and_the_answer_is_its_recorded_finding():
     assert res.query.catalog_id == "norman2019"
     a = by_model(res)["scfoundation"]
     assert (a.verdict, a.recorded, a.samples, a.cells) == ("PRESENT", True, 8, 125_081)
-    assert a.verified_by == "LM"
+    assert a.reviewed_by == "LM"
     assert res.searched == ("scfoundation",)           # drafts are not searched by default
 
 
@@ -109,7 +109,7 @@ def test_answer_text_reads_cleanly():
 def test_cli_prints_the_coverage_line_and_the_disclaimer_only_when_needed(capsys):
     assert main(["lookup", "GSE93421", "--no-network"]) == 0
     out = capsys.readouterr().out
-    assert "Searched 1 entry: scfoundation (verified only)" in out
+    assert "Searched 1 entry: scfoundation (reviewed only)" in out
     assert PAPER_LEVEL_DISCLAIMER not in out
     assert main(["lookup", "31395745", "--no-network"]) == 0
     out = capsys.readouterr().out
@@ -128,7 +128,7 @@ def test_cli_batch_file_and_usage_errors(tmp_path, capsys):
 
 # ------------------------------------------------------------------ the web index + parity vectors
 
-def test_web_index_holds_only_verified_entries_and_is_deterministic(tmp_path):
+def test_web_index_holds_only_reviewed_entries_and_is_deterministic(tmp_path):
     a, b = build_lookup_index(REPO), build_lookup_index(REPO)
     assert json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True)
     assert {c["model"] for c in a["corpora"]} == {"scfoundation"}

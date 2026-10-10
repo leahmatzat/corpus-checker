@@ -41,14 +41,14 @@ How corpus-checker decides what it can claim, how those rules are enforced, and 
 | G00 | an entry doesn't match the schema (e.g. a superset corpus reporting `PRESENT`, or a verdict without its required evidence) |
 | G01 | a title- or keyword-only match yields `PRESENT` or `NOT PRESENT` |
 | G02 | a finding refers to a dataset that isn't in `datasets/` |
-| G03 | a verdict, manifest or evaluation list changed but the verifier did not re-sign |
+| G03 | a verdict, manifest or evaluation list changed since the entry's review, and nobody has reviewed it again |
 | G04 | a manifest file re-downloaded from its URL no longer matches its recorded hash *(weekly check; an unreachable URL only warns)* |
 | G05 | *(warning)* a manifest was last checked more than 12 months ago |
 | G06 | the regression test stops reproducing a known result (scFoundation / Norman 2019: 8 samples, 125,081 cells) |
 | G07 | `sources_searched` names a file the manifest doesn't list |
 | G08 | `NOT PRESENT` without searching every manifest file |
 | G09 | `NOT PRESENT` from a manifest with an unconfirmed, supplied file, or `PRESENT` when every file is unconfirmed |
-| G10 | `verified_by` is empty, or names someone not in `verifiers.yaml` |
+| G10 | the entry is Unreviewed (`review.by` is empty), or names someone not in `reviewers.yaml` |
 | G11 | `NOT CHECKABLE` without every place a manifest could be published having been checked |
 | G12 | an entry's id doesn't match its file name, or is duplicated |
 | G13 | a finding uses a key the manifest doesn't carry |
@@ -59,10 +59,12 @@ How corpus-checker decides what it can claim, how those rules are enforced, and 
 | G18 | *(warning)* `NOT PRESENT` while some discovery locations are unchecked |
 | G19 | a manifest file's column roles name a column that doesn't exist |
 | G20 | a committed corpus snapshot is missing or has changed |
-| G21 | `PRESENT` rests on a paper-level match (PMID or DOI only) without a verifier's `identity_note` |
+| G21 | `PRESENT` rests on a paper-level match (PMID or DOI only) without a reviewer's `identity_note` |
 | G22 | a committed manifest extract is missing, or doesn't name the publisher file it was derived from |
 | G23 | a finding's identity (provisional or not) disagrees with the catalog identifiers it searched |
 | G24 | a recorded absence disagrees with the catalog: a finding's "none exists" keys don't match the dataset's recorded absences, or a key recorded as not existing also has an identifier |
+| G25 | *(warning)* the review didn't cover all five checks only a person can do; the model's page lists what wasn't checked |
+| G26 | a recorded finding no longer comes out of a re-run of its manifest (every corpus whose manifest is stored in the repo is re-run on every change) |
 
 Exit codes never encode verdicts: `0` means the check ran, `1` a tool error, `2` a rule violation and `3` bad usage.
 
@@ -71,7 +73,7 @@ Exit codes never encode verdicts: `0` means the check ran, `1` a tool error, `2`
 `corpus-checker lookup` and the site's lookup page start from a dataset rather than a model. They answer two questions: *which models used this dataset in training?* and *is this dataset in model X?* They accept an accession, a PMID, a DOI, a URL containing one, or a catalog name, and they can take a list of datasets, such as a benchmark plan.
 
 - The same rules apply as for a registry check. Each answer is **Yes / No / Can't tell / Unknown**, backed by one of the four verdicts, and says why.
-- **Verification belongs to the model entries.** A lookup searches manifests a verifier has already recorded, and each answer names who recorded that entry and when. Draft entries are not searched on the site.
+- **Review belongs to the model entries.** A lookup searches manifests whose entries a person has already reviewed, and each answer names the reviewer and the date. Unreviewed entries are not searched on the site.
 - **Every result lists which models were searched.** A model that isn't in the registry is not covered, so "No" never means "no model anywhere".
 - Input is expanded through NCBI: a GEO series brings its PMID, DOI and SRA/BioProject IDs. A single sample (GSM) is never widened to its series. A PMID or DOI is answered at the paper level, and then separately for each dataset the paper links to.
 
@@ -79,16 +81,24 @@ Exit codes never encode verdicts: `0` means the check ran, `1` a tool error, `2`
 
 To make an answer permanent, use the *Add a dataset* form. The dataset then gets its own page and appears on the All datasets page.
 
-## Who signs an entry
+## Who reviews an entry
 
-`verified_by` means **a person listed in [`verifiers.yaml`](../verifiers.yaml) read the evidence and agrees with the entry.** Code never fills it in. Drafts can be proposed but cannot be merged until a verifier signs. If anyone later changes a verdict, a manifest or a model's evaluation list, the entry is blocked until a verifier signs again (G03). A signature therefore always refers to the claim as it currently stands. How to review and sign, step by step: [VERIFYING.md](VERIFYING.md).
+**A review means a named person looked at what the tool can't check, and found nothing wrong.** It is not an independent replication. The mechanical checks are the tool's: every manifest file's hash against the publisher's download, re-running every finding from its manifest, and every guard above, on every change. A person checks the rest:
+- that the manifest is the paper's training-data list;
+- that the evaluation list matches the paper;
+- the judgment calls;
+- whether the results make sense.
+
+Each review records which of these it covered, and every model page shows three lists: what the tool checked, what the reviewer looked at, and what hasn't been checked yet.
+
+The reviewer is listed in [`reviewers.yaml`](../reviewers.yaml) and named on the page, so corrections and disputes have someone to answer them. Code never fills in a review: `corpus-checker review` runs only in a person's own terminal. Unreviewed entries can be proposed but can't merge. If anyone later changes a verdict, a manifest or a model's evaluation list, the entry is blocked until someone reviews it again (G03), so a review always refers to the entry as it stands. How to review, step by step: [REVIEWING.md](REVIEWING.md).
 
 ## Corrections
 
 Every entry names its sources: the quoted availability statement, manifest URLs and hashes, the sources searched, the keys attempted and the matched sample IDs. A correction is therefore a change to a specific line.
 
 - **Open an issue** using the *Correction* form. You don't need to write YAML; say which claim is wrong and link the evidence.
-- **Or open a pull request** changing the entry directly. CI re-runs every guard, and a verifier re-signs before it merges.
+- **Or open a pull request** changing the entry directly. CI re-runs every guard, and a reviewer reviews the change before it merges.
 
 Anyone can submit a correction, including a model's authors. We ask you to say how you're connected to the model, so readers have that context, but it doesn't limit who can submit.
 

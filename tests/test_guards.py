@@ -96,9 +96,9 @@ CASES = [
     ("G09", "PRESENT when every manifest file is unconfirmed",
      lambda e: (_supplied(e), corpus(e)["manifest"]["sources"][0].update(
          acquired="supplied", supplied_by="LM", confirmation={"method": "none"}))),
-    # --- G10: provenance
-    ("G10", "verified_by empty", lambda e: e["provenance"].update(verified_by="", verified_date=None)),
-    ("G10", "verified_by not a listed verifier", lambda e: e["provenance"].update(verified_by="ZZ")),
+    # --- G10: a person reviewed it
+    ("G10", "review.by empty (Unreviewed)", lambda e: e["review"].update(by="", date=None)),
+    ("G10", "review.by not a listed reviewer", lambda e: e["review"].update(by="ZZ")),
     # --- G11: NOT CHECKABLE needs full discovery
     ("G11", "NOT CHECKABLE with an unchecked discovery location",
      lambda e: (_c_vague(e), e["discovery"].update(github_repo={"checked": False}))),
@@ -163,6 +163,7 @@ WARNING_CASES = [
     ("G05", "manifest as_of older than the threshold", lambda e: corpus(e)["manifest"].update(as_of="2024-01-01")),
     ("G17", "reported-eval dataset never checked", lambda e: e["evaluated_on"].append({"dataset": "beta2021", "task": "x"})),
     ("G18", "NOT PRESENT while discovery is incomplete", lambda e: e["discovery"].update(hf_model_card={"checked": False})),
+    ("G25", "the review covered only some of the five checks", lambda e: e["review"].update(checked=["paper", "plausibility"])),
 ]
 
 
@@ -184,12 +185,12 @@ def test_warning_fires_without_blocking(toy_repo, entry, code, why, mutate):
 def test_every_documented_guard_has_a_case():
     from corpus_checker import validate as v
     documented = {line.split()[0] for line in v.__doc__.splitlines() if line.strip().startswith("G")}
-    covered = {c for c, _, _ in CASES + WARNING_CASES} | {"G03", "G04", "G06"}   # G03/G04 below; G06 is the canary
+    covered = {c for c, _, _ in CASES + WARNING_CASES} | {"G03", "G04", "G06", "G26"}   # G03/G04/G26 below; G06 is the canary
     assert documented <= covered, f"guards with no test: {sorted(documented - covered)}"
 
 
 def test_allow_draft_downgrades_empty_signer(toy_repo, entry):
-    entry["provenance"].update(verified_by="", verified_date=None)
+    entry["review"].update(by="", date=None)
     issues = run(toy_repo, entry, allow_draft=True)
     assert "G10" in codes(issues, WARNING) and "G10" not in codes(issues)
 
@@ -204,7 +205,7 @@ def test_type_b_can_still_prove_absence(toy_repo, entry):
     assert codes(run(toy_repo, entry)) == set()
 
 
-def test_identity_note_lets_a_verifier_accept_a_paper_level_match(toy_repo, entry):
+def test_identity_note_lets_a_reviewer_accept_a_paper_level_match(toy_repo, entry):
     finding(entry, 0).update(matched_on=["pmid"], match_level="publication",
                              identity_note="The paper published a single dataset, GSE1 (checked on GEO).")
     assert "G21" not in codes(run(toy_repo, entry))
@@ -265,7 +266,7 @@ def test_g04_matching_supplied_file_suggests_upgrade(toy_repo, entry):
     assert "G04" in codes(issues, WARNING) and not codes(issues)
 
 
-# ------------------------------------------------------------------ G03 stale verification
+# ------------------------------------------------------------------ G03 changed since its review
 
 def _git(repo, *args):
     subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True,
@@ -281,16 +282,16 @@ def git_repo(toy_repo):
     return toy_repo
 
 
-def test_g03_verdict_edit_without_resign_is_blocked(git_repo, entry):
+def test_g03_verdict_edit_without_rereview_is_blocked(git_repo, entry):
     finding(entry, 1)["verdict"] = "INCONCLUSIVE"
     finding(entry, 1)["reason"] = "third party thinks so"
     assert "G03" in codes(run(git_repo, entry, base_ref="main"))
 
 
-def test_g03_resign_clears_it(git_repo, entry):
+def test_g03_rereview_clears_it(git_repo, entry):
     finding(entry, 1)["verdict"] = "INCONCLUSIVE"
     finding(entry, 1)["reason"] = "re-checked"
-    entry["provenance"]["verified_date"] = "2026-09-23"
+    entry["review"]["date"] = "2026-09-23"
     assert "G03" not in codes(run(git_repo, entry, base_ref="main"))
 
 
@@ -299,7 +300,7 @@ def test_g03_manifest_edit_counts_too(git_repo, entry):
     assert "G03" in codes(run(git_repo, entry, base_ref="main"))
 
 
-def test_g03_non_verdict_edit_needs_no_resign(git_repo, entry):
+def test_g03_non_verdict_edit_needs_no_rereview(git_repo, entry):
     entry["paper"]["note"] = "typo fix"
     entry["discovery"]["methods"]["found"] = "clarified"
     assert "G03" not in codes(run(git_repo, entry, base_ref="main"))
@@ -345,3 +346,35 @@ def test_present_from_a_confirmed_file_stands_beside_an_unconfirmed_one(toy_repo
     _supplied(entry)
     corpus(entry)["result"]["findings"] = [finding(entry, 0)]
     assert "G09" not in codes(run(toy_repo, entry))
+
+
+def test_g03_compares_a_v2_base_with_a_v3_head(git_repo, entry):
+    """The rename to review: must not hide a change: the base still says provenance.verified_*."""
+    import copy
+    v2 = copy.deepcopy(entry)
+    v2["schema_version"] = 2
+    v2.pop("review")
+    v2["provenance"] = {"verified_by": "LM", "verified_date": "2026-09-01", "method": "test"}
+    write_yaml(git_repo / "registry" / "toy.yaml", v2)
+    _git(git_repo, "commit", "-q", "-am", "v2 base")
+    assert "G03" not in codes(run(git_repo, entry, base_ref="main"))       # the migration alone
+    finding(entry, 1).update(verdict="INCONCLUSIVE", reason="changed after review")
+    assert "G03" in codes(run(git_repo, entry, base_ref="main"))           # same reviewer and date: blocked
+
+
+def test_g26_a_recorded_finding_must_survive_a_rerun(tmp_path):
+    """G26 re-runs every corpus whose manifest is committed; scFoundation's is."""
+    from corpus_checker.registry import load_yaml_text
+    from conftest import repo_copy
+    root = repo_copy(tmp_path, with_toy_draft=False)
+    path = root / "registry" / "scfoundation.yaml"
+    assert not [i for i in validate(root, opts=Options(today=TODAY)) if i.code == "G26"]
+    path.write_text(path.read_text().replace("          cells: 125081", "          cells: 125082"))
+    assert load_yaml_text(path.read_text())   # still valid YAML
+    hits = [i for i in validate(root, opts=Options(today=TODAY)) if i.code == "G26"]
+    assert hits and "norman2019" in hits[0].where and hits[0].severity == ERROR
+
+
+def test_g26_skips_corpora_without_a_committed_manifest(toy_repo):
+    """The toy entry's files exist only as hashes, so there is nothing to re-run."""
+    assert "G26" not in codes(run(toy_repo))

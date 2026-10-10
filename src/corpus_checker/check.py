@@ -104,7 +104,7 @@ class FindingResult:
         return self.decision.verdict
 
     def as_finding(self) -> dict:
-        """The registry `findings[]` form — for drafting an entry, never for auto-verifying one."""
+        """The registry `findings[]` form — for drafting an entry, never for auto-reviewing one."""
         f: dict = {"dataset": self.dataset, "verdict": self.verdict}
         if self.verdict != "NOT CHECKABLE":
             f["keys_attempted"] = list(self.keys_attempted)

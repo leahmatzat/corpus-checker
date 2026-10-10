@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        The lookup page can already check any accession against every verified model. Adding a dataset to the
+        The lookup page can already check any accession against every reviewed model. Adding a dataset to the
         catalog makes that answer permanent: the dataset gets its own page, appears in the models × datasets
         matrix, and shows which models evaluate on it.
 
@@ -67,5 +67,5 @@ body:
       value: |
         ---
         A maintainer confirms each identifier against its primary source, adds the dataset to `datasets/`, and
-        re-checks every model's manifest against it. The results are signed by a verifier before they appear on
+        re-checks every model's manifest against it. The results are reviewed by a person before they appear on
         the site.
