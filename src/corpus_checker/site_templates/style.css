@@ -31,6 +31,7 @@
   --reported-bg: #f1e9fb;
   --reported-fg: #43266f;
   --reported-border: #8a5fc9;
+  --eval-cell-bg: #f1eee6;   /* All datasets grid: a cell the model's own paper evaluated on */
 
   --draft-bg: #f4f5f7;
   --draft-fg: #4a4f59;
@@ -66,6 +67,7 @@
     --reported-bg: #2e2143;
     --reported-fg: #dcc9f7;
     --reported-border: #a984e0;
+    --eval-cell-bg: #2c2922;
 
     --draft-bg: #24272e;
     --draft-fg: #c7cbd3;
@@ -306,8 +308,8 @@ a.eval-chip:hover, a.grid-chip:hover { text-decoration: underline; }
 }
 .grid .grid-chip { font-size: 0.9em; margin: 0.05em; }
 .grid .stage-tag { margin-left: 0.25em; }
-.grid td.reported-eval { outline: 2px solid var(--reported-border); outline-offset: -3px; }
-.legend-outline { outline: 2px solid var(--reported-border); outline-offset: 1px; padding: 0 0.3em; }
+.grid td.reported-eval { background: var(--eval-cell-bg); }
+.legend-shade { background: var(--eval-cell-bg); padding: 0.05em 0.45em; border-radius: 0.3em; }
 .grid-row[hidden], .grid-group[hidden] { display: none; }
 
 .empty-cell {
