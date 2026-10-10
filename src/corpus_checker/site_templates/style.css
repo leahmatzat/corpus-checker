@@ -15,17 +15,17 @@
 
   /* Colour-blind-safe categorical palette (Okabe–Ito derived). Hue only distinguishes;
      the verdict word itself is always printed inside the chip. */
-  --v-present-bg: #d5e6f5;
-  --v-present-fg: #0b3d63;
+  --v-present-bg: #b3d7f4;
+  --v-present-fg: #08385c;
   --v-present-border: #0072b2;
-  --v-notpresent-bg: #dcecf7;
-  --v-notpresent-fg: #234b5c;
+  --v-notpresent-bg: #eceef1;
+  --v-notpresent-fg: #3a3f47;
   --v-notpresent-border: #56b4e9;
   --v-inconclusive-bg: #fbe8cc;
   --v-inconclusive-fg: #5c3b00;
   --v-inconclusive-border: #e69f00;
-  --v-notcheckable-bg: #e8e9ec;
-  --v-notcheckable-fg: #3a3d45;
+  --v-notcheckable-bg: #f3f4f6;
+  --v-notcheckable-fg: #5b6270;
   --v-notcheckable-border: #8a8f99;
 
   --reported-bg: #f1e9fb;
@@ -50,17 +50,17 @@
     --banner-bg: #3a3211;
     --banner-border: #8a7526;
 
-    --v-present-bg: #123452;
-    --v-present-fg: #bcdcf7;
+    --v-present-bg: #1f5f94;
+    --v-present-fg: #eaf4fd;
     --v-present-border: #0072b2;
-    --v-notpresent-bg: #17384a;
-    --v-notpresent-fg: #bfe4f8;
+    --v-notpresent-bg: #2b2f36;
+    --v-notpresent-fg: #c9ced6;
     --v-notpresent-border: #56b4e9;
     --v-inconclusive-bg: #4a3407;
     --v-inconclusive-fg: #fbdca0;
     --v-inconclusive-border: #e69f00;
-    --v-notcheckable-bg: #2b2e35;
-    --v-notcheckable-fg: #cfd2d9;
+    --v-notcheckable-bg: #24272d;
+    --v-notcheckable-fg: #9aa1ad;
     --v-notcheckable-border: #8a8f99;
 
     --reported-bg: #2e2143;
@@ -174,10 +174,11 @@ h4 { font-size: 1em; margin-top: 1em; }
 }
 
 .verdict { text-transform: none; }
-.v-present       { background: var(--v-present-bg);       color: var(--v-present-fg);       border-color: var(--v-present-border); }
-.v-not-present   { background: var(--v-notpresent-bg);     color: var(--v-notpresent-fg);     border-color: var(--v-notpresent-border); }
-.v-inconclusive  { background: var(--v-inconclusive-bg);   color: var(--v-inconclusive-fg);   border-color: var(--v-inconclusive-border); border-style: dashed; }
-.v-not-checkable { background: var(--v-notcheckable-bg);   color: var(--v-notcheckable-fg);   border-color: var(--v-notcheckable-border); border-style: dotted; font-weight: 500; }
+/* Filled chips with no outline. Only PRESENT carries colour; the word inside is the signal. */
+.v-present       { background: var(--v-present-bg);       color: var(--v-present-fg);       border-color: transparent; }
+.v-not-present   { background: var(--v-notpresent-bg);     color: var(--v-notpresent-fg);     border-color: transparent; }
+.v-inconclusive  { background: var(--v-inconclusive-bg);   color: var(--v-inconclusive-fg);   border-color: transparent; }
+.v-not-checkable { background: var(--v-notcheckable-bg);   color: var(--v-notcheckable-fg);   border-color: transparent; font-weight: 500; }
 
 .reported-eval-marker {
   background: var(--reported-bg); color: var(--reported-fg); border-color: var(--reported-border);
@@ -247,14 +248,14 @@ thead th {
   padding: 0.05em 0.5em;
   margin: 0.1em 0.15em 0.1em 0;
   border-radius: 0.35em;
-  border: 1.5px solid;
+  border: 1.5px solid transparent;
   white-space: nowrap;
   line-height: 1.5;
   text-decoration: none;
 }
 .eval-chip.v-present, .grid-chip.v-present { font-weight: 600; }
 .v-not-checked {
-  background: transparent; color: var(--muted); border-color: var(--border); border-style: dotted;
+  background: var(--bg-alt); color: var(--muted);
 }
 /* Chips are links: keep the verdict colour, visited or not. */
 a.v-present, a.v-present:visited { color: var(--v-present-fg); }
