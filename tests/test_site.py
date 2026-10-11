@@ -119,17 +119,17 @@ def test_norman_reuse_row_on_index_and_sentence_on_dataset_page(site_dir):
 def test_draft_label_on_draft_model_pages(site_dir):
     for model_id in ("toy-draft",):
         text = _visible_text(_read(site_dir, f"models/{model_id}.html"))
-        assert "Draft — not yet verified" in text
-    # and NOT on the verified scFoundation entry
-    assert "Draft — not yet verified" not in _visible_text(_read(site_dir, "models/scfoundation.html"))
+        assert "Unreviewed" in text
+    # and NOT on the reviewed scFoundation entry
+    assert "Unreviewed" not in _visible_text(_read(site_dir, "models/scfoundation.html"))
 
 
 def test_draft_label_follows_model_everywhere_it_appears(site_dir):
     # The toy draft appears on the index, the all-datasets grid, its own page, and every dataset
     # page that lists it — the label must travel with it, not just live on its own page.
-    assert "Draft — not yet verified" in _visible_text(_read(site_dir, "index.html"))
-    assert "Toy Draft (draft)" in _visible_text(_read(site_dir, "all-datasets.html"))
-    assert "Draft — not yet verified" in _visible_text(_read(site_dir, "datasets/norman2019.html"))
+    assert "Unreviewed" in _visible_text(_read(site_dir, "index.html"))
+    assert "Toy Draft (unreviewed)" in _visible_text(_read(site_dir, "all-datasets.html"))
+    assert "Unreviewed" in _visible_text(_read(site_dir, "datasets/norman2019.html"))
 
 
 def test_correction_link_present_on_every_page(site_dir):
@@ -189,7 +189,7 @@ _CANONICAL_HEDGE_FRAGMENT = "does not by itself mean a reported number is inflat
 def _allowed_inflated_snippets(ledger) -> list[str]:
     """Every other place 'inflated' may legitimately appear: the verbatim registry text this
     site is required to display as-is (quotes/caveats/notes/reasons) rather than rewrite, even
-    where a verifier's own phrasing of the hedge differs from the canonical sentence above.
+    where a reviewer's own phrasing of the hedge differs from the canonical sentence above.
     Nothing outside the canonical fragment and these may use the word."""
     snippets = []
     for model in ledger["models"].values():
@@ -465,7 +465,7 @@ def test_lookup_page_has_model_filter_checkboxes(site_dir):
     for model_id in ("scfoundation", "toy-draft"):
         assert f'value="{model_id}"' in lookup_html
     # the draft must carry the same visible label as everywhere else
-    assert "Draft — not yet verified" in lookup_html
+    assert "Unreviewed" in lookup_html
 
 
 def test_lookup_page_links_about_section_correction_and_add_dataset(site_dir):
@@ -500,3 +500,24 @@ def test_lookup_page_present_on_every_page_nav(site_dir):
     for f in sorted(site_dir.rglob("*.html")):
         text = f.read_text(encoding="utf-8")
         assert "lookup.html" in text, f
+
+
+def test_model_page_says_what_the_tool_checked_what_was_reviewed_and_what_was_not(site_dir):
+    html = _read(site_dir, "models/scfoundation.html")
+    panel = re.search(r'<section class="how-checked".*?</section>', html, re.DOTALL)
+    assert panel, "no 'How this entry was checked' panel"
+    text = _visible_text(panel.group(0))
+    assert "Checked by the tool" in text and "re-run from the committed manifest" in text
+    assert "Reviewed by LM" in text
+    assert "Not checked yet" in text and "the Methods section" in text      # scFoundation's open discovery places
+    assert "not an independent replication" in text
+
+
+def test_a_draft_model_page_says_nobody_has_reviewed_it(site_dir):
+    text = _visible_text(_read(site_dir, "models/toy-draft.html"))
+    assert "no reviewer has looked at this entry yet" in text
+
+
+def test_no_page_says_verified(site_dir):
+    for f in sorted(site_dir.rglob("*.html")):
+        assert not re.search(r"\bverif", _visible_text(f.read_text(encoding="utf-8")).lower()), f

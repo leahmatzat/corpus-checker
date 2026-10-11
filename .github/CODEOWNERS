@@ -1,8 +1,8 @@
-# Files that carry the registry's claims need a verifier's review.
+# Files that carry the registry's claims need a reviewer's approval.
 # Branch protection on main must require code-owner review for this to bind (docs/DEPLOY.md).
 /registry/        @leahmatzat
 /datasets/        @leahmatzat
 /snapshots/       @leahmatzat
 /schema/          @leahmatzat
-/verifiers.yaml   @leahmatzat
+/reviewers.yaml   @leahmatzat
 /.github/         @leahmatzat

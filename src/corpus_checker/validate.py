@@ -6,14 +6,14 @@ tests, so a guard cannot be dropped without a visible diff.
     G00  schema violation (registry/ or datasets/)
     G01  exact-key rule: title/keyword-only matches cannot yield PRESENT or NOT PRESENT
     G02  finding or evaluated_on points at a dataset not in datasets/
-    G03  verdict-bearing content changed vs --base-ref but provenance was not re-signed
+    G03  verdict-bearing content changed vs --base-ref but the entry was not re-reviewed
     G04  re-fetched manifest source no longer matches its sha256 (--check-sources)
     G05  manifest as_of older than --stale-months                              [warning]
     G06  canary regression — lives in tests/test_canary.py, not here
     G07  sources_searched names a source the manifest does not list
     G08  NOT PRESENT from a manifest whose sources were not all searched
     G09  NOT PRESENT from a manifest with an unconfirmed source (PRESENT only from a confirmed one)
-    G10  verified_by empty, or not a person listed in verifiers.yaml
+    G10  review.by empty (Unreviewed), or not a person listed in reviewers.yaml
     G11  NOT CHECKABLE without every discovery location checked
     G12  id does not match file name, or is duplicated
     G13  keys_attempted / matched_on outside manifest.keys_available, or matched ⊄ attempted
@@ -24,11 +24,13 @@ tests, so a guard cannot be dropped without a visible diff.
     G18  NOT PRESENT while discovery is incomplete                             [warning]
     G19  a manifest source's roles name a column not in its `columns`
     G20  a committed snapshot is missing or no longer matches its sha256
-    G21  PRESENT on a publication-level match (PMID/DOI only) without a verifier's identity_note
+    G21  PRESENT on a publication-level match (PMID/DOI only) without a reviewer's identity_note
     G22  a committed extract is missing or does not declare its source's sha256
     G23  a finding's identity (provisional or not) disagrees with the catalog identifiers it attempted
     G24  a recorded absence contradicts the catalog: keys_absent differs from datasets/ absent:, or a key
          recorded as not existing also has a usable identifier
+    G25  the review did not cover all five human-only checks                     [warning]
+    G26  a recorded finding no longer matches a re-run of its committed manifest
 """
 from __future__ import annotations
 
@@ -44,7 +46,7 @@ from typing import Callable, Iterable
 
 from jsonschema import Draft202012Validator
 
-from .check import extract_parent_sha256
+from .check import SourceError, check_corpus, compare, extract_parent_sha256, locate_committed
 from .registry import (
     EXACT_KEYS,
     WEAK_KEYS,
@@ -53,10 +55,13 @@ from .registry import (
     identity_of,
     load_catalog,
     load_schema,
-    load_verifiers,
+    REVIEW_CHECKS,
+    load_reviewers,
     load_yaml,
     load_yaml_text,
+    review_of,
 )
+from .resolvers import get_resolver
 
 ERROR = "error"
 WARNING = "warning"
@@ -122,7 +127,7 @@ def check_dataset(path: Path, doc: object, root: Path) -> list[Issue]:
 # --------------------------------------------------------------------------- registry/
 
 def check_entry(path: Path, doc: object, root: Path, catalog: dict[str, dict],
-                verifiers: set[str], opts: Options) -> list[Issue]:
+                reviewers: set[str], opts: Options) -> list[Issue]:
     rel = _rel(path, root)
     issues: list[Issue] = []
 
@@ -139,14 +144,17 @@ def check_entry(path: Path, doc: object, root: Path, catalog: dict[str, dict],
         add("G12", "id", f"id {doc['id']!r} must equal the file name stem {path.stem!r}")
 
     # G10 — a person looked
-    prov = doc["provenance"]
-    signer = prov["verified_by"].strip()
-    if not signer:
-        add("G10", "provenance.verified_by",
-            "empty: drafted, not verified. A verifier must fill this before merge.",
+    reviewer, _, checked = review_of(doc)
+    if not reviewer:
+        add("G10", "review.by",
+            f"empty: Unreviewed. A reviewer must review it before merge (corpus-checker review {doc['id']}).",
             WARNING if opts.allow_draft else ERROR)
-    elif signer not in verifiers:
-        add("G10", "provenance.verified_by", f"{signer!r} is not listed in verifiers.yaml")
+    elif reviewer not in reviewers:
+        add("G10", "review.by", f"{reviewer!r} is not listed in reviewers.yaml")
+    # G25 — say what the review covered; anything left out shows as "not reviewed"
+    elif missing_checks := [k for k in REVIEW_CHECKS if k not in checked]:
+        add("G25", "review.checked", f"this review did not cover: {', '.join(missing_checks)} "
+                                     f"(record a review with corpus-checker review {doc['id']})", WARNING)
 
     discovery = doc["discovery"]
     unchecked = sorted(k for k, item in discovery.items() if not item["checked"])
@@ -268,7 +276,7 @@ def check_entry(path: Path, doc: object, root: Path, catalog: dict[str, dict],
             if verdict == "PRESENT" and not f.get("identity_note"):
                 if f.get("match_level") == "publication":
                     add("G21", where, "PRESENT on a publication-level match (PMID/DOI only) needs an identity_note "
-                                      "from a verifier saying why it is the same dataset — otherwise INCONCLUSIVE")
+                                      "from a reviewer saying why it is the same dataset — otherwise INCONCLUSIVE")
                 elif f.get("match_level") == "dataset" and "accession" not in matched:
                     add("G21", where, "match_level: dataset requires an accession in matched_on (or an identity_note)")
 
@@ -295,6 +303,9 @@ def check_entry(path: Path, doc: object, root: Path, catalog: dict[str, dict],
     for i, ev in enumerate(doc["evaluated_on"]):
         if ev["dataset"] in catalog and ev["dataset"] not in found_anywhere:
             add("G17", f"evaluated_on[{i}]", f"reported-eval dataset {ev['dataset']!r} has no finding in any corpus", WARNING)
+
+    # G26 — the tool's own check: every recorded finding still comes out of its committed manifest
+    issues.extend(_check_reruns(rel, doc, catalog, root))
 
     if opts.check_sources:
         issues.extend(_check_sources(rel, doc, opts))
@@ -342,7 +353,38 @@ def _check_sources(rel: str, doc: dict, opts: Options) -> list[Issue]:
                                     f"sha256 of the file now served ({digest[:12]}…) differs from the recorded {src['sha256'][:12]}…"))
             elif src["acquired"] == "supplied" and src["confirmation"]["method"] != "url_hash":
                 issues.append(Issue("G04", WARNING, rel, where,
-                                    "the URL now serves exactly the supplied file — a verifier can upgrade confirmation to url_hash"))
+                                    "the URL now serves exactly the supplied file — a reviewer can upgrade confirmation to url_hash"))
+    return issues
+
+
+# --------------------------------------------------------------------------- G26
+
+def _committed(source: dict) -> bool:
+    return bool(source.get("snapshot") or source.get("extract"))
+
+
+def _check_reruns(rel: str, doc: dict, catalog: dict, root: Path) -> list[Issue]:
+    """Re-run every corpus whose manifest is committed in full, and compare with the recorded findings.
+
+    Corpora without a committed copy of every source are skipped (a supplied or publisher-only file
+    can only be re-run with --manifests). A missing or mismatched committed file is G20/G22's to report.
+    """
+    issues = []
+    for ci, corpus in enumerate(doc.get("corpora", [])):
+        manifest = corpus["manifest"]
+        sources = manifest.get("sources") or []
+        if manifest["type"] in ("C-vague", "D") or not sources or not all(_committed(s) for s in sources):
+            continue
+        try:
+            get_resolver(manifest["resolver"])
+            ids = [f["dataset"] for f in corpus["result"]["findings"] if f["dataset"] in catalog]
+            run = check_corpus(doc, corpus, catalog, locate_committed(root), ids)
+        except (SourceError, ValueError, KeyError):
+            continue
+        for d in compare(corpus, run):
+            issues.append(Issue("G26", ERROR, rel, f"corpora[{ci}].result.findings ({d.dataset})",
+                                f"{d.field} is recorded as {d.registry!r}, but a re-run of the committed manifest "
+                                f"gives {d.engine!r} (corpus-checker check {doc['id']} --rerun)"))
     return issues
 
 
@@ -354,7 +396,7 @@ def _verdict_bearing(doc: dict) -> str:
     Schema v1 kept one manifest/result pair at the top level; v2 nests them under
     corpora. Both are normalised so a v1 -> v2 migration also counts as a change.
     """
-    if doc.get("schema_version") == 2:
+    if doc.get("schema_version") in (2, 3):
         payload = {"corpora": doc.get("corpora"), "evaluated_on": doc.get("evaluated_on")}
     else:
         payload = {"manifest": doc.get("manifest"), "result": doc.get("result"),
@@ -400,14 +442,14 @@ def check_base_ref(root: Path, paths: list[Path], base_ref: str) -> list[Issue]:
             continue
         if _verdict_bearing(head) == _verdict_bearing(base):
             continue
-        hp, bp = head.get("provenance", {}), base.get("provenance", {})
-        if not hp.get("verified_by", "").strip():
-            continue   # already unsigned; G10 blocks it
-        if (hp.get("verified_by"), hp.get("verified_date")) == (bp.get("verified_by"), bp.get("verified_date")):
-            issues.append(Issue("G03", ERROR, rel, "provenance",
-                                f"verdict-bearing content changed since {base_ref} but provenance still carries "
-                                f"{hp.get('verified_by')} / {hp.get('verified_date')}. A verifier must re-sign "
-                                f"(update verified_date) after reviewing the change."))
+        (h_by, h_date, _), (b_by, b_date, _) = review_of(head), review_of(base)
+        if not h_by:
+            continue   # already Unreviewed; G10 blocks it
+        if (h_by, h_date) == (b_by, b_date):
+            issues.append(Issue("G03", ERROR, rel, "review",
+                                f"verdict-bearing content changed since {base_ref} but the review still reads "
+                                f"{h_by} / {h_date}. A reviewer must look at the change and re-review "
+                                f"(corpus-checker review {head.get('id', '<id>')})."))
     return issues
 
 
@@ -416,7 +458,7 @@ def check_base_ref(root: Path, paths: list[Path], base_ref: str) -> list[Issue]:
 def validate(root: Path, paths: list[Path] | None = None, opts: Options | None = None) -> list[Issue]:
     opts = opts or Options()
     catalog = load_catalog(root)
-    verifiers = load_verifiers(root)
+    reviewers = load_reviewers(root)
     issues: list[Issue] = []
 
     if paths is None:
@@ -432,7 +474,7 @@ def validate(root: Path, paths: list[Path] | None = None, opts: Options | None =
     ids: dict[str, str] = {}
     for path in entry_paths:
         doc = load_yaml(path)
-        issues.extend(check_entry(path, doc, root, catalog, verifiers, opts))
+        issues.extend(check_entry(path, doc, root, catalog, reviewers, opts))
         if isinstance(doc, dict) and isinstance(doc.get("id"), str):
             if doc["id"] in ids:
                 issues.append(Issue("G12", ERROR, _rel(path, root), "id", f"id {doc['id']!r} is also used by {ids[doc['id']]}"))

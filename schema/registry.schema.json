@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/leahmatzat/corpus-checker/blob/main/schema/registry.schema.json",
-  "title": "corpus-checker registry entry (schema_version 2)",
+  "title": "corpus-checker registry entry (schema_version 3)",
   "description": "One model. Every claim carries a source. See docs/RULES.md for the rules that cannot be expressed here — they live in src/corpus_checker/validate.py and each has a guard code (G01…).",
   "type": "object",
   "required": [
@@ -13,12 +13,13 @@
     "discovery",
     "evaluated_on",
     "corpora",
+    "review",
     "provenance"
   ],
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": 2
+      "const": 3
     },
     "id": {
       "type": "string",
@@ -100,26 +101,55 @@
         "$ref": "#/$defs/corpus"
       }
     },
-    "provenance": {
+    "review": {
       "type": "object",
+      "description": "Who reviewed the entry, when, and what the review covered. A review means a named person looked at the inputs the tool takes on trust and at the judgment calls, and found nothing wrong. It is not an independent replication: the mechanical checks (hashes, re-running every finding, the rules) are done by the tool on every change. Written by `corpus-checker review`, which only runs in a person's own terminal.",
       "required": [
-        "verified_by",
-        "verified_date",
-        "method"
+        "by",
+        "date",
+        "checked"
       ],
       "additionalProperties": false,
       "properties": {
-        "verified_by": {
+        "by": {
           "type": "string",
-          "description": "A PERSON listed in verifiers.yaml. Empty string = drafted, not yet verified. The FIELD is required here; the NON-EMPTY check is G10 in validate.py so that a draft can be committed but not merged. Code never fills it."
+          "description": "A PERSON listed in reviewers.yaml. Empty string = Unreviewed (a draft). The FIELD is required here; the NON-EMPTY check is G10 in validate.py so that a draft can be committed but not merged. Code never fills it."
         },
-        "verified_date": {
+        "date": {
           "type": [
             "string",
             "null"
           ],
           "format": "date"
         },
+        "checked": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "paper",
+              "manifest",
+              "evaluated_on",
+              "judgment_calls",
+              "plausibility"
+            ]
+          },
+          "description": "Which of the five human-only checks this review covered (docs/REVIEWING.md). Anything left out is shown as not reviewed (G25 warns). Where we looked for a manifest is recorded separately, per location, in `discovery`."
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "description": "How the entry was produced. Who reviewed it is in `review`.",
+      "required": [
+        "method"
+      ],
+      "additionalProperties": false,
+      "properties": {
         "method": {
           "type": "string",
           "description": "Path to the script or resolver that produced this."
@@ -1041,7 +1071,7 @@
         "identity_note": {
           "type": "string",
           "minLength": 1,
-          "description": "A verifier's statement that a publication-level match is the same dataset, with the evidence (e.g. the paper published only this dataset). Lets a publication-level match support PRESENT."
+          "description": "A reviewer's statement that a publication-level match is the same dataset, with the evidence (e.g. the paper published only this dataset). Lets a publication-level match support PRESENT."
         },
         "identity": {
           "const": "provisional",

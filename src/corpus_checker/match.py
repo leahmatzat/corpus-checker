@@ -94,7 +94,7 @@ class Match:
 
     @property
     def listed_accessions(self) -> tuple[str, ...]:
-        """Accessions the manifest lists on the rows that hit — what a verifier compares against."""
+        """Accessions the manifest lists on the rows that hit — what a reviewer compares against."""
         seen: dict[str, None] = {}
         for records in self.hits.values():
             for r in records:

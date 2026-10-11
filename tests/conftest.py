@@ -65,7 +65,7 @@ def _source(name: str, payload: bytes) -> dict:
 
 
 ENTRY = {
-    "schema_version": 2,
+    "schema_version": 3,
     "id": "toy",
     "model": "Toy",
     "model_class": "foundation",
@@ -93,7 +93,8 @@ ENTRY = {
             ],
         },
     }],
-    "provenance": {"verified_by": "LM", "verified_date": "2026-09-01", "method": "test"},
+    "review": {"by": "LM", "date": "2026-09-01", "checked": ["paper", "manifest", "evaluated_on", "judgment_calls", "plausibility"]},
+    "provenance": {"method": "test"},
 }
 
 
@@ -106,7 +107,7 @@ def write_yaml(path: Path, doc: dict) -> Path:
 @pytest.fixture
 def toy_repo(tmp_path: Path) -> Path:
     shutil.copytree(REPO / "schema", tmp_path / "schema")
-    shutil.copy(REPO / "verifiers.yaml", tmp_path / "verifiers.yaml")
+    shutil.copy(REPO / "reviewers.yaml", tmp_path / "reviewers.yaml")
     for ds in DATASETS.values():
         write_yaml(tmp_path / "datasets" / f"{ds['id']}.yaml", ds)
     write_yaml(tmp_path / "registry" / "toy.yaml", ENTRY)
@@ -146,11 +147,11 @@ CENSUS_MANIFEST = {
     }],
 }
 
-# A synthetic DRAFT model for tests that need a second, unverified entry. Stage 1 publishes no
+# A synthetic DRAFT model for tests that need a second, Unreviewed entry. Stage 1 publishes no
 # manifest (NOT CHECKABLE); stage 2 is the census (a superset, so its hit is INCONCLUSIVE). It
 # evaluates on Norman 2019, so the reuse map has something to show.
 TOY_DRAFT = {
-    "schema_version": 2, "id": "toy-draft", "model": "Toy Draft", "model_class": "foundation",
+    "schema_version": 3, "id": "toy-draft", "model": "Toy Draft", "model_class": "foundation",
     "paper": {"doi": "10.1000/toy-draft"},
     "discovery": _ALL_CHECKED,
     "evaluated_on": [{"dataset": "norman2019", "task": "perturbation prediction"}],
@@ -168,7 +169,8 @@ TOY_DRAFT = {
                                   "reason": "found in the pointed-to corpus, which the model trained on a subset of — "
                                             "a superset cannot prove presence."}]}},
     ],
-    "provenance": {"verified_by": "", "verified_date": None, "method": "test"},
+    "review": {"by": "", "date": None, "checked": []},
+    "provenance": {"method": "test"},
 }
 
 
@@ -177,7 +179,7 @@ def repo_copy(tmp_path: Path, *, with_toy_draft: bool = True) -> Path:
     for d in ("schema", "datasets", "registry", "extracts", "snapshots", "docs"):
         if (REPO / d).exists():
             shutil.copytree(REPO / d, tmp_path / d)
-    shutil.copy(REPO / "verifiers.yaml", tmp_path / "verifiers.yaml")
+    shutil.copy(REPO / "reviewers.yaml", tmp_path / "reviewers.yaml")
     if with_toy_draft:
         write_yaml(tmp_path / "registry" / "toy-draft.yaml", TOY_DRAFT)
     return tmp_path

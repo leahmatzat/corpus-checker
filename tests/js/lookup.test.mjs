@@ -3,7 +3,7 @@
 // never the vectors file (it is off limits — see scripts/make_lookup_vectors.py).
 //
 // No network: `lookup` vectors need a prebuilt lookup-index.json per include_drafts setting,
-// supplied via LOOKUP_INDEX_VERIFIED / LOOKUP_INDEX_DRAFTS env vars (tests/test_lookup_js.py sets
+// supplied via LOOKUP_INDEX_REVIEWED / LOOKUP_INDEX_DRAFTS env vars (tests/test_lookup_js.py sets
 // these before invoking `node --test tests/js/`).
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -51,7 +51,7 @@ test("every verdict code is covered by the vectors (sanity)", () => {
 // -------------------------------------------------------------------- lookup vectors (needs an index)
 
 const indexPaths = {
-  false: process.env.LOOKUP_INDEX_VERIFIED,
+  false: process.env.LOOKUP_INDEX_REVIEWED,
   true: process.env.LOOKUP_INDEX_DRAFTS,
 };
 
@@ -59,7 +59,7 @@ function loadedFor(includeDrafts) {
   const p = indexPaths[String(includeDrafts)];
   if (!p) {
     throw new Error(
-      `LOOKUP_INDEX_${includeDrafts ? "DRAFTS" : "VERIFIED"} is not set — run via tests/test_lookup_js.py, `
+      `LOOKUP_INDEX_${includeDrafts ? "DRAFTS" : "REVIEWED"} is not set — run via tests/test_lookup_js.py, `
       + "which builds both index files first.",
     );
   }
@@ -83,7 +83,7 @@ function queryFor(c) {
   };
 }
 
-test("search() matches every lookup vector (verified-only and with drafts)", () => {
+test("search() matches every lookup vector (reviewed-only and with drafts)", () => {
   const loaded = { false: loadedFor(false), true: loadedFor(true) };
   for (const c of vectors.lookup) {
     const result = search(queryFor(c), loaded[String(c.include_drafts)]);

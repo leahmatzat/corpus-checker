@@ -18,7 +18,7 @@ from conftest import _ALL_CHECKED, CENSUS_MANIFEST, CENSUS_SNAPSHOT, REPO, TODAY
 SNAPSHOT = CENSUS_SNAPSHOT
 
 ENTRY = {
-    "schema_version": 2, "id": "census-model", "model": "Census Model", "model_class": "foundation",
+    "schema_version": 3, "id": "census-model", "model": "Census Model", "model_class": "foundation",
     "paper": {"doi": "10.1000/census-model"},
     "discovery": _ALL_CHECKED,
     "evaluated_on": [{"dataset": "norman2019", "task": "perturbation prediction"}],
@@ -28,7 +28,8 @@ ENTRY = {
         "result": {"checked": "2026-09-23", "sources_searched": [CENSUS_MANIFEST["sources"][0]["name"]],
                    "findings": [{"dataset": "norman2019", "verdict": "NOT PRESENT", "keys_attempted": ["doi"]}]},
     }],
-    "provenance": {"verified_by": "LM", "verified_date": "2026-09-23", "method": "test"},
+    "review": {"by": "LM", "date": "2026-09-23", "checked": ["paper", "manifest", "evaluated_on", "judgment_calls", "plausibility"]},
+    "provenance": {"method": "test"},
 }
 CORPUS = ENTRY["corpora"][0]
 CATALOG = load_catalog(REPO)

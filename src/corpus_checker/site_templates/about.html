@@ -19,9 +19,13 @@
        model's training corpus. Every other dataset in the shared catalog is checked too and shown as a
        <em>catalog</em> finding; cross-model reuse is exactly what a catalog finding can surface. The
        <a href="all-datasets.html">All datasets</a> page shows every model against every dataset.</p>
-    <p><strong>{{ m.draft_badge() }}</strong> means the entry has not yet been signed off by a verifier listed in
-       <code>verifiers.yaml</code>. Draft entries can still be inspected — every source and finding is shown exactly
-       as recorded — but no person has confirmed the claims yet.</p>
+    <p><strong>Reviewed</strong> means a named person listed in <code>reviewers.yaml</code> looked at what the tool can't
+       check — that the manifest is the paper's training-data list, that the evaluation list is right, the judgment calls,
+       and whether the results make sense — and found nothing wrong. It is not an independent replication: the mechanical
+       checks (file hashes, re-running every finding, the rules) are done by the tool on every change. Each model page
+       lists exactly what was checked by the tool, what the reviewer looked at, and what hasn't been checked yet.</p>
+    <p><strong>{{ m.draft_badge() }}</strong> means no reviewer has looked at the entry yet. Unreviewed entries can still be inspected — every source and finding is shown exactly
+       as recorded — but no person has reviewed them yet.</p>
     <p><strong>Disputed entries.</strong> An entry is never silently removed. If an author or reader disputes a
        finding, the dispute statement is recorded and shown prominently on the model's page — the entry stays visible
        alongside it.</p>

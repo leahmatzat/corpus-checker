@@ -95,11 +95,11 @@ Does the paper point to a file listing its training data?
 
 **14. Write `registry/{id}.yaml`** — see `registry/scfoundation.yaml` for the worked example. **Every claim carries a source quote.** The `id` is the file name and becomes a URL; add a variant suffix when a model has more than one corpus *(`geneformer-30m`)*. Record `keys_attempted` **per finding**.
 
-**14a. Run `corpus-checker validate --allow-draft`** until only G10 remains — that one is for the verifier.
+**14a. Run `corpus-checker validate --allow-draft`** until only G10 remains — that one is for the reviewer.
 
 **15. Add a regression test.** *There is already one asserting scFoundation still returns Norman with 8 samples / 125,081 cells. **Each new model gets its own.*** ⚠ *Manifests move; the test is how you find out.*
 
-**16. Record who verified it and when.** The registry makes claims about other people's papers. **`verified_by` and `verified_date` are what make that defensible.**
+**16. Have it reviewed.** The registry makes claims about other people's papers. **A named reviewer, the date and what they checked are what make that defensible.** The reviewer runs `corpus-checker review {id}` in their own terminal; see [REVIEWING.md](REVIEWING.md).
 
 ---
 

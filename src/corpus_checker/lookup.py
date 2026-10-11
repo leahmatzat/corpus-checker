@@ -5,9 +5,9 @@ PMID, a DOI, a URL containing one, or a datasets/ id or name — expanded throug
 crosswalk and matched against every model entry's manifest with the same rules as a
 registry check (match.match -> verdict.decide).
 
-Verification belongs to the model entries: a lookup asks questions of manifests a
-person has already verified, so each answer carries that entry's verifier and date.
-Only verified entries are searched unless include_drafts is set.
+Review belongs to the model entries: a lookup asks questions of manifests a person has
+already reviewed, so each answer carries that entry's reviewer and date.
+Only reviewed entries are searched unless include_drafts is set.
 
 A PMID or DOI names a paper, not a dataset. A paper query is answered at the paper
 level and, separately, for each dataset the paper links to — it never becomes a
@@ -24,7 +24,7 @@ from .check import SourceError, locate_committed
 from .crosswalk import CrosswalkError, resolve
 from .ledger import build_ledger
 from .match import RecordIndex, match
-from .registry import EXACT_KEYS, confirmed_keys, identity_of, load_catalog, load_yaml, registry_paths
+from .registry import EXACT_KEYS, confirmed_keys, identity_of, load_catalog, load_yaml, registry_paths, review_of
 from .resolvers import get_resolver
 from .verdict import PAPER_LEVEL_DISCLAIMER, decide
 
@@ -79,8 +79,8 @@ class Answer:
     recorded: bool                         # True = the registry's own finding for a catalog dataset
     identity: str | None                   # "provisional" when the dataset's identification is provisional
     identity_basis: str | None
-    verified_by: str | None
-    verified_date: str | None
+    reviewed_by: str | None
+    reviewed_date: str | None
     draft: bool
     keys_absent: tuple[str, ...] = ()      # recorded findings only: keys the catalog records as not existing
 
@@ -184,8 +184,8 @@ class _Corpus:
     stage: str
     manifest: dict
     sources_searched: tuple[str, ...]
-    verified_by: str | None
-    verified_date: str | None
+    reviewed_by: str | None
+    reviewed_date: str | None
     draft: bool
     index: RecordIndex | None = None
     can_prove_presence: bool = False
@@ -201,14 +201,14 @@ def load_corpora(root: Path, *, include_drafts: bool = False, models: list[str] 
     out = []
     for path in registry_paths(root):
         e = load_yaml(path)
-        prov = e["provenance"]
-        draft = not prov["verified_by"].strip()
+        reviewer, review_date, _ = review_of(e)
+        draft = not reviewer
         if (draft and not include_drafts) or (models and e["id"] not in models):
             continue
         for c in e["corpora"]:
             m = c["manifest"]
             corpus = _Corpus(e["id"], e["model"], c["stage"], m, tuple(c["result"]["sources_searched"]),
-                             prov["verified_by"] or None, prov["verified_date"], draft)
+                             reviewer or None, review_date, draft)
             if m["type"] in ("C-vague", "D"):
                 out.append(corpus)
                 continue
@@ -233,8 +233,8 @@ def load_corpora(root: Path, *, include_drafts: bool = False, models: list[str] 
 
 def _answer(corpus: _Corpus, query: Query) -> Answer:
     base = dict(model=corpus.model, model_name=corpus.model_name, stage=corpus.stage,
-                sources_searched=corpus.sources_searched, verified_by=corpus.verified_by,
-                verified_date=corpus.verified_date, draft=corpus.draft, recorded=False)
+                sources_searched=corpus.sources_searched, reviewed_by=corpus.reviewed_by,
+                reviewed_date=corpus.reviewed_date, draft=corpus.draft, recorded=False)
     unknown_identity = dict(identity=None, identity_basis=None)
     m = corpus.manifest
     if m["type"] in ("C-vague", "D"):
@@ -278,7 +278,7 @@ def _recorded(corpus: _Corpus, finding: dict) -> Answer:
                   sample_ids=tuple(finding.get("sample_ids", [])), listed_accessions=(),
                   sources_searched=corpus.sources_searched, recorded=True,
                   identity=finding.get("identity"), identity_basis=finding.get("identity_basis"),
-                  verified_by=corpus.verified_by, verified_date=corpus.verified_date, draft=corpus.draft,
+                  reviewed_by=corpus.reviewed_by, reviewed_date=corpus.reviewed_date, draft=corpus.draft,
                   keys_absent=tuple(finding.get("keys_absent", [])))
 
 
@@ -344,8 +344,8 @@ def short(verdict: str) -> str:
 
 def provenance_text(a: Answer) -> str:
     if a.draft:
-        return "draft entry — not yet verified"
-    return f"manifest recorded by {a.verified_by}, {a.verified_date}"
+        return "Unreviewed draft"
+    return f"reviewed by {a.reviewed_by}, {a.reviewed_date}"
 
 
 # --------------------------------------------------------------------------- the web index
@@ -376,7 +376,7 @@ def build_lookup_index(root: Path, *, include_drafts: bool = False) -> dict:
             "accession_types": m.get("accession_types"),
             "sources": sources, "sources_searched": list(c.sources_searched),
             "unconfirmed_sources": list(c.unconfirmed),
-            "verified_by": c.verified_by, "verified_date": c.verified_date, "draft": c.draft,
+            "reviewed_by": c.reviewed_by, "reviewed_date": c.reviewed_date, "draft": c.draft,
             "rows": rows,
         })
     # Catalog identifiers: [type, value] when confirmed, [type, value, "provisional", basis] when provisional.

@@ -364,7 +364,7 @@ function answerDetail(a, query) {
 function renderModelCard(a, query) {
   const header = el("div", { class: "lookup-card-header" }, [
     el("span", { class: "lookup-model-name" }, a.model_name + (a.draft ? " " : "")),
-    a.draft ? el("span", { class: "draft-badge" }, "Draft — not yet verified") : null,
+    a.draft ? el("span", { class: "draft-badge" }, "Unreviewed") : null,
     verdictChip(a),
   ]);
   const card = el("li", { class: "lookup-card", id: `lookup-${query.raw}-${a.model}-${a.stage}` }, [header, ...answerDetail(a, query)]);
@@ -375,7 +375,7 @@ function coverageLine(searched, includesDrafts) {
   const n = searched.length;
   const noun = n === 1 ? "entry" : "entries";
   return `Searched ${n} ${noun}: ${searched.join(", ") || "—"}`
-    + `${includesDrafts ? " (including drafts)" : " (verified only)"}. Models not in the registry are not covered.`;
+    + `${includesDrafts ? " (including Unreviewed drafts)" : " (reviewed only)"}. Models not in the registry are not covered.`;
 }
 
 function renderSingleResult(container, query, result, loaded) {
