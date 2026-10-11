@@ -189,8 +189,8 @@ corpora:
 # run by the reviewer in their own terminal — never by code (docs/REVIEWING.md).
 review:
   by: LM
-  date: 2026-10-05
-  checked: []
+  date: 2026-10-10
+  checked: [paper, manifest, evaluated_on, judgment_calls, plausibility]
 
 provenance:
   method: original audit script (2026-09-08); reproduced by `corpus-checker check scfoundation --manifests DIR`
