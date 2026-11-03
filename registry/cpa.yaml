@@ -170,9 +170,9 @@ corpora:
           Exposure, not effect. Overlap does not by itself mean any reported number is inflated.
 
 review:
-  by: ""
-  date: null
-  checked: []
+  by: LM
+  date: 2026-11-03
+  checked: [paper, manifest, evaluated_on, judgment_calls, plausibility]
 
 provenance:
   method: "corpus-checker check cpa --rerun (by-design stage: findings come from its splits)"
