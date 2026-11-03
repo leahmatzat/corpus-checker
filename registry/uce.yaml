@@ -771,9 +771,9 @@ corpora:
           inflated.
 
 review:
-  by: ""
-  date: null
-  checked: []
+  by: LM
+  date: 2026-11-03
+  checked: [paper, manifest, evaluated_on, judgment_calls, plausibility]
 
 provenance:
   method: corpus-checker check uce --rerun (table resolver with a census join, committed extract of Table 16)
