@@ -704,9 +704,9 @@ corpora:
           with no fine-tuning, so it has no finding here.
 
 review:
-  by: ""
-  date: null
-  checked: []
+  by: LM
+  date: 2026-11-03
+  checked: [paper, manifest, evaluated_on, judgment_calls, plausibility]
 
 provenance:
   method: corpus-checker check cellplm --rerun (table resolver, committed extract of Table 6)
