@@ -1,0 +1,10 @@
+schema_version: 1
+id: orozco2020-human-retina
+name: Human eye single-cell atlas (Orozco 2020)
+kind: observational
+organism: [human]
+identifiers:
+  - {type: cellxgene_collection, value: 939769a8-d8d2-4d01-abfc-55699893fd49, confirmed: true, via: "CELLxGENE curation API collections list, matched on the collection's DOI, 2026-10-14"}
+  - {type: pmid, value: "31995762", confirmed: true, via: "esummary db=pubmed — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,  value: 10.1016/j.celrep.2019.12.082, confirmed: true, via: "esummary db=pubmed id=31995762 — NCBI E-utilities, 2026-10-14"}
+note: Human retina and other eye tissues, scRNA-seq, with eQTL integration.

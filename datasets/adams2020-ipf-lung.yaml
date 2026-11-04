@@ -1,0 +1,11 @@
+schema_version: 1
+id: adams2020-ipf-lung
+name: IPF Cell Atlas (Adams 2020)
+kind: observational
+organism: [human]
+identifiers:
+  - {type: geo,        value: GSE136831, confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-14"}
+  - {type: pmid,       value: "32832599", confirmed: true, via: "GSE136831 pubmedids (the first of three; 35887096 and 35930670 are later papers using the series) — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,        value: 10.1126/sciadv.aba1983, confirmed: true, via: "esummary db=pubmed id=32832599 — NCBI E-utilities, 2026-10-14"}
+  - {type: bioproject, value: PRJNA563828, confirmed: true, via: "esummary db=gds (GSE136831) — NCBI E-utilities, 2026-10-14"}
+note: Idiopathic pulmonary fibrosis, COPD and control lungs, scRNA-seq.

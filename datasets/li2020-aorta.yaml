@@ -1,0 +1,11 @@
+schema_version: 1
+id: li2020-aorta
+name: Human aortic tissue (Li 2020)
+kind: observational
+organism: [human]
+identifiers:
+  - {type: geo,        value: GSE155468,                          confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-14"}
+  - {type: pmid,       value: "33017217",                         confirmed: true, via: "GSE155468 pubmedids (the first of two; 37308786 is a later paper using the series) — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,        value: 10.1161/CIRCULATIONAHA.120.046528, confirmed: true, via: "esummary db=pubmed id=33017217 — NCBI E-utilities, 2026-10-14"}
+  - {type: bioproject, value: PRJNA649846,                        confirmed: true, via: "esummary db=gds (GSE155468) — NCBI E-utilities, 2026-10-14"}
+note: Control and aneurysmal human ascending aortic tissue, scRNA-seq.

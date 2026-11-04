@@ -1,0 +1,9 @@
+schema_version: 1
+id: li2022-fly-cell-atlas
+name: Fly Cell Atlas (Li 2022)
+kind: observational
+organism: [fruit fly]
+identifiers:
+  - {type: pmid, value: "35239393", confirmed: true, via: "esummary db=pubmed — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,  value: 10.1126/science.abk2432, confirmed: true, via: "esummary db=pubmed id=35239393 — NCBI E-utilities, 2026-10-14"}
+note: Single-nucleus atlas of adult Drosophila. No archive accession resolved here.

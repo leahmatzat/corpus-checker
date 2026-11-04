@@ -115,7 +115,7 @@ _EXPOSURE_NOTE = ("Exposure, not effect: overlap does not by itself mean a repor
 def _evidence(verdict: str, samples: int | None, cells: int | None, reason: str | None) -> str:
     if verdict == "PRESENT":
         parts = [f"{samples} samples" if samples else None, f"{cells:,} cells" if cells is not None else None]
-        return " · ".join(p for p in parts if p)
+        return " · ".join(p for p in parts if p) or "the study is listed (no sample rows to compare)"
     return reason or ""
 
 
@@ -156,7 +156,7 @@ def _cmd_check(args, root: Path) -> int:
                                 "keys_absent": list(r.keys_absent),
                                 "matched_on": list(r.matched_on), "samples": len(r.sample_ids) or None,
                                 "cells": r.cells, "reason": r.decision.reason, "registry": agree,
-                                "identity": r.identity, "identity_basis": r.identity_basis,
+                                "identity": r.identity, "identity_basis": r.identity_basis, "by_design": r.by_design,
                                 "registry_verdict": recorded.get(r.dataset, {}).get("verdict")})
             origin = f"re-run from {args.manifests}" if args.manifests else "re-run from committed snapshots and extracts"
             sections.append((header, f"{origin} · searched: {', '.join(run.sources_searched)}", section))
@@ -170,7 +170,8 @@ def _cmd_check(args, root: Path) -> int:
                                 "keys_attempted": f.get("keys_attempted", []), "keys_absent": f.get("keys_absent", []),
                                 "matched_on": f.get("matched_on", []),
                                 "samples": f.get("samples"), "cells": f.get("cells"), "reason": f.get("reason"),
-                                "identity": f.get("identity"), "identity_basis": f.get("identity_basis")})
+                                "identity": f.get("identity"), "identity_basis": f.get("identity_basis"),
+                                "by_design": f.get("by_design")})
             by, date, _ = review_of(entry)
             signed = f"reviewed by {by} {date}" if by else "UNREVIEWED draft"
             sections.append((header, f"as recorded in registry/{args.model}.yaml · {signed} · "
@@ -188,6 +189,8 @@ def _cmd_check(args, root: Path) -> int:
         print(f"  {'RELATION':13} {'DATASET':20} {'VERDICT':14} {'KEYS TRIED':16} EVIDENCE")
         for r in sorted(section, key=lambda r: (order[r["relation"]], r["dataset"])):
             evidence = _evidence(r["verdict"], r["samples"], r["cells"], r["reason"])
+            if r.get("by_design"):
+                evidence = f"by design — held out for testing: {r['by_design']}"
             if r.get("identity") == "provisional":
                 evidence = f"· provisional identity — {r['identity_basis'] or 'basis not recorded'} {evidence}".strip()
             if "registry" in r and r["registry"] != "= registry":

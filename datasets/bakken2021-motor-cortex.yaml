@@ -1,0 +1,10 @@
+schema_version: 1
+id: bakken2021-motor-cortex
+name: Primary motor cortex, human, marmoset and mouse (Bakken 2021)
+kind: observational
+organism: [human, marmoset, mouse]
+identifiers:
+  - {type: cellxgene_collection, value: 367d95c0-0eb0-4dae-8276-9407239421ee, confirmed: true, via: "CELLxGENE curation API collections list, matched on the collection's DOI, 2026-10-14"}
+  - {type: pmid, value: "34616062", confirmed: true, via: "esummary db=pubmed — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,  value: 10.1038/s41586-021-03465-8, confirmed: true, via: "esummary db=pubmed id=34616062 — NCBI E-utilities, 2026-10-14"}
+note: Comparative single-nucleus atlas of primary motor cortex. The collection holds several datasets.

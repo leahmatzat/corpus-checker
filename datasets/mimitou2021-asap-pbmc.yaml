@@ -1,0 +1,14 @@
+schema_version: 1
+id: mimitou2021-asap-pbmc
+name: ASAP PBMC (Mimitou 2021)
+kind: multimodal
+organism: [human]
+identifiers:
+  - {type: geo,  value: GSE156478,                  confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-14"}
+  - {type: pmid, value: "34083792",                 confirmed: true, via: "GSE156478 pubmedids — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,  value: 10.1038/s41587-021-00927-2, confirmed: true, via: "esummary db=pubmed id=34083792 — NCBI E-utilities, 2026-10-14"}
+sources:
+  - name: scMoMaT repository
+    url: https://github.com/PeterZZQ/scMoMaT/tree/main/data/real/ASAP-PBMC
+    note: Where scGPT obtained it.
+note: PBMCs profiled by CITE-seq and ASAP-seq (gene expression, chromatin accessibility, surface protein). The GEO series also holds mouse samples.

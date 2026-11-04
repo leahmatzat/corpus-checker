@@ -1,0 +1,40 @@
+{
+  "accessions": [
+    "GSE140802",
+    "PRJNA591003",
+    "SRP231169"
+  ],
+  "doi": "10.1126/science.aaw3381",
+  "organism": "Mus musculus",
+  "pmcid": "PMC7608074",
+  "pmids": [
+    "31974159",
+    "32632001"
+  ],
+  "query": "GSE140802",
+  "retrieved": "2026-10-28",
+  "samples": [
+    [
+      "GSM4185642",
+      "stateFate_inVitro"
+    ],
+    [
+      "GSM4185643",
+      "stateFate_inVivo"
+    ],
+    [
+      "GSM4185644",
+      "stateFate_cytokinePerturbation"
+    ],
+    [
+      "GSM4185645",
+      "GMP_MDP_culture"
+    ]
+  ],
+  "sources": [
+    "esearch.fcgi?db=gds",
+    "esummary.fcgi?db=gds",
+    "esummary.fcgi?db=pubmed"
+  ],
+  "title": "Lineage tracing on transcriptional landscapes links state to fate during differentiation"
+}

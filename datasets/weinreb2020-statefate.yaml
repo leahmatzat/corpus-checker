@@ -1,0 +1,11 @@
+schema_version: 1
+id: weinreb2020-statefate
+name: Hematopoiesis lineage tracing, state and fate (Weinreb 2020)
+kind: observational
+organism: [mouse]
+identifiers:
+  - {type: geo,        value: GSE140802,             confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-28"}
+  - {type: pmid,       value: "31974159",            confirmed: true, via: "GSE140802 pubmedids (the first of two) — NCBI E-utilities, 2026-10-28"}
+  - {type: doi,        value: 10.1126/science.aaw3381, confirmed: true, via: "esummary db=pubmed id=31974159 — NCBI E-utilities, 2026-10-28"}
+  - {type: bioproject, value: PRJNA591003,           confirmed: true, via: "esummary db=gds (GSE140802) — NCBI E-utilities, 2026-10-28"}
+note: Mouse hematopoietic progenitors with lineage barcodes, sampled on days 2, 4 and 6 in culture.

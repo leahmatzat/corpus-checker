@@ -37,16 +37,24 @@ def decide_from(*, manifest_type: str, can_prove_presence: bool, checkable: bool
                 keys_attempted: Iterable[str] = (), keys_hit: Iterable[str] = (),
                 listed_accessions: Iterable[str] = (), requires_keys: Iterable[str] = (),
                 unconfirmed_sources: Iterable[str] = (), unsearched_sources: Iterable[str] = (),
-                keys_absent: Iterable[str] = (), keys_hit_confirmed: Iterable[str] | None = None) -> Decision:
+                keys_absent: Iterable[str] = (), keys_hit_confirmed: Iterable[str] | None = None,
+                unresolved_entries: Iterable[str] = ()) -> Decision:
     """keys_absent: required keys the catalog records as not existing for this dataset, with a basis —
     they count as covered for NOT PRESENT, never as searched. keys_hit_confirmed: the keys hit on rows
     from confirmed sources; None means "not known", which is read conservatively (no confirmed hit)
-    whenever a source is unconfirmed."""
+    whenever a source is unconfirmed. unresolved_entries: entries of the list that cannot be searched
+    exactly (a collection whose datasets it does not name, a source named without an identifier)."""
     attempted, hit = set(keys_attempted), set(keys_hit)
     requires, listed = set(requires_keys), sorted(listed_accessions)
     unconfirmed, unsearched = list(unconfirmed_sources), list(unsearched_sources)
+    unresolved = list(unresolved_entries)
     absent = set(keys_absent) - attempted
 
+    if manifest_type == "by-design":
+        # Such a stage trains on parts of the model's own evaluation datasets; its findings are recorded from
+        # the paper (check.py), and it has no list a dataset from elsewhere could be searched in.
+        return Decision(INCONCLUSIVE, "this stage trains on parts of the model's own evaluation datasets, by design; "
+                                      "it has no list to search for other datasets", "by_design_stage")
     if manifest_type in ("C-vague", "D") or not checkable:
         return Decision(NOT_CHECKABLE, "no manifest was published to search", "no_manifest")
 
@@ -86,12 +94,24 @@ def decide_from(*, manifest_type: str, can_prove_presence: bool, checkable: bool
                                       f"attempted before absence can be claimed; the dataset has no confirmed "
                                       f"{'/'.join(sorted(missing))} identifier, and none is recorded as not existing",
                         "missing_required_key")
+    if unresolved:
+        # A dataset missing from the list can still be inside a collection the list names without its members.
+        return Decision(INCONCLUSIVE, f"no match, but {len(unresolved)} {'entry' if len(unresolved) == 1 else 'entries'} "
+                                      f"of this list cannot be searched exactly ({_examples(unresolved)}) — collections "
+                                      "whose datasets are not listed, or sources named without an identifier; the "
+                                      "dataset may be inside one", "unresolved_entries")
     return Decision(NOT_PRESENT, None, "not_present")
+
+
+def _examples(entries: list[str], shown: int = 3) -> str:
+    more = len(entries) - shown
+    return ", ".join(entries[:shown]) + (f" and {more} more" if more > 0 else "")
 
 
 def decide(*, manifest_type: str, can_prove_presence: bool, match: Match | None,
            requires_keys: frozenset[str] = frozenset(), unconfirmed_sources: tuple[str, ...] = (),
-           unsearched_sources: tuple[str, ...] = (), keys_absent: frozenset[str] = frozenset()) -> Decision:
+           unsearched_sources: tuple[str, ...] = (), keys_absent: frozenset[str] = frozenset(),
+           unresolved_entries: tuple[str, ...] = ()) -> Decision:
     if match is None:
         return decide_from(manifest_type=manifest_type, can_prove_presence=can_prove_presence, checkable=False)
     return decide_from(manifest_type=manifest_type, can_prove_presence=can_prove_presence,
@@ -99,4 +119,5 @@ def decide(*, manifest_type: str, can_prove_presence: bool, match: Match | None,
                        listed_accessions=match.listed_accessions, requires_keys=requires_keys,
                        unconfirmed_sources=unconfirmed_sources, unsearched_sources=unsearched_sources,
                        keys_absent=keys_absent,
-                       keys_hit_confirmed=match.keys_hit_outside(unconfirmed_sources))
+                       keys_hit_confirmed=match.keys_hit_outside(unconfirmed_sources),
+                       unresolved_entries=unresolved_entries)

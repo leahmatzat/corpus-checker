@@ -1,0 +1,10 @@
+schema_version: 1
+id: conde2022-immune-cell-atlas
+name: Cross-tissue Immune Cell Atlas (Domínguez Conde 2022)
+kind: observational
+organism: [human]
+identifiers:
+  - {type: cellxgene_collection, value: 62ef75e4-cbea-454e-a0ce-998ec40223d3, confirmed: true, via: "CELLxGENE curation API collections list, matched on the collection's DOI, 2026-10-14"}
+  - {type: pmid, value: "35549406", confirmed: true, via: "esummary db=pubmed — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,  value: 10.1126/science.abl5197, confirmed: true, via: "esummary db=pubmed id=35549406 — NCBI E-utilities, 2026-10-14"}
+note: Immune cells across human tissues. The collection holds several datasets.

@@ -1,0 +1,13 @@
+schema_version: 1
+id: srivatsan2020-sciplex3
+name: sci-Plex 3 (Srivatsan 2020)
+kind: perturbation
+organism: [human]
+identifiers:
+  - {type: geo,  value: GSM4150378,             confirmed: true, via: "esummary db=gds (GSM), title sciPlex3_A549_MCF7_K562_screen — NCBI E-utilities, 2026-10-28"}
+  - {type: pmid, value: "31806696",             confirmed: true, via: "GSM4150378 pubmedids — NCBI E-utilities, 2026-10-28"}
+  - {type: doi,  value: 10.1126/science.aax6234, confirmed: true, via: "esummary db=pubmed id=31806696 — NCBI E-utilities, 2026-10-28"}
+note: >
+  A549, MCF7 and K562 cells, 188 compounds at four doses. One sample of series GSE139944, which also
+  holds sci-Plex 2; the series is not listed as an identifier, so a list naming only the series matches
+  at paper level.

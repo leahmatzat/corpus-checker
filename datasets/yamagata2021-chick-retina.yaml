@@ -1,0 +1,11 @@
+schema_version: 1
+id: yamagata2021-chick-retina
+name: Chick retina (Yamagata 2021)
+kind: observational
+organism: [chicken]
+identifiers:
+  - {type: geo,        value: GSE159107, confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-14"}
+  - {type: pmid,       value: "33393903", confirmed: true, via: "GSE159107 pubmedids — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,        value: 10.7554/eLife.63907, confirmed: true, via: "esummary db=pubmed id=33393903 — NCBI E-utilities, 2026-10-14"}
+  - {type: bioproject, value: PRJNA667705, confirmed: true, via: "esummary db=gds (GSE159107) — NCBI E-utilities, 2026-10-14"}
+note: Cell atlas of the chick retina, scRNA-seq.

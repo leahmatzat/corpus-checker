@@ -1,0 +1,10 @@
+schema_version: 1
+id: lawlor2017
+name: Lawlor 2017
+kind: observational
+organism: [human]
+identifiers:
+  - {type: geo,  value: GSE86469,             confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-14"}
+  - {type: pmid, value: "27864352",           confirmed: true, via: "GSE86469 pubmedids — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,  value: 10.1101/gr.212720.116, confirmed: true, via: "esummary db=pubmed id=27864352 — NCBI E-utilities, 2026-10-14"}
+note: Human pancreatic islets, Fluidigm C1. One of the five studies in the hPancreas composite (TOSICA's reprocessing).

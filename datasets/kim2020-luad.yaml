@@ -1,0 +1,14 @@
+schema_version: 1
+id: kim2020-luad
+name: Lung adenocarcinoma (Kim 2020)
+kind: observational
+organism: [human]
+identifiers:
+  - {type: geo,  value: GSE131907,                 confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-14"}
+  - {type: pmid, value: "32385277",                confirmed: true, via: "GSE131907 pubmedids (the first of two; 40517220 is a later paper using the series) — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,  value: 10.1038/s41467-020-16164-1, confirmed: true, via: "esummary db=pubmed id=32385277 — NCBI E-utilities, 2026-10-14"}
+sources:
+  - name: Curated Cancer Cell Atlas (3CA)
+    url: https://www.weizmann.ac.il/sites/3CA/lung
+    note: Where scGPT obtained it (the "Lung-Kim" dataset).
+note: Primary and metastatic lung adenocarcinoma, 10x. scGPT used 14 primary tumour samples.

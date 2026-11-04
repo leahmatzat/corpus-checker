@@ -14,6 +14,9 @@ from conftest import REPO, TODAY
 
 EXPECTED_OPEN_ERRORS = {
     "registry/scfoundation.yaml": set(),
+    "registry/cellplm.yaml": set(),
+    "registry/uce.yaml": set(),
+    "registry/cpa.yaml": set(),
 }
 
 

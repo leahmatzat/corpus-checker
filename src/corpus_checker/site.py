@@ -27,7 +27,7 @@ from urllib.parse import quote as _urlquote
 import jinja2
 import markdown as _markdown
 
-from .ledger import build_ledger, judgment_calls
+from .ledger import build_ledger, review_points
 from .lookup import build_lookup_index
 from .registry import REVIEW_CHECKS
 from .verdict import PAPER_LEVEL_DISCLAIMER
@@ -62,6 +62,8 @@ MANIFEST_TYPE_EXPLANATION = {
     "C-vague": "Prose in the paper that describes sources only in general terms — not specific enough "
                "to check against any one dataset.",
     "D": "No description of training sources was published.",
+    "by-design": "No list to search: by design, this stage trains on the model's own evaluation datasets and "
+                 "tests on what each holds out. Its findings record that, and are never counted as exposure.",
 }
 
 # The few words under each stage on the home page; the full explanation is on the model page.
@@ -72,6 +74,7 @@ MANIFEST_TYPE_SHORT = {
     "C-named": "named in prose",
     "C-vague": "prose only",
     "D": "not published",
+    "by-design": "no list to search",
 }
 
 # Home page columns. Every reported eval lands in exactly one, by its finding for that stage.
@@ -87,7 +90,7 @@ UNCLEAR_SUFFIX = {"INCONCLUSIVE": "can't tell", "NOT CHECKABLE": "unknown", None
 GRID_SHORT = {"PRESENT": "Yes", "NOT PRESENT": "No", "INCONCLUSIVE": "?", "NOT CHECKABLE": "n/c"}
 
 # Row groups on the grid, in this order; any other kind follows alphabetically, then "other".
-KIND_ORDER = ("perturbation", "observational", "multimodal")
+KIND_ORDER = ("perturbation", "observational", "multimodal", "spatial")
 
 # Plain names for the places a paper can describe its training data (registry `discovery`).
 DISCOVERY_LABEL = {
@@ -168,13 +171,15 @@ def _rules_url(repo_url: str) -> str:
 
 
 def _evidence_text(row: dict) -> str:
+    if row.get("by_design"):
+        return f"by design; held out for testing: {row['by_design']}"
     if row["verdict"] == "PRESENT":
         parts = []
         if row.get("samples"):
             parts.append(f"{row['samples']} sample(s)")
         if row.get("cells") is not None:
             parts.append(f"{row['cells']:,} cells")
-        return " · ".join(parts) or "—"
+        return " · ".join(parts) or ("the study is listed" if row.get("overlap_level") == "study" else "—")
     if row.get("keys_absent"):
         none = "none exists: " + ", ".join(k.upper() if k in ("pmid", "doi") else k for k in row["keys_absent"])
         return f"{row['reason']} · {none}" if row.get("reason") else none
@@ -259,19 +264,27 @@ def _build_model_rows(ledger: dict) -> list[dict]:
         stages = []
         for c in m["corpora"]:
             cols: dict[str, list[dict]] = {"present": [], "not_present": [], "unclear": []}
+            by_design_stage = c["manifest_type"] == "by-design"
             for did in evals:
                 r = by_key.get((mid, c["stage"], did))
+                if by_design_stage and not r:
+                    continue   # a by-design stage is about the datasets it trains on part of, nothing else
                 verdict = r["verdict"] if r else None
                 provisional = bool(r and r.get("identity") == "provisional")
+                by_design = bool(r and r.get("by_design"))
                 title = verdict or "not checked"
                 if provisional:
                     title += " · provisional identity"
+                if by_design:
+                    title = f"trained on by design; held out for testing: {r['by_design']}"
                 cols[ANSWER_COLUMN.get(verdict, "unclear")].append({
                     "dataset": did,
                     "name": _dataset_name(datasets, did),
                     "verdict": verdict,
-                    "suffix": UNCLEAR_SUFFIX.get(verdict) if ANSWER_COLUMN.get(verdict, "unclear") == "unclear" else None,
+                    "suffix": ("by design" if by_design else
+                               UNCLEAR_SUFFIX.get(verdict) if ANSWER_COLUMN.get(verdict, "unclear") == "unclear" else None),
                     "provisional": provisional,
+                    "by_design": by_design,
                     "title": title,
                     "href": (f"models/{mid}.html#finding-{did}-{c['stage']}" if r else f"datasets/{did}.html"),
                 })
@@ -331,8 +344,10 @@ def _build_grid(ledger: dict) -> tuple[list[dict], list[dict]]:
                                          if r["stage"] in stage_order[gm["id"]] else len(stage_order[gm["id"]]), r["stage"]))
             cells[gm["id"]] = {
                 "reported_eval": gm["id"] in evaluated_by,
-                "findings": [{"stage": r["stage"], "verdict": r["verdict"], "short": GRID_SHORT.get(r["verdict"], r["verdict"]),
-                              "provisional": r.get("identity") == "provisional"} for r in pair],
+                "findings": [{"stage": r["stage"], "verdict": r["verdict"],
+                              "short": "split" if r.get("by_design") else GRID_SHORT.get(r["verdict"], r["verdict"]),
+                              "provisional": r.get("identity") == "provisional", "by_design": r.get("by_design")}
+                             for r in pair],
             }
         groups.setdefault(d.get("kind"), []).append({"id": did, "name": _dataset_name(datasets, did), "cells": cells})
 
@@ -366,6 +381,7 @@ def _model_page_corpora(model_id: str, model: dict, ledger: dict) -> list[dict]:
             "note": r.get("note"),
             "identity": r.get("identity"),
             "identity_basis": r.get("identity_basis"),
+            "by_design": r.get("by_design"),
         }
 
     corpora = []
@@ -375,7 +391,8 @@ def _model_page_corpora(model_id: str, model: dict, ledger: dict) -> list[dict]:
                                 key=lambda f: f["dataset_name"].lower())
         catalog = sorted((_finding(r) for r in stage_rows if r["relation"] == "catalog"),
                           key=lambda f: f["dataset_name"].lower())
-        corpora.append({**c, "reported_eval_findings": reported_eval, "catalog_findings": catalog})
+        splits = [{**s, "name": _dataset_name(datasets, s["dataset"])} for s in c.get("splits") or []]
+        corpora.append({**c, "splits": splits, "reported_eval_findings": reported_eval, "catalog_findings": catalog})
     return corpora
 
 
@@ -405,16 +422,22 @@ def _how_checked(model: dict, ledger: dict) -> dict:
     tool.append("Dataset identifiers are confirmed against NCBI or the dataset's own archive; any that aren't "
                 "are marked provisional.")
 
-    calls = judgment_calls(ledger, model["id"])
+    points = review_points(ledger, model["id"])
 
     checked = set(model.get("review_checked") or ())
-    reviewed = [{"key": k, "text": text, "calls": calls if k == "judgment_calls" else []}
+    reviewed = [{"key": k, "text": text, "points": points.get(k, [])}
                 for k, text in REVIEW_CHECKS.items() if k in checked]
-    # With no scope recorded we can't say which checks were skipped, only that the record is missing.
-    not_checked = [text for k, text in REVIEW_CHECKS.items() if k not in checked] if checked else []
+    # An Unreviewed draft has had none of the five; a reviewed entry with no scope recorded can't say
+    # which were skipped, only that the record is missing.
+    if model.get("draft"):
+        not_checked = [{"text": text, "points": points.get(k, [])} for k, text in REVIEW_CHECKS.items()]
+    elif checked:
+        not_checked = [{"text": text, "points": points.get(k, [])} for k, text in REVIEW_CHECKS.items() if k not in checked]
+    else:
+        not_checked = []
     if unchecked := model.get("discovery_unchecked"):
-        not_checked.append("Not yet searched for a description of the training data: "
-                           + ", ".join(DISCOVERY_LABEL.get(k, k) for k in unchecked) + ".")
+        not_checked.append({"text": "Not yet searched for a description of the training data: "
+                            + ", ".join(DISCOVERY_LABEL.get(k, k) for k in unchecked) + ".", "points": []})
     return {"tool": tool, "reviewed": reviewed, "not_checked": not_checked,
             "scope_recorded": bool(checked)}
 

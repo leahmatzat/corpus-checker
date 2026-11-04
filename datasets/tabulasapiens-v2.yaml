@@ -1,0 +1,14 @@
+schema_version: 1
+id: tabulasapiens-v2
+name: Tabula Sapiens v2
+kind: observational
+organism: [human]
+identifiers:
+  - type: url
+    value: https://doi.org/10.5281/zenodo.19462110
+    confirmed: false
+    via: UCE's data availability statement (Nature 2026), which deposits its processed copy there
+    note: UCE's deposit of processed analysis data, not a record of Tabula Sapiens v2 itself.
+note: >
+  Unpublished when UCE was trained. No archive accession or paper identifier is recorded here, so
+  no manifest can be searched for it exactly.

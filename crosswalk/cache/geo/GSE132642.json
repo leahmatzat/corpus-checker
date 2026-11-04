@@ -1,0 +1,275 @@
+{
+  "accessions": [
+    "GSE132642",
+    "PRJNA548723",
+    "SRP201320"
+  ],
+  "doi": "10.1371/journal.pbio.3000528",
+  "organism": "Heterocephalus glaber; Mus musculus",
+  "pmcid": "PMC6894886",
+  "pmids": [
+    "31751331"
+  ],
+  "query": "GSE132642",
+  "retrieved": "2026-10-14",
+  "samples": [
+    [
+      "GSM3885302",
+      "naked mole-rat spleen sample 1 replicate 1"
+    ],
+    [
+      "GSM3885303",
+      "naked mole-rat spleen sample 1 replicate 2"
+    ],
+    [
+      "GSM3885304",
+      "naked mole-rat spleen sample 2 replicate 1"
+    ],
+    [
+      "GSM3885305",
+      "naked mole-rat spleen sample 2 replicate 2"
+    ],
+    [
+      "GSM3885306",
+      "naked mole-rat spleen sample 3 replicate 1"
+    ],
+    [
+      "GSM3885307",
+      "naked mole-rat spleen sample 3 replicate 2"
+    ],
+    [
+      "GSM3885308",
+      "naked mole-rat spleen sample 4 replicate 1"
+    ],
+    [
+      "GSM3885309",
+      "naked mole-rat spleen sample 4 replicate 2"
+    ],
+    [
+      "GSM3885310",
+      "mouse spleen sample 1 replicate 1"
+    ],
+    [
+      "GSM3885311",
+      "mouse spleen sample 1 replicate 2"
+    ],
+    [
+      "GSM3885312",
+      "mouse spleen sample 2 replicate 1"
+    ],
+    [
+      "GSM3885313",
+      "mouse spleen sample 2 replicate 2"
+    ],
+    [
+      "GSM3885314",
+      "mouse spleen sample 3 replicate 1"
+    ],
+    [
+      "GSM3885315",
+      "mouse spleen sample 3 replicate 2"
+    ],
+    [
+      "GSM3885316",
+      "mouse spleen sample 4 replicate 1"
+    ],
+    [
+      "GSM3885317",
+      "mouse spleen sample 4 replicate 2"
+    ],
+    [
+      "GSM3885318",
+      "naked mole-rat circulating immune cells sample 2"
+    ],
+    [
+      "GSM3885319",
+      "naked mole-rat circulating immune cells sample 3"
+    ],
+    [
+      "GSM3885320",
+      "naked mole-rat circulating immune cells sample 4"
+    ],
+    [
+      "GSM3885321",
+      "mouse circulating immune cells sample 1"
+    ],
+    [
+      "GSM3885322",
+      "mouse circulating immune cells sample 2"
+    ],
+    [
+      "GSM3885323",
+      "mouse circulating immune cells sample 3"
+    ],
+    [
+      "GSM3885324",
+      "mouse circulating immune cells sample 4"
+    ],
+    [
+      "GSM3885325",
+      "naked mole-rat spleen saline control sample 1 replicate 1"
+    ],
+    [
+      "GSM3885326",
+      "naked mole-rat spleen saline control sample 1 replicate 2"
+    ],
+    [
+      "GSM3885327",
+      "naked mole-rat spleen saline control sample 2 replicate 1"
+    ],
+    [
+      "GSM3885328",
+      "naked mole-rat spleen saline control sample 2 replicate 2"
+    ],
+    [
+      "GSM3885329",
+      "naked mole-rat spleen LPS-challenged sample 1 replicate 1"
+    ],
+    [
+      "GSM3885330",
+      "naked mole-rat spleen LPS-challenged sample 1 replicate 2"
+    ],
+    [
+      "GSM3885331",
+      "naked mole-rat spleen LPS-challenged sample 2 replicate 1"
+    ],
+    [
+      "GSM3885332",
+      "naked mole-rat spleen LPS-challenged sample 2 replicate 2"
+    ],
+    [
+      "GSM3885333",
+      "naked mole-rat circulating immune cells saline control sample 1 replicate 1"
+    ],
+    [
+      "GSM3885334",
+      "naked mole-rat circulating immune cells saline control sample 1 replicate 2"
+    ],
+    [
+      "GSM3885335",
+      "naked mole-rat circulating immune cells saline control sample 2 replicate 1"
+    ],
+    [
+      "GSM3885336",
+      "naked mole-rat circulating immune cells saline control sample 2 replicate 2"
+    ],
+    [
+      "GSM3885337",
+      "naked mole-rat circulating immune cells LPS-challenged sample 1 replicate 1"
+    ],
+    [
+      "GSM3885338",
+      "naked mole-rat circulating immune cells LPS-challenged sample 1 replicate 2"
+    ],
+    [
+      "GSM3885339",
+      "naked mole-rat circulating immune cells LPS-challenged sample 2 replicate 1"
+    ],
+    [
+      "GSM3885340",
+      "naked mole-rat circulating immune cells LPS-challenged sample 2 replicate 2"
+    ],
+    [
+      "GSM3885341",
+      "mouse spleen saline control sample 1 replicate 1"
+    ],
+    [
+      "GSM3885342",
+      "mouse spleen saline control sample 1 replicate 2"
+    ],
+    [
+      "GSM3885343",
+      "mouse spleen saline control sample 2 replicate 1"
+    ],
+    [
+      "GSM3885344",
+      "mouse spleen saline control sample 2 replicate 2"
+    ],
+    [
+      "GSM3885345",
+      "mouse spleen LPS-challenged sample 1 replicate 1"
+    ],
+    [
+      "GSM3885346",
+      "mouse spleen LPS-challenged sample 1 replicate 2"
+    ],
+    [
+      "GSM3885347",
+      "mouse spleen LPS-challenged sample 2 replicate 1"
+    ],
+    [
+      "GSM3885348",
+      "mouse spleen LPS-challenged sample 2 replicate 2"
+    ],
+    [
+      "GSM3885349",
+      "mouse circulating immune cells saline control sample 1 replicate 1"
+    ],
+    [
+      "GSM3885350",
+      "mouse circulating immune cells saline control sample 1 replicate 2"
+    ],
+    [
+      "GSM3885351",
+      "mouse circulating immune cells saline control sample 2 replicate 1"
+    ],
+    [
+      "GSM3885352",
+      "mouse circulating immune cells saline control sample 2 replicate 2"
+    ],
+    [
+      "GSM3885353",
+      "mouse circulating immune cells LPS-challenged sample 1 replicate 1"
+    ],
+    [
+      "GSM3885354",
+      "mouse circulating immune cells LPS-challenged sample 1 replicate 2"
+    ],
+    [
+      "GSM3885355",
+      "mouse circulating immune cells LPS-challenged sample 2 replicate 1"
+    ],
+    [
+      "GSM3885356",
+      "mouse circulating immune cells LPS-challenged sample 2 replicate 2"
+    ],
+    [
+      "GSM3885357",
+      "naked mole-rat whole spleen saline control replicate 1"
+    ],
+    [
+      "GSM3885358",
+      "naked mole-rat whole spleen saline control replicate 2"
+    ],
+    [
+      "GSM3885359",
+      "naked mole-rat whole spleen LPS-challenged replicate 1"
+    ],
+    [
+      "GSM3885360",
+      "naked mole-rat whole spleen LPS-challenged replicate 2"
+    ],
+    [
+      "GSM3885361",
+      "mouse whole spleen saline control replicate 1"
+    ],
+    [
+      "GSM3885362",
+      "mouse whole spleen saline control replicate 2"
+    ],
+    [
+      "GSM3885363",
+      "mouse whole spleen LPS-challenged replicate 1"
+    ],
+    [
+      "GSM3885364",
+      "mouse whole spleen LPS-challenged replicate 2"
+    ]
+  ],
+  "sources": [
+    "esearch.fcgi?db=gds",
+    "esummary.fcgi?db=gds",
+    "esummary.fcgi?db=pubmed"
+  ],
+  "title": "Droplet-based single-cell RNA-sequencing of mouse and naked mole-rat spleen and circulating immune cells, in natural conditions, following lipopolysaccharide (LPS) challanege, and saline control"
+}

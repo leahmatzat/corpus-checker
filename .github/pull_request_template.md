@@ -44,7 +44,7 @@ useful; "looks fine" is not.
 
 *What a review covers and how to record it: [docs/REVIEWING.md](https://github.com/leahmatzat/corpus-checker/blob/main/docs/REVIEWING.md). CI has already checked the hashes, re-run every finding and applied every rule; your job is what it can't check.*
 
-- [ ] **Paper:** the published version, with the right DOI and PMID.
+- [ ] **Paper:** the published version, with the right DOI and PMID (or its proceedings link, when it has neither).
 - [ ] **Manifest:** for each training stage, the listed file or statement is the paper's training-data list, and the
       quote matches the paper (read against the source, not just this diff).
 - [ ] **Evaluation list:** the reported evals match what the paper evaluates on.

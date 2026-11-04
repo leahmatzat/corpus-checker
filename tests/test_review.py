@@ -44,6 +44,8 @@ def test_it_records_exactly_the_checks_ticked_and_nothing_else(tmp_path):
     assert len(before.splitlines()) == len(path.read_text().splitlines())
     assert all(a.startswith("  date:") or a.startswith("  checked:") for a, _ in changed), changed
     assert "Zheng68K: provisional identity" in out and "BMMC multiome (NeurIPS 2021): no PMID exists" in out
+    # each question is preceded by what it covers in this entry
+    assert out.index("DOI 10.1038/s41592-024-02305-7") < out.index("pretraining: Supplementary Data 1")
 
 
 def test_unknown_initials_write_nothing(tmp_path):

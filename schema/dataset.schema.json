@@ -12,7 +12,7 @@
     "id":    { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Must equal the file name stem. Convention: first-author surname + year, plus a suffix when one paper yields several datasets (zheng2017-pbmc68k)." },
     "name":  { "type": "string", "minLength": 1, "description": "The name the field uses — 'Norman 2019', 'Zheng68K'." },
     "title": { "type": "string", "description": "Source publication title. Filled from the crosswalk, not typed by hand." },
-    "kind":  { "enum": ["perturbation", "observational", "multimodal"] },
+    "kind":  { "enum": ["perturbation", "observational", "multimodal", "spatial"] },
     "organism": { "type": "array", "items": { "type": "string" } },
     "identifiers": {
       "type": "array",

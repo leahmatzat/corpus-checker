@@ -1,0 +1,38 @@
+{
+  "accessions": [
+    "GSM4150378",
+    "SRX7101188"
+  ],
+  "doi": "10.1126/science.aax6234",
+  "organism": "Homo sapiens",
+  "pmcid": "PMC7289078",
+  "pmids": [
+    "31806696"
+  ],
+  "query": "GSM4150378",
+  "retrieved": "2026-10-28",
+  "samples": [
+    [
+      "GSM4150376",
+      "sciPlex1_HEK293T_NIH3T3"
+    ],
+    [
+      "GSM4150377",
+      "sciPlex2_A549_Transcription_Modulators"
+    ],
+    [
+      "GSM4150378",
+      "sciPlex3_A549_MCF7_K562_screen"
+    ],
+    [
+      "GSM4150379",
+      "sciPlex4_A549_MCF7_HDACi"
+    ]
+  ],
+  "sources": [
+    "esearch.fcgi?db=gds",
+    "esummary.fcgi?db=gds",
+    "esummary.fcgi?db=pubmed"
+  ],
+  "title": "sciPlex3_A549_MCF7_K562_screen"
+}

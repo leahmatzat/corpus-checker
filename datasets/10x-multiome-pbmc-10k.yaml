@@ -1,0 +1,17 @@
+schema_version: 1
+id: 10x-multiome-pbmc-10k
+name: 10x Multiome PBMC (granulocytes removed, 10k)
+kind: multimodal
+organism: [human]
+identifiers:
+  - type: url
+    value: https://support.10xgenomics.com/single-cell-multiome-atac-gex/datasets/1.0.0/pbmc_granulocyte_sorted_10k
+    confirmed: true
+    via: scGPT reference 43 (Nat Methods 2024)
+sources:
+  - name: scGLUE processed datasets
+    url: https://scglue.readthedocs.io/en/latest/data.html
+    note: Where scGPT obtained it.
+note: >
+  10x Genomics demonstration data (Cell Ranger ARC 1.0.0), paired RNA and ATAC from one healthy
+  donor. It has no archive accession or paper identifier that a manifest could list.

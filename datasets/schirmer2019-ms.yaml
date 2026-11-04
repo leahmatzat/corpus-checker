@@ -1,0 +1,15 @@
+schema_version: 1
+id: schirmer2019-ms
+name: Multiple sclerosis (Schirmer 2019)
+kind: observational
+organism: [human]
+identifiers:
+  - {type: bioproject, value: PRJNA544731,              confirmed: true, via: "elink pubmed→bioproject id=31316211, esummary db=bioproject — NCBI E-utilities, 2026-10-14"}
+  - {type: pmid,       value: "31316211",               confirmed: true, via: "esummary db=pubmed — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,        value: 10.1038/s41586-019-1404-z, confirmed: true, via: "esummary db=pubmed id=31316211 — NCBI E-utilities, 2026-10-14"}
+  - type: arrayexpress
+    value: E-HCAD-35
+    confirmed: false
+    via: scGPT's data availability statement, which cites this paper (ref. 29) for the dataset at that address
+    note: The EMBL-EBI Single Cell Expression Atlas page returned HTTP 500 on 2026-10-14, so the record could not be checked.
+note: Single-nucleus RNA-seq of cortex and white matter from people with multiple sclerosis and controls.

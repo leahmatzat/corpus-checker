@@ -1,0 +1,18 @@
+schema_version: 1
+id: bunne2023-4i-melanoma
+name: 4i melanoma drug screen (Bunne 2023)
+kind: perturbation
+organism: [human]
+identifiers:
+  - {type: pmid, value: "37770709",                 confirmed: true, via: "esummary db=pubmed — NCBI E-utilities, 2026-10-28"}
+  - {type: doi,  value: 10.1038/s41592-023-01969-x, confirmed: true, via: "esummary db=pubmed id=37770709 — NCBI E-utilities, 2026-10-28"}
+absent:
+  - key: accession
+    checked: 2026-10-14
+    basis: >-
+      Imaging (4i) data generated for the CellOT paper. Neither its data statement nor its Reporting Summary,
+      code repository or ETH deposit gives an archive accession, and GEO and BioStudies searches for the cell
+      lines' names (M130219, M130429) return nothing.
+note: >
+  Iterative indirect immunofluorescence imaging of two patient-derived melanoma lines under 34 drugs.
+  Its processed form is in CellOT's ETH deposit (10.3929/ethz-b-000609681), alongside other datasets.

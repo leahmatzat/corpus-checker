@@ -1,0 +1,33 @@
+# Derived extract of Table 6 (Appendix E.2, p.18), CellPLM (Wen et al., ICLR 2024 proceedings PDF).
+# derived-from-sha256: da19b4e51a32b5414c22a7b82776df4f77661fa095d1cabc272746bbceca8ded
+# Transcribed from the PDF (a table, not a file): every entry, as printed, in printed order, with its source group.
+# accession and pmid hold the identifier inside an entry when it has one (GSE156728_CD4 -> GSE156728); nothing else is added.
+group,entry,accession,pmid
+HTCA,HTAN_HTAPP,,
+HTCA,HTAN_Stanford,,
+HTCA,HTAN_Vanderbilt,,
+HTCA,HTAN_BU,,
+HCA,cxg_PBMCs,,
+HCA,EGAS00001004571_PBMCs,EGAS00001004571,
+HCA,eQTLAutoimmune,,
+HCA,covid19autoimmunityPBMCs,,
+HCA,VanDerWijst-Human-10x5pv1,,
+HCA,cxg_Airways,,
+HCA,COMBAT2022,,
+HCA,TabulaSapiens,,
+HCA,PAN.A01.v01.raw_count.20210429.PFI.embedding,,
+HCA,GTEx_8_tissues_snRNAseq_atlas_071421.public_obs,,
+GEO,GSE139324,GSE139324,
+GEO,GSE136246,GSE136246,
+GEO,GSE179994,GSE179994,
+GEO,GSE131907,GSE131907,
+GEO,GSE171145,GSE171145,
+GEO,GSE139555,GSE139555,
+GEO,GSE156728_CD4,GSE156728,
+GEO,GSE148071,GSE148071,
+GEO,PMID_34663877,,34663877
+GEO,Qian_et_al_2020_LC,,
+GEO,GSE176021,GSE176021,
+GEO,GSE156728_CD8,GSE156728,
+Other Atlas (deduplicated),MalteEtAl_LungAtlas,,
+Other Atlas (deduplicated),TICAtlas,,

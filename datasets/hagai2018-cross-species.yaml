@@ -1,0 +1,16 @@
+schema_version: 1
+id: hagai2018-cross-species
+name: Cross-species LPS response of phagocytes (Hagai 2018)
+kind: perturbation
+organism: [mouse, rat, rabbit, pig]
+identifiers:
+  - type: arrayexpress
+    value: E-MTAB-6754
+    confirmed: true
+    via: >-
+      Listed in the paper's own data statement (Europe PMC full text, PMC6347972, 2026-10-28); the BioStudies
+      record's title is "Single-cell RNA-seq of of bone marrow derived mononuclear phagocytes derived from
+      mouse; rat; rabbit or pig".
+  - {type: pmid, value: "30356220",                confirmed: true, via: "esummary db=pubmed — NCBI E-utilities, 2026-10-28"}
+  - {type: doi,  value: 10.1038/s41586-018-0657-2, confirmed: true, via: "esummary db=pubmed id=30356220 — NCBI E-utilities, 2026-10-28"}
+note: Bone-marrow mononuclear phagocytes of four species, unstimulated and LPS at 2, 4 and 6 hours. The paper deposited 13 ArrayExpress series; this is the single-cell one.

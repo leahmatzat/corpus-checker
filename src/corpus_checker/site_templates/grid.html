@@ -11,6 +11,7 @@
     <span class="grid-chip v-not-present">No</span> NOT PRESENT ·
     <span class="grid-chip v-inconclusive">?</span> INCONCLUSIVE ·
     <span class="grid-chip v-not-checkable">n/c</span> NOT CHECKABLE ·
+    <span class="grid-chip v-by-design">split</span> trained on by design (not exposure) ·
     <span class="empty-cell">–</span> not checked ·
     <span class="legend-shade">shaded cell</span> this model's paper reported an evaluation on this dataset ·
     ◐ provisional identity
@@ -43,7 +44,7 @@
         {% set cell = row.cells[model.id] %}
         <td{% if cell.reported_eval %} class="reported-eval" title="{{ model.name }}'s paper reported an evaluation on {{ row.name }}"{% endif %}>
         {% for f in cell.findings %}
-          <a class="grid-chip v-{{ f.verdict|verdictslug }}" href="models/{{ model.id }}.html#finding-{{ row.id }}-{{ f.stage }}" title="{{ model.name }} ({{ f.stage }}): {{ f.verdict }}{% if f.provisional %} · provisional identity{% endif %}">{{ f.short }}{% if f.provisional %}◐{% endif %}{% if model.multi_stage %}<span class="stage-tag">{{ f.stage }}</span>{% endif %}<span class="sr-only"> — {{ f.verdict }}</span></a>
+          <a class="grid-chip {% if f.by_design %}v-by-design{% else %}v-{{ f.verdict|verdictslug }}{% endif %}" href="models/{{ model.id }}.html#finding-{{ row.id }}-{{ f.stage }}" title="{{ model.name }} ({{ f.stage }}): {% if f.by_design %}trained on by design (held out for testing: {{ f.by_design }}){% else %}{{ f.verdict }}{% endif %}{% if f.provisional %} · provisional identity{% endif %}">{{ f.short }}{% if f.provisional %}◐{% endif %}{% if model.multi_stage %}<span class="stage-tag">{{ f.stage }}</span>{% endif %}<span class="sr-only"> — {{ f.verdict }}</span></a>
         {% else %}
           <span class="empty-cell" title="Not checked">–</span>
         {% endfor %}

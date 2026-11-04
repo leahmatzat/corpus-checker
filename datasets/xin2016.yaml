@@ -1,0 +1,10 @@
+schema_version: 1
+id: xin2016
+name: Xin 2016
+kind: observational
+organism: [human]
+identifiers:
+  - {type: geo,  value: GSE81608,                  confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-14"}
+  - {type: pmid, value: "27667665",                confirmed: true, via: "GSE81608 pubmedids — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,  value: 10.1016/j.cmet.2016.08.018, confirmed: true, via: "esummary db=pubmed id=27667665 — NCBI E-utilities, 2026-10-14"}
+note: Human pancreatic islets, SMARTer. One of the five studies in the hPancreas composite (TOSICA's reprocessing).

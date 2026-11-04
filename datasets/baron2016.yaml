@@ -6,4 +6,5 @@ organism: [human, mouse]
 identifiers:
   - {type: geo,  value: GSE84133,   confirmed: true, via: "registry/scfoundation.yaml (reviewed LM 2026-09-08)"}
   - {type: pmid, value: "27667365", confirmed: true, via: "registry/scfoundation.yaml (reviewed LM 2026-09-08)"}
+  - {type: doi,  value: 10.1016/j.cels.2016.08.011, confirmed: true, via: "esummary db=pubmed id=27667365 — NCBI E-utilities, 2026-10-14"}
 note: Human and mouse pancreas, inDrop. Four human donors.

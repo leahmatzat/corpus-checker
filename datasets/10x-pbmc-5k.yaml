@@ -1,0 +1,16 @@
+schema_version: 1
+id: 10x-pbmc-5k
+name: PBMC 5K (10x Genomics)
+kind: observational
+organism: [human]
+identifiers:
+  - type: url
+    value: https://support.10xgenomics.com/single-cellgene-expression/datasets
+    confirmed: false
+    via: CellPLM's reference for "10x genomics datasets" (ICLR 2024)
+    note: >-
+      As printed in the reference (the hyphen in single-cell may have been lost at a line break). It is the
+      10x dataset index, not the dataset's own page; the paper does not name the exact page.
+note: >
+  10x Genomics demonstration data. It has no archive accession or paper identifier that a
+  manifest could list, so no manifest can be searched for it exactly.

@@ -1,0 +1,11 @@
+schema_version: 1
+id: kragesteen2023-epo-kidney
+name: Erythropoietin-producing (Norn) cells, kidney (Kragesteen 2023)
+kind: observational
+organism: [mouse, human]
+identifiers:
+  - {type: geo,        value: GSE193321, confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-14"}
+  - {type: pmid,       value: "37106166", confirmed: true, via: "GSE193321 pubmedids — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,        value: 10.1038/s41591-023-02314-7, confirmed: true, via: "esummary db=pubmed id=37106166 — NCBI E-utilities, 2026-10-14"}
+  - {type: bioproject, value: PRJNA795794, confirmed: true, via: "esummary db=gds (GSE193321) — NCBI E-utilities, 2026-10-14"}
+note: Renal cells of mouse (and human), including erythropoietin-producing Norn cells; scRNA-seq and ATAC.

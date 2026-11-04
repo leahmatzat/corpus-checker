@@ -1,0 +1,43 @@
+{
+  "accessions": [
+    "GSE96583",
+    "PRJNA381100",
+    "SRP102802"
+  ],
+  "doi": "10.1038/nbt.4042",
+  "organism": "Homo sapiens",
+  "pmcid": "PMC5784859",
+  "pmids": [
+    "29227470"
+  ],
+  "query": "GSE96583",
+  "retrieved": "2026-10-28",
+  "samples": [
+    [
+      "GSM2560245",
+      "batch 1 sample A"
+    ],
+    [
+      "GSM2560246",
+      "batch 1 sample B"
+    ],
+    [
+      "GSM2560247",
+      "batch 1 sample C"
+    ],
+    [
+      "GSM2560248",
+      "batch 2 control"
+    ],
+    [
+      "GSM2560249",
+      "batch 2 stim (IFN-beta)"
+    ]
+  ],
+  "sources": [
+    "esearch.fcgi?db=gds",
+    "esummary.fcgi?db=gds",
+    "esummary.fcgi?db=pubmed"
+  ],
+  "title": "Multiplexing droplet-based single cell RNA-sequencing using genetic barcodes"
+}

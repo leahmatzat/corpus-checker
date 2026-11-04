@@ -80,6 +80,21 @@ DECIDE_CASES = [
                                                              keys_attempted=["accession", "pmid"],
                                                              keys_hit=["accession", "pmid"], keys_hit_confirmed=["pmid"],
                                                              unconfirmed_sources=["S2"])),
+    ("absent, but the list names unresolved collections", dict(manifest_type="A", can_prove_presence=True,
+                                                               keys_attempted=["accession", "pmid"],
+                                                               requires_keys=["accession", "pmid"],
+                                                               unresolved_entries=["TabulaSapiens", "HTAN_BU",
+                                                                                   "cxg_PBMCs", "TICAtlas"])),
+    ("present on a listed accession despite unresolved collections", dict(manifest_type="A", can_prove_presence=True,
+                                                                          keys_attempted=["accession", "pmid"],
+                                                                          keys_hit=["accession"],
+                                                                          unresolved_entries=["TabulaSapiens"])),
+    ("a by-design stage has no list to search", dict(manifest_type="by-design", can_prove_presence=False,
+                                                      checkable=False)),
+    ("a missing required key outranks unresolved collections", dict(manifest_type="A", can_prove_presence=True,
+                                                                    keys_attempted=["accession"],
+                                                                    requires_keys=["accession", "pmid"],
+                                                                    unresolved_entries=["TabulaSapiens"])),
 ]
 
 # Pre-expanded queries (no network): what the browser has after its NCBI step.

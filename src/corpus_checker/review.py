@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Callable
 
 from .check import SourceError, check_corpus, compare, locate_committed
-from .ledger import build_ledger, judgment_calls
+from .ledger import build_ledger, review_points
 from .registry import REVIEW_CHECKS, load_catalog, load_reviewers, load_yaml, review_of
 from .validate import ERROR, Options, validate
 
@@ -55,6 +55,10 @@ def _rerun_summary(root: Path, entry: dict) -> list[str]:
     out = []
     for corpus in entry["corpora"]:
         sources = corpus["manifest"].get("sources") or []
+        if corpus["manifest"]["type"] == "by-design":
+            n = len(corpus["manifest"].get("splits", []))
+            out.append(f"{corpus['stage']}: by design; each of its {n} findings matches its recorded split (rule G29).")
+            continue
         if corpus["manifest"]["type"] in ("C-vague", "D") or not sources:
             out.append(f"{corpus['stage']}: no manifest to re-run.")
             continue
@@ -132,18 +136,20 @@ def run_review(root: Path, model_id: str, base_ref: str = "main", *,
     say("\nWhat the tool checked (you don't need to redo this):")
     for line in _rerun_summary(root, entry):
         say(f"  {line}")
-    calls = judgment_calls(build_ledger(root), model_id)
+    points = review_points(build_ledger(root), model_id)
     say("\nAnswer y or n for each check you looked at yourself. Leave out anything you didn't; "
-        "it will show as not reviewed.\n")
+        "it will show as not reviewed. Under each check is what it covers in this entry; the model's page "
+        "shows the same lines.\n")
 
     ticked: list[str] = []
     for key, text in REVIEW_CHECKS.items():
-        if key == "judgment_calls":
-            say("The judgment calls in this entry:" if calls else "This entry has no judgment calls listed.")
-            for c in calls:
-                say(f"  - {c}")
+        if key == "judgment_calls" and not points.get(key):
+            say("This entry has no judgment calls listed.")
+        for line in points.get(key, []):
+            say(f"  - {line}")
         if _yes(ask(f"{text} [y/n] ")):
             ticked.append(key)
+        say("")
 
     reviewers = load_reviewers(root)
     initials = ask("\nYour initials, as listed in reviewers.yaml: ").strip()

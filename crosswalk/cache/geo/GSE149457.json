@@ -1,0 +1,68 @@
+{
+  "accessions": [
+    "GSE149457",
+    "PRJNA628708",
+    "SRP258747"
+  ],
+  "doi": "10.1038/s41467-021-21892-z",
+  "organism": "Gallus gallus",
+  "pmcid": "PMC7979764",
+  "pmids": [
+    "33741943",
+    "33846360"
+  ],
+  "query": "GSE149457",
+  "retrieved": "2026-10-14",
+  "samples": [
+    [
+      "GSM4502475",
+      "Chicken_heart_scRNAseq_D4"
+    ],
+    [
+      "GSM4502476",
+      "Chicken_heart_scRNAseq_D7_LV"
+    ],
+    [
+      "GSM4502477",
+      "Chicken_heart_scRNAseq_D7_RV"
+    ],
+    [
+      "GSM4502478",
+      "Chicken_heart_scRNAseq_D10_LV"
+    ],
+    [
+      "GSM4502479",
+      "Chicken_heart_scRNAseq_D10_RV"
+    ],
+    [
+      "GSM4502480",
+      "Chicken_heart_scRNAseq_D14_LV"
+    ],
+    [
+      "GSM4502481",
+      "Chicken_heart_scRNAseq_D14_RV"
+    ],
+    [
+      "GSM4502482",
+      "Chicken_heart_spatial_RNAseq_D4"
+    ],
+    [
+      "GSM4502483",
+      "Chicken_heart_spatial_RNAseq_D7"
+    ],
+    [
+      "GSM4502484",
+      "Chicken_heart_spatial_RNAseq_D10"
+    ],
+    [
+      "GSM4502485",
+      "Chicken_heart_spatial_RNAseq_D14"
+    ]
+  ],
+  "sources": [
+    "esearch.fcgi?db=gds",
+    "esummary.fcgi?db=gds",
+    "esummary.fcgi?db=pubmed"
+  ],
+  "title": "Spatiotemporal single-cell RNA sequencing of developing chicken hearts identifies interplay between cellular differentiation and morphogenesis"
+}

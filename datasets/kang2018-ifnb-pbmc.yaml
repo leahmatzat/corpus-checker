@@ -1,0 +1,11 @@
+schema_version: 1
+id: kang2018-ifnb-pbmc
+name: IFN-β-stimulated PBMCs, lupus patients (Kang 2018)
+kind: perturbation
+organism: [human]
+identifiers:
+  - {type: geo,        value: GSE96583,          confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-28"}
+  - {type: pmid,       value: "29227470",        confirmed: true, via: "GSE96583 pubmedids — NCBI E-utilities, 2026-10-28"}
+  - {type: doi,        value: 10.1038/nbt.4042,  confirmed: true, via: "esummary db=pubmed id=29227470 — NCBI E-utilities, 2026-10-28"}
+  - {type: bioproject, value: PRJNA381100,       confirmed: true, via: "esummary db=gds (GSE96583) — NCBI E-utilities, 2026-10-28"}
+note: PBMCs from 8 lupus patients, control and IFN-β stimulated, multiplexed (demuxlet).

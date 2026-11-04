@@ -1,0 +1,11 @@
+schema_version: 1
+id: lotfollahi2023-combosciplex
+name: Drug-combination sci-Plex (combosciplex, Lotfollahi 2023)
+kind: perturbation
+organism: [human]
+identifiers:
+  - {type: geo,        value: GSE206741,              confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-28"}
+  - {type: pmid,       value: "37154091",             confirmed: true, via: "GSE206741 pubmedids — NCBI E-utilities, 2026-10-28"}
+  - {type: doi,        value: 10.15252/msb.202211517, confirmed: true, via: "esummary db=pubmed id=37154091 — NCBI E-utilities, 2026-10-28"}
+  - {type: bioproject, value: PRJNA851906,            confirmed: true, via: "esummary db=gds (GSE206741) — NCBI E-utilities, 2026-10-28"}
+note: A549 cells, 32 conditions from 13 compounds (1 µM, 24 h). Generated for the CPA paper.

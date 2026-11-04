@@ -1,0 +1,780 @@
+schema_version: 3
+id: uce
+model: UCE (Universal Cell Embeddings)
+version: "33-layer model from the paper (650M parameters); the repository's default 4-layer model is an ablation"
+model_class: foundation
+
+paper:
+  doi: 10.1038/s41586-026-10689-z
+  pmid: "42420460"
+  journal: Nature
+  published: 2026-07
+  preprint: 10.1101/2023.11.28.568918
+  note: >
+    Scored against the published version. The preprint's training list (Extended Data Table 2)
+    became Supplementary Table 16.
+
+discovery:
+  data_availability:
+    checked: true
+    found: The first sentence points to Supplementary Table 16; the rest names the evaluation datasets.
+  code_availability:
+    checked: true
+    found: Two GitHub links (snap-stanford/UCE, yhr91/uce_reproduce); no list.
+  supplementary_files:
+    checked: true
+    files: [MOESM1_ESM.pdf, MOESM2_ESM.pdf, MOESM3_ESM.xlsx, MOESM4_ESM.xlsx, MOESM5_ESM.xlsx, MOESM6_ESM.xlsx, MOESM7_ESM.xlsx, MOESM8_ESM.xlsx, MOESM9_ESM.xlsx]
+    found: >
+      Nine files. MOESM4 is Supplementary Table 16, the training list. MOESM5 (Table 17) lists 25
+      CELLxGENE datasets used for the Norn-cell analysis, all of them in Table 16.
+  methods:
+    checked: true
+    found: >
+      "Creating IMA and dataset preprocessing" gives the totals (33.9M cells in 285 census datasets,
+      2.3M in 28 others) and names census "v.2023-07-10", which is not a public release.
+  github_repo:
+    checked: true
+    found: >
+      No dataset list in either repository. The census download script names release "2023-04-25",
+      also not a public release.
+  hf_model_card:
+    checked: true
+    found: None from the authors; third-party mirrors carry no list.
+  hf_dataset_card:
+    checked: true
+    found: None.
+  archive_deposits:
+    checked: true
+    found: >
+      Zenodo 10.5281/zenodo.19462110 (processed analysis data, about 157 GB) and figshare
+      10.6084/m9.figshare.24320806 (weights); neither holds a list.
+  preprint_vs_published:
+    checked: true
+    found: All three preprint versions point to Extended Data Table 2 for the list.
+
+evaluated_on:
+  - dataset: tabulasapiens-v2
+    task: zero-shot embedding and integration benchmark; label transfer
+    obtained_from: the authors (unpublished at training time)
+  - dataset: tabulasapiens2022
+    task: cell type organisation; scGraph benchmark; human partner for cross-species label transfer
+  - dataset: siletti2023-hbca
+    task: held-out complex-dataset benchmark
+    note: The paper calls it held out ("not seen during training").
+  - dataset: schroeder2025-astrocyte
+    task: complex-dataset benchmark (597,668 cells)
+  - dataset: speranza2021-green-monkey
+    task: novel-species zero-shot embedding; label transfer
+    obtained_from: GEO GSE156755
+  - dataset: hilton2019-naked-mole-rat
+    task: novel-species zero-shot embedding; label transfer
+    obtained_from: GEO GSE132642
+    note: Female samples only.
+  - dataset: yamagata2021-chick-retina
+    task: novel-species zero-shot embedding; label transfer
+    obtained_from: GEO GSE159107
+  - dataset: mantri2021-chick-heart
+    task: novel-species zero-shot embedding; label transfer
+    obtained_from: GEO GSE149457
+  - dataset: li2022-fly-cell-atlas
+    task: novel-species zero-shot embedding
+  - dataset: orozco2020-human-retina
+    task: human partner for chick-retina label transfer
+  - dataset: conde2022-immune-cell-atlas
+    task: label-transfer classifier, applied to Tabula Sapiens v2
+  - dataset: bakken2021-motor-cortex
+    task: homolog-gene analysis
+  - dataset: zhang2024-limb
+    task: homolog-gene analysis
+  - dataset: kragesteen2023-epo-kidney
+    task: Norn-cell classifier
+    obtained_from: GEO GSE193321
+  - dataset: adams2020-ipf-lung
+    task: Norn-like cells by disease
+    obtained_from: GEO GSE136831
+
+corpora:
+  - stage: pretraining
+    name: Integrated Mega-scale Atlas (IMA, 313 datasets, 36,238,416 cells, 8 species)
+    manifest:
+      type: A
+      identifier_type: mixed
+      quote: >
+        "The full list of datasets used to train UCE are provided in Supplementary Table 16. Most
+        of these datasets are available to download from CellXGene, for those that are not, we
+        provide a link to where they were downloaded from."
+      as_of: 2026-10-14
+      resolver: table
+      keys_available: [accession, doi]
+      accession_types: [cellxgene_dataset, cellxgene_collection, geo, scp]
+      requires_keys: [accession, doi]
+      sources:
+        - name: Supplementary Table 16
+          url: https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41586-026-10689-z/MediaObjects/41586_2026_10689_MOESM4_ESM.xlsx
+          extract: extracts/uce/table16.csv
+          format: xlsx
+          level: dataset
+          records: 313
+          columns: [Dataset (CxG ID), num_cells, Link to Dataset if not CXG]
+          roles: {accession: [Dataset (CxG ID), Link to Dataset if not CXG], sample: Dataset (CxG ID), cells: num_cells}
+          join:
+            column: Dataset (CxG ID)
+            tables:
+              - name: CELLxGENE census 2023-07-25 — census_info/datasets
+                snapshot: snapshots/cellxgene-census/2023-07-25/datasets.csv
+                sha256: 4d25e8be3c4b83230a0e8e0714f5c6b3740eee2b3fac5128df7272dc12bdfc1d
+              - name: CELLxGENE census 2023-05-15 — census_info/datasets
+                snapshot: snapshots/cellxgene-census/2023-05-15/datasets.csv
+                sha256: a30061e7323850768883c0528428478a8001d0c4414c8ec256defa389350607c
+          bytes: 122600
+          sha256: 9a5117a0ae2ca6c8dba9a7cc45a926ed836de0c4e9d94528aed4bda08296a811
+          acquired: fetched
+          confirmation: {method: url_hash, date: 2026-10-14}
+          note: >
+            The 285 census rows carry only a CELLxGENE dataset id. Each is joined to its collection
+            id and collection DOI through the two public census releases either side of the one the
+            paper names (2023-07-10, not public): 2023-07-25 holds 281 of the ids and 2023-05-15 the
+            other 4. The extract's num_cells sum to 36,238,416, the paper's total.
+      totals:
+        datasets: 313
+        cells: 36238416
+      unresolved_entries:
+        - {entry: islet_pig, kind: named_source, note: "linked to a journal article, not an archive"}
+        - {entry: colorectal_cancer_human, kind: named_source, note: "linked to a journal article, not an archive"}
+        - {entry: yan_sanes_human_eye, kind: named_source, note: "linked to a journal article, not an archive"}
+        - {entry: briggs_klein_zebrafish, kind: named_source, note: "linked to a lab website"}
+        - {entry: zebrahub, kind: collection, note: "linked to the Zebrahub data portal"}
+        - {entry: tabula_microcebus, kind: collection, note: "linked to a figshare project"}
+        - {entry: tabula_muris, kind: collection, note: "linked to a figshare project"}
+        - {entry: farnsworth_miller_dev_zebrafish, kind: named_source, note: "no source or link given"}
+
+    result:
+      checked: 2026-10-14
+      sources_searched: [Supplementary Table 16]
+      findings:
+        - dataset: 10x-jurkat
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest
+            carries'
+        - dataset: 10x-pbmc-5k
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest
+            carries'
+        - dataset: adams2020-ipf-lung
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: adamson2016
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: bakken2021-motor-cortex
+          verdict: PRESENT
+          keys_attempted:
+          - accession
+          - doi
+          matched_on:
+          - accession
+          - doi
+          match_level: dataset
+          overlap_level: sample
+          samples: 3
+          sample_ids:
+          - 6acb6637-ac08-4a65-b2d1-581e51dc7ccf
+          - 9b686bb6-1427-4e13-b451-7ee961115cf9
+          - f7a068f1-0fdb-48e8-8029-db870ff11d9e
+          cells: 26549
+        - dataset: baron2016
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: cheng2021-myeloid
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: conde2022-immune-cell-atlas
+          verdict: PRESENT
+          keys_attempted:
+          - accession
+          - doi
+          matched_on:
+          - accession
+          - doi
+          match_level: dataset
+          overlap_level: sample
+          samples: 1
+          sample_ids:
+          - 1b9d8702-5af8-4142-85ed-020eb06ec4f6
+          cells: 329762
+        - dataset: dixit2016
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: hilton2019-naked-mole-rat
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: kim2020-luad
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: kragesteen2023-epo-kidney
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: lawlor2017
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: li2020-aorta
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: li2022-fly-cell-atlas
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - doi
+          reason: no match on ['doi'], but this manifest needs ['accession', 'doi'] attempted before absence can
+            be claimed; the dataset has no confirmed accession identifier, and none is recorded as not existing
+        - dataset: luecken2021-bmmc
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          reason: no match on ['accession'], but this manifest needs ['accession', 'doi'] attempted before absence
+            can be claimed; the dataset has no confirmed doi identifier, and none is recorded as not existing
+        - dataset: ma2021-liver
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: mantri2021-chick-heart
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: muraro2016
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: norman2019
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: orozco2020-human-retina
+          verdict: PRESENT
+          keys_attempted:
+          - accession
+          - doi
+          matched_on:
+          - accession
+          - doi
+          match_level: dataset
+          overlap_level: sample
+          samples: 1
+          sample_ids:
+          - e6dad530-418b-47f9-af6e-472e56a7b314
+          cells: 100055
+        - dataset: replogle2022
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - doi
+          reason: no match on ['doi'], but this manifest needs ['accession', 'doi'] attempted before absence can
+            be claimed; the dataset has no confirmed accession identifier, and none is recorded as not existing
+        - dataset: schirmer2019-ms
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - doi
+          reason: no match on ['doi'], but this manifest needs ['accession', 'doi'] attempted before absence can
+            be claimed; the dataset has no confirmed accession identifier, and none is recorded as not existing
+        - dataset: schroeder2025-astrocyte
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - doi
+          reason: no match on ['doi'], but this manifest needs ['accession', 'doi'] attempted before absence can
+            be claimed; the dataset has no confirmed accession identifier, and none is recorded as not existing
+        - dataset: segerstolpe2016
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - doi
+          reason: no match on ['doi'], but this manifest needs ['accession', 'doi'] attempted before absence can
+            be claimed; the dataset has no confirmed accession identifier, and none is recorded as not existing
+        - dataset: siletti2022-perirhinal
+          verdict: PRESENT
+          keys_attempted:
+          - accession
+          - doi
+          matched_on:
+          - accession
+          - doi
+          match_level: dataset
+          overlap_level: sample
+          samples: 105
+          sample_ids:
+          - 00476f9f-ebc1-4b72-b541-32f912ce36ea
+          - 03d38670-1444-4001-bc53-9936e61d9b20
+          - 07b1d7c8-5c2e-42f7-9246-26f746cd6013
+          - 090da8ea-46e8-40df-bffc-1f78e1538d27
+          - 095940cb-7422-4510-96e2-cbafd961eb88
+          - 0ee5ae70-c3f5-473f-bd1c-287f4690ffc5
+          - 1185a7d3-a9c1-4280-9ba5-d61895b15cac
+          - 182f6a56-7360-4924-a74e-1772e07b3031
+          - 18500fcd-9960-49cb-8a8e-7d868dc14efe
+          - 19b21f40-db42-4a71-a0d6-913e83b17784
+          - 1a018108-b4b6-457b-ba15-046d5e98c169
+          - 1b767f95-d0a0-4a3d-b394-cc665d86c3dc
+          - 1cf24082-59de-4029-ac81-6e398768af3a
+          - 20980d73-7c53-4039-b852-b76a01566d5a
+          - 22658f4f-9268-41ad-8828-cc53f4baa9fa
+          - 27d91086-cfe3-4e33-9282-bd1246e5ce8e
+          - 2a8ca8f3-5599-4cda-b973-3a2dfc3c1fe6
+          - 31f04740-c712-4c4b-a3f8-55c0506b3034
+          - 35c8a04c-8639-4d15-8228-765d8d93fc96
+          - 364348b4-bc34-4fe1-a851-60d99e36cafa
+          - 367b55f4-d543-49aa-90e8-4765fcb8c687
+          - 381aa407-317a-40ef-8048-7ce0eacc4266
+          - 3f31f8ce-bbf6-4df8-8203-aa240ed03026
+          - 3f56901c-dd4a-47d6-b60b-7b0c0111cfb2
+          - 40318d39-3d8f-49f4-8455-a2e1365c5c5b
+          - 40569510-2282-461b-84df-6218ef208e0e
+          - 421e5f54-5de7-425f-b399-34ead0651ce1
+          - 43b7e156-65b3-4a7b-8c7a-08528e4b21d0
+          - 4593c820-512d-4805-a10f-c0b864a7cc8c
+          - 46ff9dc2-3d87-4b36-91aa-ffa8aa13c52e
+          - 470565f2-5afc-456a-b617-18e4496c04fd
+          - 4724c395-0c46-46d2-81f7-60fd271fb488
+          - 489eaa11-c119-4a5f-b44b-81e33c80c0ef
+          - 4976b234-9028-4b4b-8a2f-8ac59d636219
+          - 4d43082e-59cd-43ac-b77d-54d55519c881
+          - 529bb209-9d7b-44da-bfa4-f6e4745c46c2
+          - 52ea546e-9229-40ef-b048-a2e694dd73e8
+          - 52f18bc3-52d9-487b-bf8f-f0b7aa684b09
+          - 56c33a38-2732-4e53-a9c1-1bc61eda9a99
+          - 5a73f63f-18a2-49b5-b431-2c469c41a41b
+          - 5bc23cb2-8cfc-4960-bab1-c3027fbeefc4
+          - 5e5ab909-f73f-4b57-98a0-6d2c5662f6a4
+          - 639ffc23-14db-4060-9027-3c90314200f8
+          - 64767efb-49b0-4562-a1bd-e619a5d9db41
+          - 64f4ad90-a422-400a-944d-4ce0f39594a7
+          - 6ed0bb6c-a9e3-4ba6-9436-7c8fd4e206f0
+          - 70e4f35b-c98c-45a1-9aa9-2053b07315dd
+          - 715327a6-7978-4896-ba91-69d6b04dbbfb
+          - 77044335-0ac5-4406-9b3f-8cdd3656d67b
+          - 77c1c785-809f-4065-8c54-6a0170783256
+          - 7b316f62-7fa0-4b95-bac9-e90866038a85
+          - 7c1c3d47-3166-43e5-9a95-65ceb2d45f78
+          - 7cd3c321-e487-4b51-a8af-9bf671b59fe5
+          - 7d3ab174-e433-40fc-a352-6fe71b1a19f9
+          - 7db0c178-b0a4-442f-ba54-e9e1633a84bb
+          - 8039c63d-08b0-4fc9-af0f-5b57f08ca0da
+          - 88a01d4a-5197-45be-b5ae-e019aef43376
+          - 900fdf13-150d-4695-9f8c-4c09105ba2eb
+          - 93131426-0124-4ab4-a013-9dfbcd99d467
+          - 9372df2d-13d6-4fac-980b-919a5b7eb483
+          - 949ec7fc-ac54-47c9-bb6f-ee9e67688cce
+          - 9ec34295-ab16-47e2-af33-b884143e520b
+          - 9f499d32-400d-4c42-ac9a-fb1481844fee
+          - a19b218b-1c0a-4618-b41f-7c216c623ec6
+          - a4116666-d295-4443-a174-0acc283f92c4
+          - a59ba9fa-1407-4f15-8c56-d3637421570d
+          - a5b5d1f3-dd8b-44f6-a685-15f0f741c062
+          - a7b4f565-691d-43ea-bf4a-d2d1d52bb4b4
+          - a84face4-eb30-4f43-994f-c6a13a097808
+          - acae7679-d077-461c-b857-ee6ccfeb267f
+          - adda0684-f8ea-4403-b393-2a25607077c4
+          - b8681124-aabf-4904-b9c9-66d834bf5bba
+          - bac09168-940b-4b11-8d55-b4955f80b98d
+          - c2aad8fc-b63b-4f9b-9cfd-baf7bc9c1771
+          - c4dd26a8-d956-4bee-a233-44b573f2ce27
+          - c5cfa2b7-abb1-4a50-908f-707b54ca606b
+          - c7856243-c59a-4b70-8ce7-25b94c2d9da1
+          - ca20e2ac-5676-4158-b5d0-0c2b15898b19
+          - d02287f3-408b-438d-9131-999e460cbd0e
+          - d2514440-d747-4d8d-b2c7-b58ef8b71fbe
+          - d288b10a-643e-44bd-b451-96e9588b2ee5
+          - d2b5efc1-14c6-4b5f-bd98-40f9084872d7
+          - d5452b83-7c3d-4d7c-ab7a-c7fece7196c5
+          - d582f63a-3c88-4e38-8cd3-8682dbe40f64
+          - d6a5b240-cc8f-45c1-ad36-2fc291e15e8e
+          - db1d2c1b-2ee1-45d5-9d53-69a327cd77e6
+          - dd03ce70-3243-4c96-9561-330cc461e4d7
+          - e1f595f6-ba2c-495e-9bee-7056f116b1e4
+          - e5b1115b-a486-49bb-bda3-8261822836e0
+          - e8681d74-ac9e-4be5-be14-1cf1bbd54dd7
+          - ecd9230d-c571-4dab-abd3-8b54c74833f0
+          - ed11cc3e-2947-407c-883c-c53b043917c3
+          - ed33c203-233a-476a-a56b-28da945fdd32
+          - f20f44ef-a0d4-4d94-87de-037fd47141f0
+          - f32c2c13-bb1a-4ffd-a457-60b64ecfa4cb
+          - f3565fda-499a-4d20-bd92-563c09954c42
+          - f502c312-05dc-4fd4-a762-92a63e92b539
+          - f5a04dff-d394-4023-8811-65494e8bb11d
+          - f6d9f2ad-5ec7-4d53-b7f0-ceb0e7bcd181
+          - f8dda921-5fb4-4c94-a654-c6fc346bfd6d
+          - f9034091-2e8f-4ac6-9874-e7b7eb566824
+          - fa554686-fc07-44dd-b2de-b726d82d26ec
+          - fbf173f9-f809-4d84-9b65-ae205d35b523
+          - fe1a73ab-a203-45fd-84e9-0f7fd19efcbd
+          - ff7d15fa-f4b6-4a0e-992e-fd0c9d088ded
+          cells: 3339439
+          note: 'Matched at the collection: Table 16 lists 105 of the Human Brain Cell Atlas collection''s datasets,
+            including both perirhinal dissections in this catalog entry (dd03ce70-…, 8039c63d-…).'
+        - dataset: siletti2023-hbca
+          verdict: PRESENT
+          keys_attempted:
+          - accession
+          - doi
+          matched_on:
+          - accession
+          - doi
+          match_level: dataset
+          overlap_level: sample
+          samples: 105
+          sample_ids:
+          - 00476f9f-ebc1-4b72-b541-32f912ce36ea
+          - 03d38670-1444-4001-bc53-9936e61d9b20
+          - 07b1d7c8-5c2e-42f7-9246-26f746cd6013
+          - 090da8ea-46e8-40df-bffc-1f78e1538d27
+          - 095940cb-7422-4510-96e2-cbafd961eb88
+          - 0ee5ae70-c3f5-473f-bd1c-287f4690ffc5
+          - 1185a7d3-a9c1-4280-9ba5-d61895b15cac
+          - 182f6a56-7360-4924-a74e-1772e07b3031
+          - 18500fcd-9960-49cb-8a8e-7d868dc14efe
+          - 19b21f40-db42-4a71-a0d6-913e83b17784
+          - 1a018108-b4b6-457b-ba15-046d5e98c169
+          - 1b767f95-d0a0-4a3d-b394-cc665d86c3dc
+          - 1cf24082-59de-4029-ac81-6e398768af3a
+          - 20980d73-7c53-4039-b852-b76a01566d5a
+          - 22658f4f-9268-41ad-8828-cc53f4baa9fa
+          - 27d91086-cfe3-4e33-9282-bd1246e5ce8e
+          - 2a8ca8f3-5599-4cda-b973-3a2dfc3c1fe6
+          - 31f04740-c712-4c4b-a3f8-55c0506b3034
+          - 35c8a04c-8639-4d15-8228-765d8d93fc96
+          - 364348b4-bc34-4fe1-a851-60d99e36cafa
+          - 367b55f4-d543-49aa-90e8-4765fcb8c687
+          - 381aa407-317a-40ef-8048-7ce0eacc4266
+          - 3f31f8ce-bbf6-4df8-8203-aa240ed03026
+          - 3f56901c-dd4a-47d6-b60b-7b0c0111cfb2
+          - 40318d39-3d8f-49f4-8455-a2e1365c5c5b
+          - 40569510-2282-461b-84df-6218ef208e0e
+          - 421e5f54-5de7-425f-b399-34ead0651ce1
+          - 43b7e156-65b3-4a7b-8c7a-08528e4b21d0
+          - 4593c820-512d-4805-a10f-c0b864a7cc8c
+          - 46ff9dc2-3d87-4b36-91aa-ffa8aa13c52e
+          - 470565f2-5afc-456a-b617-18e4496c04fd
+          - 4724c395-0c46-46d2-81f7-60fd271fb488
+          - 489eaa11-c119-4a5f-b44b-81e33c80c0ef
+          - 4976b234-9028-4b4b-8a2f-8ac59d636219
+          - 4d43082e-59cd-43ac-b77d-54d55519c881
+          - 529bb209-9d7b-44da-bfa4-f6e4745c46c2
+          - 52ea546e-9229-40ef-b048-a2e694dd73e8
+          - 52f18bc3-52d9-487b-bf8f-f0b7aa684b09
+          - 56c33a38-2732-4e53-a9c1-1bc61eda9a99
+          - 5a73f63f-18a2-49b5-b431-2c469c41a41b
+          - 5bc23cb2-8cfc-4960-bab1-c3027fbeefc4
+          - 5e5ab909-f73f-4b57-98a0-6d2c5662f6a4
+          - 639ffc23-14db-4060-9027-3c90314200f8
+          - 64767efb-49b0-4562-a1bd-e619a5d9db41
+          - 64f4ad90-a422-400a-944d-4ce0f39594a7
+          - 6ed0bb6c-a9e3-4ba6-9436-7c8fd4e206f0
+          - 70e4f35b-c98c-45a1-9aa9-2053b07315dd
+          - 715327a6-7978-4896-ba91-69d6b04dbbfb
+          - 77044335-0ac5-4406-9b3f-8cdd3656d67b
+          - 77c1c785-809f-4065-8c54-6a0170783256
+          - 7b316f62-7fa0-4b95-bac9-e90866038a85
+          - 7c1c3d47-3166-43e5-9a95-65ceb2d45f78
+          - 7cd3c321-e487-4b51-a8af-9bf671b59fe5
+          - 7d3ab174-e433-40fc-a352-6fe71b1a19f9
+          - 7db0c178-b0a4-442f-ba54-e9e1633a84bb
+          - 8039c63d-08b0-4fc9-af0f-5b57f08ca0da
+          - 88a01d4a-5197-45be-b5ae-e019aef43376
+          - 900fdf13-150d-4695-9f8c-4c09105ba2eb
+          - 93131426-0124-4ab4-a013-9dfbcd99d467
+          - 9372df2d-13d6-4fac-980b-919a5b7eb483
+          - 949ec7fc-ac54-47c9-bb6f-ee9e67688cce
+          - 9ec34295-ab16-47e2-af33-b884143e520b
+          - 9f499d32-400d-4c42-ac9a-fb1481844fee
+          - a19b218b-1c0a-4618-b41f-7c216c623ec6
+          - a4116666-d295-4443-a174-0acc283f92c4
+          - a59ba9fa-1407-4f15-8c56-d3637421570d
+          - a5b5d1f3-dd8b-44f6-a685-15f0f741c062
+          - a7b4f565-691d-43ea-bf4a-d2d1d52bb4b4
+          - a84face4-eb30-4f43-994f-c6a13a097808
+          - acae7679-d077-461c-b857-ee6ccfeb267f
+          - adda0684-f8ea-4403-b393-2a25607077c4
+          - b8681124-aabf-4904-b9c9-66d834bf5bba
+          - bac09168-940b-4b11-8d55-b4955f80b98d
+          - c2aad8fc-b63b-4f9b-9cfd-baf7bc9c1771
+          - c4dd26a8-d956-4bee-a233-44b573f2ce27
+          - c5cfa2b7-abb1-4a50-908f-707b54ca606b
+          - c7856243-c59a-4b70-8ce7-25b94c2d9da1
+          - ca20e2ac-5676-4158-b5d0-0c2b15898b19
+          - d02287f3-408b-438d-9131-999e460cbd0e
+          - d2514440-d747-4d8d-b2c7-b58ef8b71fbe
+          - d288b10a-643e-44bd-b451-96e9588b2ee5
+          - d2b5efc1-14c6-4b5f-bd98-40f9084872d7
+          - d5452b83-7c3d-4d7c-ab7a-c7fece7196c5
+          - d582f63a-3c88-4e38-8cd3-8682dbe40f64
+          - d6a5b240-cc8f-45c1-ad36-2fc291e15e8e
+          - db1d2c1b-2ee1-45d5-9d53-69a327cd77e6
+          - dd03ce70-3243-4c96-9561-330cc461e4d7
+          - e1f595f6-ba2c-495e-9bee-7056f116b1e4
+          - e5b1115b-a486-49bb-bda3-8261822836e0
+          - e8681d74-ac9e-4be5-be14-1cf1bbd54dd7
+          - ecd9230d-c571-4dab-abd3-8b54c74833f0
+          - ed11cc3e-2947-407c-883c-c53b043917c3
+          - ed33c203-233a-476a-a56b-28da945fdd32
+          - f20f44ef-a0d4-4d94-87de-037fd47141f0
+          - f32c2c13-bb1a-4ffd-a457-60b64ecfa4cb
+          - f3565fda-499a-4d20-bd92-563c09954c42
+          - f502c312-05dc-4fd4-a762-92a63e92b539
+          - f5a04dff-d394-4023-8811-65494e8bb11d
+          - f6d9f2ad-5ec7-4d53-b7f0-ceb0e7bcd181
+          - f8dda921-5fb4-4c94-a654-c6fc346bfd6d
+          - f9034091-2e8f-4ac6-9874-e7b7eb566824
+          - fa554686-fc07-44dd-b2de-b726d82d26ec
+          - fbf173f9-f809-4d84-9b65-ae205d35b523
+          - fe1a73ab-a203-45fd-84e9-0f7fd19efcbd
+          - ff7d15fa-f4b6-4a0e-992e-fd0c9d088ded
+          cells: 3339439
+          note: Table 16 lists 105 of the collection's datasets. The paper calls this benchmark held out ("not
+            seen during training"); which cells it used is not stated, so overlap at cell level cannot be determined.
+        - dataset: speranza2021-green-monkey
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: tabulasapiens-v2
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest
+            carries'
+        - dataset: tabulasapiens2022
+          verdict: PRESENT
+          keys_attempted:
+          - accession
+          - doi
+          matched_on:
+          - accession
+          - doi
+          match_level: dataset
+          overlap_level: sample
+          samples: 1
+          sample_ids:
+          - 53d208b0-2cfd-4366-9866-c3c6114081bc
+          cells: 482696
+          note: Table 16 lists one dataset of the collection, "Tabula Sapiens - All Cells".
+        - dataset: vizgen-ffpe-liver2
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest
+            carries'
+        - dataset: vizgen-ffpe-lung2
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest
+            carries'
+        - dataset: xin2016
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: yamagata2021-chick-retina
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: zhang2024-limb
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human,
+            yan_sanes_human_eye and 5 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: zheng2017-pbmc68k
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - doi
+          reason: no match on ['doi'], but this manifest needs ['accession', 'doi'] attempted before absence can
+            be claimed; the dataset has no confirmed accession identifier, and none is recorded as not existing
+
+        - dataset: 10x-multiome-pbmc-10k
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest carries'
+        - dataset: 10x-pbmc-4k-8k
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest carries'
+        - dataset: lotfollahi2022-covid
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest carries'
+        - dataset: mimitou2021-asap-pbmc
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human, yan_sanes_human_eye
+            and 5 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: bunne2023-4i-melanoma
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - doi
+          keys_absent:
+          - accession
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human, yan_sanes_human_eye
+            and 5 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: hagai2018-cross-species
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - doi
+          reason: no match on ['doi'], but this manifest needs ['accession', 'doi'] attempted before absence can be claimed;
+            the dataset has no confirmed accession identifier, and none is recorded as not existing
+        - dataset: kang2018-ifnb-pbmc
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human, yan_sanes_human_eye
+            and 5 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: lincs-l1000
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest carries'
+        - dataset: lotfollahi2023-combosciplex
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human, yan_sanes_human_eye
+            and 5 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: srivatsan2020-sciplex2
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human, yan_sanes_human_eye
+            and 5 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: srivatsan2020-sciplex3
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human, yan_sanes_human_eye
+            and 5 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: weinreb2020-statefate
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human, yan_sanes_human_eye
+            and 5 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: zhao2021-gbm
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - doi
+          reason: no match, but 8 entries of this list cannot be searched exactly (islet_pig, colorectal_cancer_human, yan_sanes_human_eye
+            and 5 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+      caveats:
+        - >
+          8 of the 28 rows that are not from the census have no archive accession (journal-article
+          links, two figshare projects, a lab website, a data portal, and one row with no link), so
+          until they are resolved no dataset can be shown absent from this corpus, only present.
+        - >
+          The census release the paper names, 2023-07-10, was never public. The collection ids and
+          DOIs that let paper-keyed datasets be searched come from the public releases on either
+          side, 2023-07-25 and 2023-05-15; a collection's DOI can change between releases.
+        - >
+          The paper calls the Human Brain Cell Atlas benchmark held out ("not seen during
+          training"); Table 16 lists 105 datasets of that atlas's collection. Which cells the
+          benchmark used is not stated, so overlap at cell level cannot be determined.
+        - >
+          Not listed as reported evaluations: the Norn-cell analysis over the training datasets
+          themselves (Supplementary Table 17), and the ablation-only holdouts.
+        - >
+          Exposure, not effect. Overlap does not by itself mean any reported number is
+          inflated.
+
+review:
+  by: LM
+  date: 2026-11-03
+  checked: [paper, manifest, evaluated_on, judgment_calls, plausibility]
+
+provenance:
+  method: corpus-checker check uce --rerun (table resolver with a census join, committed extract of Table 16)
+  reproducible: true

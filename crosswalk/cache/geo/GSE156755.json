@@ -1,0 +1,103 @@
+{
+  "accessions": [
+    "GSE156755",
+    "PRJNA658976",
+    "SRP278622"
+  ],
+  "doi": "10.1126/scitranslmed.abe8146",
+  "organism": "Chlorocebus aethiops",
+  "pmcid": "PMC7875333",
+  "pmids": [
+    "33431511"
+  ],
+  "query": "GSE156755",
+  "retrieved": "2026-10-14",
+  "samples": [
+    [
+      "GSM4743527",
+      "AGM1_Lung"
+    ],
+    [
+      "GSM4743528",
+      "AGM2_Lung"
+    ],
+    [
+      "GSM4743529",
+      "AGM3_Lung"
+    ],
+    [
+      "GSM4743530",
+      "AGM4_Lung"
+    ],
+    [
+      "GSM4743531",
+      "AGM5_Lung"
+    ],
+    [
+      "GSM4743532",
+      "AGM6_Lung"
+    ],
+    [
+      "GSM4743533",
+      "AGM7_Lung"
+    ],
+    [
+      "GSM4743534",
+      "AGM8_Lung"
+    ],
+    [
+      "GSM4743535",
+      "AGM9_Lung"
+    ],
+    [
+      "GSM4743536",
+      "AGM10_Lung"
+    ],
+    [
+      "GSM4743537",
+      "AGM1_Medialstinal Lymph Node"
+    ],
+    [
+      "GSM4743538",
+      "AGM2_Medialstinal Lymph Node"
+    ],
+    [
+      "GSM4743539",
+      "AGM3_Medialstinal Lymph Node"
+    ],
+    [
+      "GSM4743540",
+      "AGM4_Medialstinal Lymph Node"
+    ],
+    [
+      "GSM4743541",
+      "AGM5_Medialstinal Lymph Node"
+    ],
+    [
+      "GSM4743542",
+      "AGM6_Medialstinal Lymph Node"
+    ],
+    [
+      "GSM4743543",
+      "AGM7_Medialstinal Lymph Node"
+    ],
+    [
+      "GSM4743544",
+      "AGM8_Medialstinal Lymph Node"
+    ],
+    [
+      "GSM4743545",
+      "AGM9_Medialstinal Lymph Node"
+    ],
+    [
+      "GSM4743546",
+      "AGM10_Medialstinal Lymph Node"
+    ]
+  ],
+  "sources": [
+    "esearch.fcgi?db=gds",
+    "esummary.fcgi?db=gds",
+    "esummary.fcgi?db=pubmed"
+  ],
+  "title": "SARS-CoV-2\u00a0infection\u00a0dynamics in lungs\u00a0of\u00a0African green monkeys"
+}

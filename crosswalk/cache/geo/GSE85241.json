@@ -1,0 +1,151 @@
+{
+  "accessions": [
+    "GSE85241",
+    "PRJNA337935",
+    "SRP080991"
+  ],
+  "doi": "10.1016/j.cels.2016.09.002",
+  "organism": "Homo sapiens",
+  "pmcid": "PMC5092539",
+  "pmids": [
+    "27693023"
+  ],
+  "query": "GSE85241",
+  "retrieved": "2026-10-14",
+  "samples": [
+    [
+      "GSM2262792",
+      "Donor D28, live sorted cells, library 1"
+    ],
+    [
+      "GSM2262793",
+      "Donor D28, live sorted cells, library 2"
+    ],
+    [
+      "GSM2262794",
+      "Donor D28, live sorted cells, library 3"
+    ],
+    [
+      "GSM2262795",
+      "Donor D28, live sorted cells, library 4"
+    ],
+    [
+      "GSM2262796",
+      "Donor D28, live sorted cells, library 5"
+    ],
+    [
+      "GSM2262797",
+      "Donor D28, live sorted cells, library 6"
+    ],
+    [
+      "GSM2262798",
+      "Donor D28, live sorted cells, library 7"
+    ],
+    [
+      "GSM2262799",
+      "Donor D28, live sorted cells, library 8"
+    ],
+    [
+      "GSM2262800",
+      "Donor D29, live sorted cells, library 1"
+    ],
+    [
+      "GSM2262801",
+      "Donor D29, live sorted cells, library 2"
+    ],
+    [
+      "GSM2262802",
+      "Donor D29, live sorted cells, library 3"
+    ],
+    [
+      "GSM2262803",
+      "Donor D29, live sorted cells, library 4"
+    ],
+    [
+      "GSM2262804",
+      "Donor D29, live sorted cells, library 5"
+    ],
+    [
+      "GSM2262805",
+      "Donor D29, live sorted cells, library 6"
+    ],
+    [
+      "GSM2262806",
+      "Donor D29, live sorted cells, library 7"
+    ],
+    [
+      "GSM2262807",
+      "Donor D29, live sorted cells, library 8"
+    ],
+    [
+      "GSM2262808",
+      "Donor D30, live sorted cells, library 1"
+    ],
+    [
+      "GSM2262809",
+      "Donor D30, live sorted cells, library 2"
+    ],
+    [
+      "GSM2262810",
+      "Donor D30, live sorted cells, library 3"
+    ],
+    [
+      "GSM2262811",
+      "Donor D30, live sorted cells, library 4"
+    ],
+    [
+      "GSM2262812",
+      "Donor D30, live sorted cells, library 5"
+    ],
+    [
+      "GSM2262813",
+      "Donor D30, live sorted cells, library 6"
+    ],
+    [
+      "GSM2262814",
+      "Donor D30, live sorted cells, library 7"
+    ],
+    [
+      "GSM2262815",
+      "Donor D30, live sorted cells, library 8"
+    ],
+    [
+      "GSM2262816",
+      "Donor D31, live sorted cells, library 1"
+    ],
+    [
+      "GSM2262817",
+      "Donor D31, live sorted cells, library 2"
+    ],
+    [
+      "GSM2262818",
+      "Donor D31, live sorted cells, library 3"
+    ],
+    [
+      "GSM2262819",
+      "Donor D31, live sorted cells, library 4"
+    ],
+    [
+      "GSM2262820",
+      "Donor D31, live sorted cells, library 5"
+    ],
+    [
+      "GSM2262821",
+      "Donor D31, live sorted cells, library 6"
+    ],
+    [
+      "GSM2262822",
+      "Donor D31, live sorted cells, library 7"
+    ],
+    [
+      "GSM2262823",
+      "Donor D31, live sorted cells, library 8"
+    ]
+  ],
+  "sources": [
+    "esearch.fcgi?db=gds",
+    "esummary.fcgi?db=gds",
+    "esummary.fcgi?db=pubmed"
+  ],
+  "title": "A single-cell transcriptome atlas of the human pancreas [CEL-seq2]"
+}

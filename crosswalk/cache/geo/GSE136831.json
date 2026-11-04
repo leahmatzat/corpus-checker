@@ -1,0 +1,337 @@
+{
+  "accessions": [
+    "GSE136831",
+    "PRJNA563828",
+    "SRP395406"
+  ],
+  "doi": "10.1126/sciadv.aba1983",
+  "organism": "Homo sapiens",
+  "pmcid": "PMC7439502",
+  "pmids": [
+    "32832599",
+    "35887096",
+    "35930670"
+  ],
+  "query": "GSE136831",
+  "retrieved": "2026-10-14",
+  "samples": [
+    [
+      "GSM4058900",
+      "133C scRNAseq"
+    ],
+    [
+      "GSM4058901",
+      "1372C scRNAseq"
+    ],
+    [
+      "GSM4058902",
+      "034C scRNAseq"
+    ],
+    [
+      "GSM4058903",
+      "218C scRNAseq"
+    ],
+    [
+      "GSM4058904",
+      "226C scRNAseq"
+    ],
+    [
+      "GSM4058905",
+      "244C scRNAseq"
+    ],
+    [
+      "GSM4058906",
+      "098C scRNAseq"
+    ],
+    [
+      "GSM4058907",
+      "465C scRNAseq"
+    ],
+    [
+      "GSM4058908",
+      "396C scRNAseq"
+    ],
+    [
+      "GSM4058909",
+      "296C scRNAseq"
+    ],
+    [
+      "GSM4058910",
+      "208C scRNAseq"
+    ],
+    [
+      "GSM4058911",
+      "222C scRNAseq"
+    ],
+    [
+      "GSM4058912",
+      "160C scRNAseq"
+    ],
+    [
+      "GSM4058913",
+      "092C scRNAseq"
+    ],
+    [
+      "GSM4058914",
+      "439C scRNAseq"
+    ],
+    [
+      "GSM4058915",
+      "065C scRNAseq"
+    ],
+    [
+      "GSM4058916",
+      "388C scRNAseq"
+    ],
+    [
+      "GSM4058917",
+      "192C scRNAseq"
+    ],
+    [
+      "GSM4058918",
+      "483C scRNAseq"
+    ],
+    [
+      "GSM4058919",
+      "001C scRNAseq"
+    ],
+    [
+      "GSM4058920",
+      "002C scRNAseq"
+    ],
+    [
+      "GSM4058921",
+      "003C scRNAseq"
+    ],
+    [
+      "GSM4058922",
+      "454C scRNAseq"
+    ],
+    [
+      "GSM4058923",
+      "253C scRNAseq"
+    ],
+    [
+      "GSM4058924",
+      "484C scRNAseq"
+    ],
+    [
+      "GSM4058925",
+      "081C scRNAseq"
+    ],
+    [
+      "GSM4058926",
+      "137C scRNAseq"
+    ],
+    [
+      "GSM4058927",
+      "084C scRNAseq"
+    ],
+    [
+      "GSM4058928",
+      "152CO scRNAseq"
+    ],
+    [
+      "GSM4058929",
+      "153CO scRNAseq"
+    ],
+    [
+      "GSM4058930",
+      "178CO scRNAseq"
+    ],
+    [
+      "GSM4058931",
+      "184CO scRNAseq"
+    ],
+    [
+      "GSM4058932",
+      "186CO scRNAseq"
+    ],
+    [
+      "GSM4058933",
+      "192CO scRNAseq"
+    ],
+    [
+      "GSM4058934",
+      "193CO scRNAseq"
+    ],
+    [
+      "GSM4058935",
+      "194CO scRNAseq"
+    ],
+    [
+      "GSM4058936",
+      "207CO scRNAseq"
+    ],
+    [
+      "GSM4058937",
+      "217CO scRNAseq"
+    ],
+    [
+      "GSM4058938",
+      "23CO scRNAseq"
+    ],
+    [
+      "GSM4058939",
+      "235CO scRNAseq"
+    ],
+    [
+      "GSM4058940",
+      "237CO scRNAseq"
+    ],
+    [
+      "GSM4058941",
+      "238CO scRNAseq"
+    ],
+    [
+      "GSM4058942",
+      "8CO scRNAseq"
+    ],
+    [
+      "GSM4058943",
+      "052CO scRNAseq"
+    ],
+    [
+      "GSM4058944",
+      "056CO scRNAseq"
+    ],
+    [
+      "GSM4058945",
+      "137CO scRNAseq"
+    ],
+    [
+      "GSM4058946",
+      "210I scRNAseq"
+    ],
+    [
+      "GSM4058947",
+      "135I scRNAseq"
+    ],
+    [
+      "GSM4058948",
+      "138I scRNAseq"
+    ],
+    [
+      "GSM4058949",
+      "145I scRNAseq"
+    ],
+    [
+      "GSM4058950",
+      "157I scRNAseq"
+    ],
+    [
+      "GSM4058951",
+      "166I scRNAseq"
+    ],
+    [
+      "GSM4058952",
+      "174I scRNAseq"
+    ],
+    [
+      "GSM4058953",
+      "179I scRNAseq"
+    ],
+    [
+      "GSM4058954",
+      "209I scRNAseq"
+    ],
+    [
+      "GSM4058955",
+      "212I scRNAseq"
+    ],
+    [
+      "GSM4058956",
+      "214I scRNAseq"
+    ],
+    [
+      "GSM4058957",
+      "221I scRNAseq"
+    ],
+    [
+      "GSM4058958",
+      "222I scRNAseq"
+    ],
+    [
+      "GSM4058959",
+      "225I scRNAseq"
+    ],
+    [
+      "GSM4058960",
+      "228I scRNAseq"
+    ],
+    [
+      "GSM4058961",
+      "29I scRNAseq"
+    ],
+    [
+      "GSM4058962",
+      "051I scRNAseq"
+    ],
+    [
+      "GSM4058963",
+      "025I scRNAseq"
+    ],
+    [
+      "GSM4058964",
+      "010I scRNAseq"
+    ],
+    [
+      "GSM4058965",
+      "021I scRNAseq"
+    ],
+    [
+      "GSM4058966",
+      "022I scRNAseq"
+    ],
+    [
+      "GSM4058967",
+      "041I scRNAseq"
+    ],
+    [
+      "GSM4058968",
+      "040I scRNAseq"
+    ],
+    [
+      "GSM4058969",
+      "47I scRNAseq"
+    ],
+    [
+      "GSM4058970",
+      "49I scRNAseq"
+    ],
+    [
+      "GSM4058971",
+      "053I scRNAseq"
+    ],
+    [
+      "GSM4058972",
+      "59I scRNAseq"
+    ],
+    [
+      "GSM4058973",
+      "063I scRNAseq"
+    ],
+    [
+      "GSM4058974",
+      "034I scRNAseq"
+    ],
+    [
+      "GSM4058975",
+      "123I scRNAseq"
+    ],
+    [
+      "GSM4058976",
+      "158I scRNAseq"
+    ],
+    [
+      "GSM4058977",
+      "177I scRNAseq"
+    ]
+  ],
+  "sources": [
+    "esearch.fcgi?db=gds",
+    "esummary.fcgi?db=gds",
+    "esummary.fcgi?db=pubmed"
+  ],
+  "title": "IPF Cell Atlas"
+}

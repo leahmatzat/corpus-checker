@@ -1,8 +1,8 @@
 {# Shared building blocks. Every macro that renders a verdict or a draft/reported-eval marker
    keeps the TEXT label as the primary signal — colour is decoration, never the only cue. #}
 
-{% macro verdict_chip(verdict) -%}
-<span class="verdict v-{{ verdict|verdictslug }}">{{ verdict }}</span>
+{% macro verdict_chip(verdict, by_design=None) -%}
+{% if by_design %}<span class="verdict v-by-design" title="Trained on by design; held out for testing: {{ by_design }}. Not exposure.">PRESENT · by design</span>{% else %}<span class="verdict v-{{ verdict|verdictslug }}">{{ verdict }}</span>{% endif %}
 {%- endmacro %}
 
 {% macro reported_eval_marker() -%}
@@ -32,5 +32,5 @@
    verdict style, spells out "can't tell" / "unknown" / "not checked" in the last column, and
    carries the full verdict in its title. #}
 {% macro eval_chip(chip) -%}
-<a class="eval-chip {% if chip.verdict %}v-{{ chip.verdict|verdictslug }}{% else %}v-not-checked{% endif %}" data-dataset="{{ chip.dataset }}" href="{{ chip.href }}" title="{{ chip.name }}: {{ chip.title }}">{{ chip.name }}{% if chip.suffix %} · {{ chip.suffix }}{% endif %}{% if chip.provisional %} <span aria-label="provisional identity">◐</span>{% endif %}</a>
+<a class="eval-chip {% if chip.by_design %}v-by-design{% elif chip.verdict %}v-{{ chip.verdict|verdictslug }}{% else %}v-not-checked{% endif %}" data-dataset="{{ chip.dataset }}" href="{{ chip.href }}" title="{{ chip.name }}: {{ chip.title }}">{{ chip.name }}{% if chip.suffix %} · {{ chip.suffix }}{% endif %}{% if chip.provisional %} <span aria-label="provisional identity">◐</span>{% endif %}</a>
 {%- endmacro %}

@@ -1,0 +1,14 @@
+schema_version: 1
+id: vizgen-ffpe-lung2
+name: Vizgen MERSCOPE FFPE immuno-oncology, Lung cancer 2
+kind: spatial
+organism: [human]
+identifiers:
+  - type: url
+    value: https://info.vizgen.com/ffpe-showcase
+    confirmed: false
+    via: CellPLM's reference for "Merscope ffpe human immuno-oncology datasets" (ICLR 2024)
+    note: Vizgen's showcase page for the whole FFPE series, not this sample's own page.
+note: >
+  MERSCOPE spatial transcriptomics of a lung cancer FFPE sample, published by the vendor. It has
+  no archive accession or paper identifier that a manifest could list.

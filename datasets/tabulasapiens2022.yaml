@@ -1,0 +1,10 @@
+schema_version: 1
+id: tabulasapiens2022
+name: Tabula Sapiens (v1)
+kind: observational
+organism: [human]
+identifiers:
+  - {type: cellxgene_collection, value: e5f58829-1a66-40b5-a624-9046778e74f5, confirmed: true, via: "CELLxGENE curation API collections list, matched on the collection's DOI, 2026-10-14"}
+  - {type: pmid, value: "35549404", confirmed: true, via: "esummary db=pubmed — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,  value: 10.1126/science.abl4896, confirmed: true, via: "esummary db=pubmed id=35549404 — NCBI E-utilities, 2026-10-14"}
+note: Multi-organ human cell atlas, 2022 release. The collection holds several datasets; which a model used is read from its paper.

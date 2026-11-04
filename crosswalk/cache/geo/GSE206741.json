@@ -1,0 +1,406 @@
+{
+  "accessions": [
+    "GSE206741",
+    "PRJNA851906"
+  ],
+  "doi": "10.15252/msb.202211517",
+  "organism": "Homo sapiens",
+  "pmcid": "PMC10258562",
+  "pmids": [
+    "37154091"
+  ],
+  "query": "GSE206741",
+  "retrieved": "2026-10-28",
+  "samples": [
+    [
+      "GSM6261629",
+      "SciPlex Combo Library Well A01"
+    ],
+    [
+      "GSM6261630",
+      "SciPlex Combo Library Well A02"
+    ],
+    [
+      "GSM6261631",
+      "SciPlex Combo Library Well A03"
+    ],
+    [
+      "GSM6261632",
+      "SciPlex Combo Library Well A04"
+    ],
+    [
+      "GSM6261633",
+      "SciPlex Combo Library Well A05"
+    ],
+    [
+      "GSM6261634",
+      "SciPlex Combo Library Well A06"
+    ],
+    [
+      "GSM6261635",
+      "SciPlex Combo Library Well A07"
+    ],
+    [
+      "GSM6261636",
+      "SciPlex Combo Library Well A08"
+    ],
+    [
+      "GSM6261637",
+      "SciPlex Combo Library Well A09"
+    ],
+    [
+      "GSM6261638",
+      "SciPlex Combo Library Well A10"
+    ],
+    [
+      "GSM6261639",
+      "SciPlex Combo Library Well A11"
+    ],
+    [
+      "GSM6261640",
+      "SciPlex Combo Library Well A12"
+    ],
+    [
+      "GSM6261641",
+      "SciPlex Combo Library Well B01"
+    ],
+    [
+      "GSM6261642",
+      "SciPlex Combo Library Well B02"
+    ],
+    [
+      "GSM6261643",
+      "SciPlex Combo Library Well B03"
+    ],
+    [
+      "GSM6261644",
+      "SciPlex Combo Library Well B04"
+    ],
+    [
+      "GSM6261645",
+      "SciPlex Combo Library Well B05"
+    ],
+    [
+      "GSM6261646",
+      "SciPlex Combo Library Well B06"
+    ],
+    [
+      "GSM6261647",
+      "SciPlex Combo Library Well B07"
+    ],
+    [
+      "GSM6261648",
+      "SciPlex Combo Library Well B08"
+    ],
+    [
+      "GSM6261649",
+      "SciPlex Combo Library Well B09"
+    ],
+    [
+      "GSM6261650",
+      "SciPlex Combo Library Well B10"
+    ],
+    [
+      "GSM6261651",
+      "SciPlex Combo Library Well B11"
+    ],
+    [
+      "GSM6261652",
+      "SciPlex Combo Library Well B12"
+    ],
+    [
+      "GSM6261653",
+      "SciPlex Combo Library Well C01"
+    ],
+    [
+      "GSM6261654",
+      "SciPlex Combo Library Well C02"
+    ],
+    [
+      "GSM6261655",
+      "SciPlex Combo Library Well C03"
+    ],
+    [
+      "GSM6261656",
+      "SciPlex Combo Library Well C04"
+    ],
+    [
+      "GSM6261657",
+      "SciPlex Combo Library Well C05"
+    ],
+    [
+      "GSM6261658",
+      "SciPlex Combo Library Well C06"
+    ],
+    [
+      "GSM6261659",
+      "SciPlex Combo Library Well C07"
+    ],
+    [
+      "GSM6261660",
+      "SciPlex Combo Library Well C08"
+    ],
+    [
+      "GSM6261661",
+      "SciPlex Combo Library Well C09"
+    ],
+    [
+      "GSM6261662",
+      "SciPlex Combo Library Well C10"
+    ],
+    [
+      "GSM6261663",
+      "SciPlex Combo Library Well C11"
+    ],
+    [
+      "GSM6261664",
+      "SciPlex Combo Library Well C12"
+    ],
+    [
+      "GSM6261665",
+      "SciPlex Combo Library Well D01"
+    ],
+    [
+      "GSM6261666",
+      "SciPlex Combo Library Well D02"
+    ],
+    [
+      "GSM6261667",
+      "SciPlex Combo Library Well D03"
+    ],
+    [
+      "GSM6261668",
+      "SciPlex Combo Library Well D04"
+    ],
+    [
+      "GSM6261669",
+      "SciPlex Combo Library Well D05"
+    ],
+    [
+      "GSM6261670",
+      "SciPlex Combo Library Well D06"
+    ],
+    [
+      "GSM6261671",
+      "SciPlex Combo Library Well D07"
+    ],
+    [
+      "GSM6261672",
+      "SciPlex Combo Library Well D08"
+    ],
+    [
+      "GSM6261673",
+      "SciPlex Combo Library Well D09"
+    ],
+    [
+      "GSM6261674",
+      "SciPlex Combo Library Well D10"
+    ],
+    [
+      "GSM6261675",
+      "SciPlex Combo Library Well D11"
+    ],
+    [
+      "GSM6261676",
+      "SciPlex Combo Library Well D12"
+    ],
+    [
+      "GSM6261677",
+      "SciPlex Combo Library Well E01"
+    ],
+    [
+      "GSM6261678",
+      "SciPlex Combo Library Well E02"
+    ],
+    [
+      "GSM6261679",
+      "SciPlex Combo Library Well E03"
+    ],
+    [
+      "GSM6261680",
+      "SciPlex Combo Library Well E04"
+    ],
+    [
+      "GSM6261681",
+      "SciPlex Combo Library Well E05"
+    ],
+    [
+      "GSM6261682",
+      "SciPlex Combo Library Well E06"
+    ],
+    [
+      "GSM6261683",
+      "SciPlex Combo Library Well E07"
+    ],
+    [
+      "GSM6261684",
+      "SciPlex Combo Library Well E08"
+    ],
+    [
+      "GSM6261685",
+      "SciPlex Combo Library Well E09"
+    ],
+    [
+      "GSM6261686",
+      "SciPlex Combo Library Well E10"
+    ],
+    [
+      "GSM6261687",
+      "SciPlex Combo Library Well E11"
+    ],
+    [
+      "GSM6261688",
+      "SciPlex Combo Library Well E12"
+    ],
+    [
+      "GSM6261689",
+      "SciPlex Combo Library Well F01"
+    ],
+    [
+      "GSM6261690",
+      "SciPlex Combo Library Well F02"
+    ],
+    [
+      "GSM6261691",
+      "SciPlex Combo Library Well F03"
+    ],
+    [
+      "GSM6261692",
+      "SciPlex Combo Library Well F04"
+    ],
+    [
+      "GSM6261693",
+      "SciPlex Combo Library Well F05"
+    ],
+    [
+      "GSM6261694",
+      "SciPlex Combo Library Well F06"
+    ],
+    [
+      "GSM6261695",
+      "SciPlex Combo Library Well F07"
+    ],
+    [
+      "GSM6261696",
+      "SciPlex Combo Library Well F08"
+    ],
+    [
+      "GSM6261697",
+      "SciPlex Combo Library Well F09"
+    ],
+    [
+      "GSM6261698",
+      "SciPlex Combo Library Well F10"
+    ],
+    [
+      "GSM6261699",
+      "SciPlex Combo Library Well F11"
+    ],
+    [
+      "GSM6261700",
+      "SciPlex Combo Library Well F12"
+    ],
+    [
+      "GSM6261701",
+      "SciPlex Combo Library Well G01"
+    ],
+    [
+      "GSM6261702",
+      "SciPlex Combo Library Well G02"
+    ],
+    [
+      "GSM6261703",
+      "SciPlex Combo Library Well G03"
+    ],
+    [
+      "GSM6261704",
+      "SciPlex Combo Library Well G04"
+    ],
+    [
+      "GSM6261705",
+      "SciPlex Combo Library Well G05"
+    ],
+    [
+      "GSM6261706",
+      "SciPlex Combo Library Well G06"
+    ],
+    [
+      "GSM6261707",
+      "SciPlex Combo Library Well G07"
+    ],
+    [
+      "GSM6261708",
+      "SciPlex Combo Library Well G08"
+    ],
+    [
+      "GSM6261709",
+      "SciPlex Combo Library Well G09"
+    ],
+    [
+      "GSM6261710",
+      "SciPlex Combo Library Well G10"
+    ],
+    [
+      "GSM6261711",
+      "SciPlex Combo Library Well G11"
+    ],
+    [
+      "GSM6261712",
+      "SciPlex Combo Library Well G12"
+    ],
+    [
+      "GSM6261713",
+      "SciPlex Combo Library Well H01"
+    ],
+    [
+      "GSM6261714",
+      "SciPlex Combo Library Well H02"
+    ],
+    [
+      "GSM6261715",
+      "SciPlex Combo Library Well H03"
+    ],
+    [
+      "GSM6261716",
+      "SciPlex Combo Library Well H04"
+    ],
+    [
+      "GSM6261717",
+      "SciPlex Combo Library Well H05"
+    ],
+    [
+      "GSM6261718",
+      "SciPlex Combo Library Well H06"
+    ],
+    [
+      "GSM6261719",
+      "SciPlex Combo Library Well H07"
+    ],
+    [
+      "GSM6261720",
+      "SciPlex Combo Library Well H08"
+    ],
+    [
+      "GSM6261721",
+      "SciPlex Combo Library Well H09"
+    ],
+    [
+      "GSM6261722",
+      "SciPlex Combo Library Well H10"
+    ],
+    [
+      "GSM6261723",
+      "SciPlex Combo Library Well H11"
+    ],
+    [
+      "GSM6261724",
+      "SciPlex Combo Library Well H12"
+    ]
+  ],
+  "sources": [
+    "esearch.fcgi?db=gds",
+    "esummary.fcgi?db=gds",
+    "esummary.fcgi?db=pubmed"
+  ],
+  "title": "Drug combination sci-Plex Data"
+}

@@ -1,0 +1,11 @@
+schema_version: 1
+id: speranza2021-green-monkey
+name: African green monkey lung and lymph node (Speranza 2021)
+kind: observational
+organism: [African green monkey]
+identifiers:
+  - {type: geo,        value: GSE156755, confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-14"}
+  - {type: pmid,       value: "33431511", confirmed: true, via: "GSE156755 pubmedids — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,        value: 10.1126/scitranslmed.abe8146, confirmed: true, via: "esummary db=pubmed id=33431511 — NCBI E-utilities, 2026-10-14"}
+  - {type: bioproject, value: PRJNA658976, confirmed: true, via: "esummary db=gds (GSE156755) — NCBI E-utilities, 2026-10-14"}
+note: SARS-CoV-2 infection in lung and mediastinal lymph node of African green monkeys, scRNA-seq.
