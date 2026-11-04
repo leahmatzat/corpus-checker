@@ -558,7 +558,7 @@ export function search(query, loaded) {
 
 // --------------------------------------------------------------------------- lookup.py: plain-language answers
 
-const SHORT = { PRESENT: "Yes", "NOT PRESENT": "No", INCONCLUSIVE: "Can't tell", "NOT CHECKABLE": "Unknown" };
+const SHORT = { PRESENT: "Yes", "NOT PRESENT": "No", INCONCLUSIVE: "Inconclusive", "NOT CHECKABLE": "Not checkable" };
 
 export function short(verdict) {
   return SHORT[verdict] ?? verdict;

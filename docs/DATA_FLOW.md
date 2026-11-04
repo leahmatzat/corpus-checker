@@ -78,8 +78,8 @@ flowchart TD
   N --> M["Match every manifest<br/>each model × training stage"]
   I[("Search index<br/>reviewed model entries only")] --> M
   M --> V{"Verdict rules<br/>Yes needs a dataset-level match"}
-  V -. "paper-only match" .-> W2["Can't tell: same publication<br/>manifest lists accession X"]
-  V --> A["Answer per model<br/>Yes / No / Can't tell / Unknown + who reviewed"]
+  V -. "paper-only match" .-> W2["Inconclusive: same publication<br/>manifest lists accession X"]
+  V --> A["Answer per model<br/>Yes / No / Inconclusive / Not checkable + who reviewed"]
   W2 --> A
   A --> C["Coverage line<br/>which models were searched"]
   A --> R["Next steps<br/>add a dataset, report a problem"]
@@ -89,7 +89,7 @@ flowchart TD
 
 **Expansion.** A GEO series is expanded through NCBI to its paper's PMID and DOI and to its SRA/BioProject IDs, so manifests keyed any of those ways can be searched. A single sample (GSM) is never widened to its whole series.
 
-**PMIDs and DOIs identify papers, not datasets.** A match on the paper alone is shown as *Can't tell — same publication*, with the accession the manifest lists, because one paper can publish several datasets. A query that is only a PMID or DOI is answered at the paper level, then separately for each dataset the paper links to.
+**PMIDs and DOIs identify papers, not datasets.** A match on the paper alone is shown as *Inconclusive — same publication*, with the accession the manifest lists, because one paper can publish several datasets. A query that is only a PMID or DOI is answered at the paper level, then separately for each dataset the paper links to.
 
 **The index is static.** `lookup-index.json` holds every reviewed entry's identifiers, taken from the committed extracts and snapshots, so the lookup runs in the browser with no server. Every answer says which entry it came from and who reviewed it, and every result lists which models were searched.
 

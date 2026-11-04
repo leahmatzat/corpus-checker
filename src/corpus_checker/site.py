@@ -84,7 +84,26 @@ ANSWER_COLUMN = {
     "INCONCLUSIVE": "unclear",
     "NOT CHECKABLE": "unclear",
 }
-UNCLEAR_SUFFIX = {"INCONCLUSIVE": "can't tell", "NOT CHECKABLE": "unknown", None: "not checked"}
+UNCLEAR_SUFFIX = {"INCONCLUSIVE": "inconclusive", "NOT CHECKABLE": "not checkable", None: "not checked"}
+
+# A stage summary names the reported evals found in the corpus and describes the rest in words —
+# never a count by verdict, which would read as a score.
+REST_LABEL = {"NOT PRESENT": "not in the training corpus", "INCONCLUSIVE": "inconclusive",
+              "NOT CHECKABLE": "not checkable", None: "not checked"}
+
+# Why a finding is INCONCLUSIVE / NOT CHECKABLE, in a few words, keyed by how the engine's reason
+# (verdict.py) begins. Anything unmatched gets no phrase; the full reason is always on the model page.
+_WHY = (
+    (lambda r: "of this list cannot be searched exactly" in r, "unresolved"),
+    (lambda r: r.startswith("no exact key could be attempted"), "the catalog has no identifier of a kind the list carries"),
+    (lambda r: r.startswith("no match on") and "this manifest needs" in r,
+     "the catalog lacks an identifier the list needs before absence can be claimed"),
+    (lambda r: r.startswith("no match, but manifest source"), "not every file of the list was searched"),
+    (lambda r: r.startswith("same publication"), "the match is on the paper, not the dataset"),
+    (lambda r: r.startswith("matched on") and "not an exact identifier" in r, "the match is not on an exact identifier"),
+    (lambda r: r.startswith("the manifest") and "not confirmed" in r, "the list file isn't confirmed yet"),
+    (lambda r: r.startswith("no manifest was published"), "no training-data list was published"),
+)
 
 # "All datasets" grid cells are narrow: a short word, with the full verdict in the title.
 GRID_SHORT = {"PRESENT": "Yes", "NOT PRESENT": "No", "INCONCLUSIVE": "?", "NOT CHECKABLE": "n/c"}
@@ -112,6 +131,23 @@ CONFIRMATION_EXPLANATION = {
     "author": "the authors confirmed it in writing",
     "none": "supplied, not yet confirmed",
 }
+
+# Short names for the five review checks (registry.REVIEW_CHECKS holds what each one covers).
+CHECK_LABEL = {
+    "paper": "Paper",
+    "manifest": "Training-data list",
+    "evaluated_on": "Evaluation list",
+    "judgment_calls": "Judgment calls",
+    "plausibility": "Plausibility",
+}
+
+# Home page sections, by model_class.
+MODEL_GROUPS = (
+    ("foundation", "Foundation models", None),
+    ("task-specific", "Task-specific models",
+     "These train directly on task data rather than on a pretraining corpus. Their training stage uses part "
+     "of each evaluation dataset by design, which is not exposure."),
+)
 
 MODEL_CLASS_EXPLANATION = {
     "foundation": "has a pretraining corpus distinct from its evaluation data",
@@ -252,9 +288,51 @@ def _dataset_name(datasets: dict, did: str) -> str:
     return (datasets.get(did) or {}).get("name") or did
 
 
+def _why_phrases(rows: list[dict], corpus: dict) -> list[str]:
+    """The distinct reasons, in a few words each, that these INCONCLUSIVE / NOT CHECKABLE findings
+    give. Ordered as _WHY lists them; no counts."""
+    found: list[str] = []
+    for test, phrase in _WHY:
+        hits = [r for r in rows if test(r.get("reason") or "")]
+        if not hits:
+            continue
+        if phrase == "unresolved":
+            n = len(corpus.get("unresolved_entries") or ())
+            phrase = (f"its list names {n} {'collection or source' if n == 1 else 'collections or sources'} "
+                      "without their datasets, and a dataset missing from it could be inside one")
+        elif len(hits) < len(rows):
+            phrase = "for some, " + phrase
+        found.append(phrase)
+    return found
+
+
+def _stage_summary(mid: str, corpus: dict, evals: list[str], by_key: dict, datasets: dict) -> dict:
+    """One training stage in a sentence or two: the reported evals found in its corpus, by name,
+    and the rest described in words, with why any are inconclusive. Shared by the home page and
+    the top of each model page."""
+    if corpus["manifest_type"] == "by-design":
+        return {"by_design": True, "present": [], "rest": None, "why": []}
+    rows = [by_key.get((mid, corpus["stage"], did)) for did in evals]
+    present = sorted(({"dataset": r["dataset"], "name": _dataset_name(datasets, r["dataset"]),
+                       "provisional": r.get("identity") == "provisional"}
+                      for r in rows if r and r["verdict"] == "PRESENT"),
+                     key=lambda x: (x["name"].lower(), x["dataset"]))
+    rest_verdicts = [v for v in REST_LABEL if any((r["verdict"] if r else None) == v
+                                                  for r in rows if not (r and r["verdict"] == "PRESENT"))]
+    rest = None
+    if rest_verdicts:
+        words = " or ".join(REST_LABEL[v] for v in rest_verdicts)
+        rest = (f"The other reported evals are {words}." if present else
+                f"Its reported evals are {words}." if len(rest_verdicts) > 1 or len(rows) > 1 else
+                f"Its reported eval is {words}.")
+    unclear = [r for r in rows if r and r["verdict"] in ("INCONCLUSIVE", "NOT CHECKABLE")]
+    return {"by_design": False, "present": present, "rest": rest, "why": _why_phrases(unclear, corpus)}
+
+
 def _build_model_rows(ledger: dict) -> list[dict]:
-    """Home page: one entry per model, one stage row per corpus, each reported eval in exactly
-    one answer column. Alphabetical models; no counts, totals or ordering by verdict."""
+    """Home page: one card per model. Each stage gets a summary (the reported evals found in its
+    corpus, by name) and, folded, every reported eval in exactly one answer column.
+    Alphabetical models; no counts, totals or ordering by verdict."""
     models, datasets = ledger["models"], ledger["datasets"]
     by_key = {(r["model"], r["stage"], r["dataset"]): r for r in ledger["rows"]}
     out = []
@@ -291,8 +369,20 @@ def _build_model_rows(ledger: dict) -> list[dict]:
             for chips in cols.values():
                 chips.sort(key=lambda x: (x["name"].lower(), x["dataset"]))
             stages.append({"stage": c["stage"], "manifest_type": c["manifest_type"],
-                           "manifest_short": MANIFEST_TYPE_SHORT.get(c["manifest_type"], ""), **cols})
-        out.append({"id": mid, "name": m["model"], "draft": m["draft"], "stages": stages})
+                           "manifest_short": MANIFEST_TYPE_SHORT.get(c["manifest_type"], ""), **cols,
+                           "summary": _stage_summary(mid, c, evals, by_key, datasets)})
+        out.append({"id": mid, "name": m["model"], "draft": m["draft"],
+                    "task_specific": m.get("model_class") == "task-specific", "stages": stages})
+    return out
+
+
+def _group_model_rows(rows: list[dict]) -> list[dict]:
+    """Home page sections: foundation models, then task-specific ones. Empty sections are left out."""
+    out = []
+    for cls, title, note in MODEL_GROUPS:
+        members = [r for r in rows if r["task_specific"] == (cls == "task-specific")]
+        if members:
+            out.append({"key": cls, "title": title, "note": note, "models": members})
     return out
 
 
@@ -384,6 +474,8 @@ def _model_page_corpora(model_id: str, model: dict, ledger: dict) -> list[dict]:
             "by_design": r.get("by_design"),
         }
 
+    by_key = {(r["model"], r["stage"], r["dataset"]): r for r in ledger["rows"]}
+    evals = list(dict.fromkeys(e["dataset"] for e in model["evaluated_on"]))
     corpora = []
     for c in model["corpora"]:
         stage_rows = rows_by_stage.get(c["stage"], [])
@@ -392,8 +484,43 @@ def _model_page_corpora(model_id: str, model: dict, ledger: dict) -> list[dict]:
         catalog = sorted((_finding(r) for r in stage_rows if r["relation"] == "catalog"),
                           key=lambda f: f["dataset_name"].lower())
         splits = [{**s, "name": _dataset_name(datasets, s["dataset"])} for s in c.get("splits") or []]
-        corpora.append({**c, "splits": splits, "reported_eval_findings": reported_eval, "catalog_findings": catalog})
+        corpora.append({**c, "splits": splits, "reported_eval_findings": reported_eval, "catalog_findings": catalog,
+                        "reported_groups": _group_findings(reported_eval), "catalog_groups": _group_findings(catalog),
+                        "manifest_short": MANIFEST_TYPE_SHORT.get(c["manifest_type"], ""),
+                        "summary": _stage_summary(model_id, c, evals, by_key, datasets)})
     return corpora
+
+
+_GROUP_ORDER = {"PRESENT": 0, "by design": 1, "NOT PRESENT": 2, "INCONCLUSIVE": 3, "NOT CHECKABLE": 4}
+
+
+def _has_detail(f: dict) -> bool:
+    """Whether a finding says anything of its own beyond what its group already says."""
+    return bool(f["own_keys"] or f["keys_absent"] or f["matched_on"] or f["samples"] is not None
+                or f["cells"] is not None or f["sample_ids"] or f["by_design"] or f["note"]
+                or (f["overlap_level"] and f["verdict"] == "PRESENT"))
+
+
+def _group_findings(findings: list[dict]) -> list[dict]:
+    """Findings that share a verdict and a reason, shown once with their datasets listed under them.
+    The keys attempted go on the group when every member shares them, else on each member. Each
+    dataset keeps its own anchor and anything it says of its own."""
+    groups: dict[tuple, dict] = {}
+    for f in findings:
+        key = (f["verdict"], bool(f["by_design"]), f["reason"] or "")
+        groups.setdefault(key, {"verdict": f["verdict"], "by_design": bool(f["by_design"]),
+                                "reason": f["reason"], "members": []})["members"].append(f)
+    out = list(groups.values())
+    for g in out:
+        shared = len({tuple(f["keys_attempted"]) for f in g["members"]}) == 1
+        g["keys_attempted"] = g["members"][0]["keys_attempted"] if shared else []
+        g["members"] = [{**f, "own_keys": [] if shared else f["keys_attempted"]} for f in g["members"]]
+        for f in g["members"]:
+            f["has_detail"] = _has_detail(f)
+        g["detailed"] = any(f["has_detail"] for f in g["members"])
+    out.sort(key=lambda g: (_GROUP_ORDER["by design" if g["by_design"] else g["verdict"]],
+                            g["members"][0]["dataset_name"].lower()))
+    return out
 
 
 def _how_checked(model: dict, ledger: dict) -> dict:
@@ -425,21 +552,16 @@ def _how_checked(model: dict, ledger: dict) -> dict:
     points = review_points(ledger, model["id"])
 
     checked = set(model.get("review_checked") or ())
-    reviewed = [{"key": k, "text": text, "points": points.get(k, [])}
-                for k, text in REVIEW_CHECKS.items() if k in checked]
-    # An Unreviewed draft has had none of the five; a reviewed entry with no scope recorded can't say
-    # which were skipped, only that the record is missing.
-    if model.get("draft"):
-        not_checked = [{"text": text, "points": points.get(k, [])} for k, text in REVIEW_CHECKS.items()]
-    elif checked:
-        not_checked = [{"text": text, "points": points.get(k, [])} for k, text in REVIEW_CHECKS.items() if k not in checked]
-    else:
-        not_checked = []
+    # One row per review check, in REVIEW_CHECKS order. A check is done only when the review recorded
+    # it; a reviewed entry with no scope recorded can't say which were skipped, so none is marked.
+    checks = [{"key": k, "label": CHECK_LABEL.get(k, k), "text": text, "points": points.get(k, []),
+               "done": k in checked and not model.get("draft")}
+              for k, text in REVIEW_CHECKS.items()]
+    outstanding = []
     if unchecked := model.get("discovery_unchecked"):
-        not_checked.append({"text": "Not yet searched for a description of the training data: "
-                            + ", ".join(DISCOVERY_LABEL.get(k, k) for k in unchecked) + ".", "points": []})
-    return {"tool": tool, "reviewed": reviewed, "not_checked": not_checked,
-            "scope_recorded": bool(checked)}
+        outstanding.append("Not yet searched for a description of the training data: "
+                           + ", ".join(DISCOVERY_LABEL.get(k, k) for k in unchecked) + ".")
+    return {"tool": tool, "checks": checks, "outstanding": outstanding, "scope_recorded": bool(checked)}
 
 
 def _dataset_page_context(dataset_id: str, dataset: dict, ledger: dict) -> dict:
@@ -518,7 +640,7 @@ def build_site(root: Path, out: Path, repo_url: str) -> list[Path]:
         **common, root_prefix="", page_kind="index",
         correction_url=_correction_url(repo_url, "site index"), source_url=None,
         intro_paragraph=INTRO_PARAGRAPH,
-        model_rows=_build_model_rows(ledger), reuse_rows=_build_reuse_table(ledger),
+        model_groups=_group_model_rows(_build_model_rows(ledger)), reuse_rows=_build_reuse_table(ledger),
     ))
 
     # -- all-datasets.html: the full datasets x models grid ----------------------------------

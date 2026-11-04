@@ -107,7 +107,7 @@ def test_answer_text_reads_cleanly():
               "283d65eb-dd53-496d-adb7-7570c7caa443")
     for a in res.answers:
         assert ".." not in answer_text(a)
-        assert not answer_text(a, lead=False).startswith(("Yes", "No ", "Can't", "Unknown"))
+        assert not answer_text(a, lead=False).startswith(("Yes", "No ", "Inconclusive", "Not checkable"))
 
 
 # ------------------------------------------------------------------ CLI

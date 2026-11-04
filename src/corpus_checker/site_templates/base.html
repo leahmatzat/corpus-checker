@@ -36,6 +36,21 @@
   </p>
   <p class="provenance-note">Generated from <a href="{{ repo_url }}">the registry</a>. Never hand-written — every page here traces back to a file in that repository.</p>
 </footer>
+<script>
+/* A link to a finding inside a folded section opens the section first. Without scripts the
+   sections still open by hand, and every word is in the page either way. */
+(function () {
+  function openTarget() {
+    var id = decodeURIComponent(location.hash.slice(1));
+    var el = id && document.getElementById(id);
+    if (!el) return;
+    for (var p = el.parentElement; p; p = p.parentElement) if (p.tagName === "DETAILS") p.open = true;
+    el.scrollIntoView();
+  }
+  window.addEventListener("hashchange", openTarget);
+  openTarget();
+})();
+</script>
 {% block scripts %}{% endblock %}
 </body>
 </html>
