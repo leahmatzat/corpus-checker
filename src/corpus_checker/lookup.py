@@ -311,7 +311,7 @@ def lookup(inputs: list[str], root: Path, *, network: bool = True, models: list[
 
 # --------------------------------------------------------------------------- plain-language answers
 
-_SHORT = {"PRESENT": "Yes", "NOT PRESENT": "No", "INCONCLUSIVE": "Can't tell", "NOT CHECKABLE": "Unknown"}
+_SHORT = {"PRESENT": "Yes", "NOT PRESENT": "No", "INCONCLUSIVE": "Inconclusive", "NOT CHECKABLE": "Not checkable"}
 
 
 def answer_text(a: Answer, *, lead: bool = True) -> str:

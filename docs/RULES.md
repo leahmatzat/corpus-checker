@@ -79,7 +79,7 @@ Exit codes never encode verdicts: `0` means the check ran, `1` a tool error, `2`
 
 `corpus-checker lookup` and the site's lookup page start from a dataset rather than a model. They answer two questions: *which models used this dataset in training?* and *is this dataset in model X?* They accept an accession, a PMID, a DOI, a URL containing one, or a catalog name, and they can take a list of datasets, such as a benchmark plan.
 
-- The same rules apply as for a registry check. Each answer is **Yes / No / Can't tell / Unknown**, backed by one of the four verdicts, and says why.
+- The same rules apply as for a registry check. Each answer is **Yes / No / Inconclusive / Not checkable**, backed by one of the four verdicts, and says why.
 - **Review belongs to the model entries.** A lookup searches manifests whose entries a person has already reviewed, and each answer names the reviewer and the date. Unreviewed entries are not searched on the site.
 - **Every result lists which models were searched.** A model that isn't in the registry is not covered, so "No" never means "no model anywhere".
 - Input is expanded through NCBI: a GEO series brings its PMID, DOI and SRA/BioProject IDs. A single sample (GSM) is never widened to its series. A PMID or DOI is answered at the paper level, and then separately for each dataset the paper links to.

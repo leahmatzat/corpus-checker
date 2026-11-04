@@ -57,7 +57,8 @@ def _normalize_ws(s: str) -> str:
 # "...scFoundation</a>'s..." reads back as "scFoundation's", not "scFoundation 's".
 _BLOCK_TAGS = {"p", "li", "tr", "td", "th", "div", "section", "article", "ul", "ol", "table",
                "h1", "h2", "h3", "h4", "h5", "h6", "dl", "dt", "dd", "header", "footer", "nav",
-               "main", "thead", "tbody", "br", "blockquote", "pre", "caption", "hr", "html", "body"}
+               "main", "thead", "tbody", "br", "blockquote", "pre", "caption", "hr", "html", "body",
+               "details", "summary"}
 
 
 class _TextExtractor(HTMLParser):
@@ -245,23 +246,34 @@ def _table(html_text: str, cls: str) -> str:
     return m.group(0)
 
 
+_UNCLEAR_COL = "Inconclusive / not checkable"
+
+
+def _model_cards(html_text: str) -> dict[str, str]:
+    """Home page: model id -> the markup of its card."""
+    return dict(re.findall(r'<article class="model-card" id="model-[^"]+" data-model="([^"]+)">(.*?)</article>',
+                           html_text, re.DOTALL))
+
+
 def test_by_model_table_has_no_per_model_total_or_score_column(site_dir, ledger):
-    table = _table(_read(site_dir, "index.html"), "by-model")
-    thead = re.search(r"<thead>.*?</thead>", table, re.DOTALL).group(0)
-    headers = [_visible_text(h).strip() for h in re.findall(r"<th\b.*?</th>", thead, re.DOTALL)]
-    assert headers == ["Model", "Training stage", "In training corpus", "Not in training corpus", "Can't tell / unknown"]
-    body_text = _visible_text(re.sub(r"<caption.*?</caption>", "", table, flags=re.DOTALL)).lower()
-    for forbidden in _SCORE_WORDS:
-        assert forbidden not in body_text
+    cards = _model_cards(_read(site_dir, "index.html"))
+    assert set(cards) == set(ledger["models"])
+    for model_id, card in cards.items():
+        table = _table(card, "by-model")
+        thead = re.search(r"<thead>.*?</thead>", table, re.DOTALL).group(0)
+        headers = [_visible_text(h).strip() for h in re.findall(r"<th\b.*?</th>", thead, re.DOTALL)]
+        assert headers == ["Training stage", "In training corpus", "Not in training corpus", _UNCLEAR_COL]
+        body_text = _visible_text(re.sub(r"<caption.*?</caption>", "", card, flags=re.DOTALL)).lower()
+        for forbidden in _SCORE_WORDS:
+            assert forbidden not in body_text, (model_id, forbidden)
 
 
 def _by_model_stage_rows(site_dir) -> dict[tuple[str, str], dict[str, list[str]]]:
-    """(model id, stage) -> {column label: [dataset ids of the chips in it]}."""
-    table = _table(_read(site_dir, "index.html"), "by-model")
+    """(model id, stage) -> {column label: [dataset ids of the chips in it]}, from each card's folded table."""
     out = {}
-    for group in re.findall(r'<tbody class="by-model-group">.*?</tbody>', table, re.DOTALL):
-        model_id = re.search(r'href="models/([^"#]+)\.html"', group).group(1)
-        for row in re.findall(r"<tr>.*?</tr>", group, re.DOTALL):
+    for model_id, card in _model_cards(_read(site_dir, "index.html")).items():
+        tbody = re.search(r"<tbody>.*?</tbody>", _table(card, "by-model"), re.DOTALL).group(0)
+        for row in re.findall(r"<tr>.*?</tr>", tbody, re.DOTALL):
             stage = re.search(r'href="models/[^"]+#corpus-([^"]+)"', row).group(1)
             cols = {}
             for label, cell in re.findall(r'<td class="answer" data-label="([^"]+)">(.*?)</td>', row, re.DOTALL):
@@ -274,8 +286,7 @@ def test_every_reported_eval_sits_in_exactly_one_answer_column(site_dir, ledger)
     rows = _by_model_stage_rows(site_dir)
     by_key = {(r["model"], r["stage"], r["dataset"]): r["verdict"] for r in ledger["rows"]}
     expected_col = {"PRESENT": "In training corpus", "NOT PRESENT": "Not in training corpus",
-                    "INCONCLUSIVE": "Can't tell / unknown", "NOT CHECKABLE": "Can't tell / unknown",
-                    None: "Can't tell / unknown"}
+                    "INCONCLUSIVE": _UNCLEAR_COL, "NOT CHECKABLE": _UNCLEAR_COL, None: _UNCLEAR_COL}
     for model_id, m in ledger["models"].items():
         for c in m["corpora"]:
             cols = rows[(model_id, c["stage"])]
@@ -293,10 +304,72 @@ def test_by_model_covers_all_three_columns_and_not_checked(site_dir):
     rows = _by_model_stage_rows(site_dir)
     assert "norman2019" in rows[("scfoundation", "pretraining")]["In training corpus"]
     assert "adamson2016" in rows[("scfoundation", "pretraining")]["Not in training corpus"]
-    assert "norman2019" in rows[("toy-draft", "pretraining")]["Can't tell / unknown"]
-    assert "Norman 2019 · unknown" in index_text          # NOT CHECKABLE, spelled out
+    assert "norman2019" in rows[("toy-draft", "pretraining")][_UNCLEAR_COL]
+    assert "Norman 2019 · not checkable" in index_text    # NOT CHECKABLE, spelled out
     assert "Norman 2019 · not checked" in index_text      # toy draft's fine-tuning stage has no finding
     assert "Zheng68K ◐" in index_text                     # provisional identity travels with the chip
+
+
+def test_stage_summaries_name_what_is_in_the_corpus_and_never_count(site_dir, ledger):
+    index = _read(site_dir, "index.html")
+    cards = _model_cards(index)
+    scf = _visible_text(re.search(r'<ul class="stage-summaries">.*?</ul>', cards["scfoundation"], re.DOTALL).group(0))
+    assert "In training corpus: Norman 2019" in scf
+    assert "The other reported evals are not in the training corpus." in scf
+    # a verdict tally next to a model reads as a score: no "3 inconclusive", "2 in the training corpus", ...
+    tally = re.compile(r"\b\d+\s+(?:of\s+\d+\s+)?(?:reported evals?|datasets?|inconclusive|not checkable|not checked|"
+                       r"(?:are\s+|is\s+)?(?:not\s+)?in (?:the |its )?training corpus|present|absent)\b", re.IGNORECASE)
+    pages = [index] + [_read(site_dir, f"models/{mid}.html") for mid in ledger["models"]]
+    for page in pages:
+        for block in re.findall(r'<ul class="stage-summaries">.*?</ul>', page, re.DOTALL):
+            assert not tally.search(_visible_text(block)), _visible_text(block)
+
+
+def test_no_page_says_cant_tell(site_dir):
+    for f in sorted(site_dir.rglob("*")):
+        if f.is_file() and f.suffix in (".html", ".js", ".mjs"):
+            text = f.read_text(encoding="utf-8").lower().replace("&#39;", "'")
+            assert "can't tell" not in text, f
+
+
+def test_task_specific_models_have_their_own_section(task_site):
+    _, out = task_site
+    index = _read(out, "index.html")
+    task_h = index.index("Task-specific models")
+    assert index.index('data-model="toy-task"') > task_h > index.index('data-model="scfoundation"')
+    card = _visible_text(_model_cards(index)["toy-task"])
+    assert "By design, it trains on part of its own evaluation datasets" in card and "not exposure" in card
+
+
+def test_model_page_opens_with_a_summary_and_folds_the_detail(site_dir):
+    html = _read(site_dir, "models/scfoundation.html")
+    assert html.index('class="at-a-glance"') < html.index('class="how-checked"') < html.index('class="corpus"')
+    glance = _visible_text(re.search(r'<section class="at-a-glance".*?</section>', html, re.DOTALL).group(0))
+    assert "In training corpus: Norman 2019" in glance
+    assert "<summary>The training-data list: quote and sources</summary>" in html
+    assert "Other catalog datasets" in re.search(r"<details class=\"fold\">\s*<summary>Other catalog datasets", html).group(0)
+
+
+def test_findings_that_share_a_reason_say_it_once_and_keep_their_anchors(site_dir, ledger):
+    for model_id, m in ledger["models"].items():
+        html = _read(site_dir, f"models/{model_id}.html")
+        text = _visible_text(html)
+        rows = [r for r in ledger["rows"] if r["model"] == model_id]
+        for r in rows:
+            assert f'id="finding-{r["dataset"]}-{r["stage"]}"' in html, (model_id, r["dataset"])
+        for reason in {r["reason"] for r in rows if r.get("reason")}:
+            # at most once per stage for the reported evals and once for the other catalog datasets
+            assert text.count(_normalize_ws(reason)) <= 2 * len(m["corpora"]), (model_id, reason[:60])
+
+
+def test_review_card_is_a_checklist_of_the_five_checks(site_dir):
+    html = _read(site_dir, "models/scfoundation.html")
+    panel = re.search(r'<section class="how-checked".*?</section>', html, re.DOTALL).group(0)
+    labels = [_visible_text(x) for x in re.findall(r'<span class="check-label">(.*?)</span>', panel)]
+    assert labels == ["Checked by the tool", "Paper", "Training-data list", "Evaluation list", "Judgment calls", "Plausibility"]
+    assert panel.count('class="check-done"') == 5
+    draft = re.search(r'<section class="how-checked".*?</section>', _read(site_dir, "models/toy-draft.html"), re.DOTALL).group(0)
+    assert draft.count('class="check-open"') == 5 and 'class="check-done"' not in draft
 
 
 def test_index_shows_the_short_intro_verbatim(site_dir):

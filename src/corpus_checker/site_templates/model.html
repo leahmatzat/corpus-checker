@@ -26,60 +26,52 @@
     </dd></div>
   </dl>
 
+  <section class="at-a-glance" aria-labelledby="glance-h">
+    <h2 id="glance-h">At a glance</h2>
+    <ul class="stage-summaries">
+    {% for corpus in model.corpora %}
+      <li>{{ m.stage_summary(corpus, "") }}</li>
+    {% endfor %}
+    </ul>
+  </section>
+
   <section class="how-checked" id="how-checked" aria-labelledby="how-checked-h">
     <h2 id="how-checked-h">How this entry was checked</h2>
-    <div class="how-checked-cols">
-      <div>
-        <h3>Checked by the tool</h3>
-        <ul>
-        {% for line in model.how_checked.tool %}
-          <li>{{ line }}</li>
-        {% endfor %}
-        </ul>
-      </div>
-      <div>
-      {% if model.draft %}
-        <h3>Reviewed by a person</h3>
-        <p class="muted">Not yet. {{ m.draft_badge() }}</p>
-      {% else %}
-        <h3>Reviewed by {{ model.reviewed_by }}, {{ model.reviewed_date }}</h3>
-        {% if model.how_checked.scope_recorded %}
-        <ul>
-          {% for item in model.how_checked.reviewed %}
-          <li>{{ item.text }}
-            {% if item.points %}
-            <ul class="calls">
-              {% for c in item.points %}<li>{{ c }}</li>{% endfor %}
-            </ul>
-            {% endif %}
-          </li>
+  {% if model.draft %}
+    <p class="review-line">{{ m.draft_badge() }} Reviewed by a person: not yet.</p>
+  {% else %}
+    <p class="review-line"><strong>Reviewed by {{ model.reviewed_by }}, {{ model.reviewed_date }}.</strong>
+    {% if not model.how_checked.scope_recorded %}<span class="muted">The reviewer hasn't recorded which checks this review covered yet.</span>{% endif %}</p>
+  {% endif %}
+    <p class="muted small">A review means a named person looked at what the tool can't check — the inputs it takes on trust and the judgment calls — and found nothing wrong. It is not an independent replication.</p>
+    <ul class="checklist">
+      <li class="check-tool">
+        <details>
+          <summary><span class="check-mark" aria-hidden="true">✓</span><span class="check-label">Checked by the tool</span><span class="check-desc">manifest hashes, re-runs, every rule and dataset identifiers</span></summary>
+          <ul>
+          {% for line in model.how_checked.tool %}
+            <li>{{ line }}</li>
           {% endfor %}
-        </ul>
-        {% else %}
-        <p class="muted">The reviewer hasn't recorded which checks this review covered yet.</p>
+          </ul>
+        </details>
+      </li>
+    {% for c in model.how_checked.checks %}
+      <li class="{{ 'check-done' if c.done else 'check-open' }}">
+        <details>
+          <summary><span class="check-mark" aria-hidden="true">{{ "✓" if c.done else "○" }}</span><span class="check-label">{{ c.label }}</span><span class="sr-only">{{ "reviewed" if c.done else "not reviewed" }}:</span><span class="check-desc">{{ c.text }}</span></summary>
+          <p class="check-status">{{ "Reviewed." if c.done else "Not checked yet." }} {{ c.text }}</p>
+        {% if c.points %}
+          <ul class="calls">
+            {% for p in c.points %}<li>{{ p }}</li>{% endfor %}
+          </ul>
         {% endif %}
-      {% endif %}
-        <p class="muted small">A review means a named person looked at what the tool can't check — the inputs it takes on trust and the judgment calls — and found nothing wrong. It is not an independent replication.</p>
-      </div>
-      <div>
-        <h3>Not checked yet</h3>
-      {% if model.how_checked.not_checked %}
-        <ul>
-        {% for item in model.how_checked.not_checked %}
-          <li>{{ item.text }}
-            {% if item.points %}
-            <ul class="calls">
-              {% for c in item.points %}<li>{{ c }}</li>{% endfor %}
-            </ul>
-            {% endif %}
-          </li>
-        {% endfor %}
-        </ul>
-      {% else %}
-        <p class="muted">Nothing outstanding.</p>
-      {% endif %}
-      </div>
-    </div>
+        </details>
+      </li>
+    {% endfor %}
+    </ul>
+  {% if model.how_checked.outstanding %}
+    <p class="not-checked"><strong>Not checked yet:</strong> {{ model.how_checked.outstanding | join(" ") }}</p>
+  {% endif %}
   </section>
 
 {% if model.paper.note %}
@@ -106,6 +98,8 @@
     {% if manifest_type_explanations.get(corpus.manifest_type) %} — {{ manifest_type_explanations[corpus.manifest_type] }}{% endif %}
     </p>
 
+    <details class="fold">
+      <summary>{{ "What the paper says about its splits" if corpus.manifest_type == "by-design" else "The training-data list: quote and sources" }}</summary>
     <blockquote class="quote" cite="#">{{ corpus.quote }}</blockquote>
 
   {% if corpus.pointer %}
@@ -148,25 +142,30 @@
     {% endif %}
     </p>
   {% endif %}
+    </details>
 
   {% if corpus.splits %}
-    <h3>What this stage trains on</h3>
+    <details class="fold">
+      <summary>What this stage trains on</summary>
     <p class="section-note">By design, this stage trains on these evaluation datasets and tests on what each holds out. These findings are not counted as exposure.</p>
     <ul class="splits">
     {% for s in corpus.splits %}
       <li><a href="../datasets/{{ s.dataset }}.html">{{ s.name }}</a> — held out: {{ s.held_out }}{% if s.note %} ({{ s.note }}){% endif %}</li>
     {% endfor %}
     </ul>
+    </details>
   {% endif %}
 
   {% if corpus.unresolved_entries %}
-    <h3>Entries this list can't search exactly</h3>
+    <details class="fold">
+      <summary>Entries this list can't search exactly</summary>
     <p class="section-note">A dataset missing from the list could be inside one of these, so no finding against this list can be NOT PRESENT until they are resolved.</p>
     <ul class="unresolved">
     {% for u in corpus.unresolved_entries %}
       <li><code>{{ u.entry }}</code> — {{ "a collection whose datasets aren't listed" if u.kind == "collection" else "named without an identifier" }}{% if u.note %}: {{ u.note }}{% endif %}</li>
     {% endfor %}
     </ul>
+    </details>
   {% endif %}
 
   {% if corpus.caveats %}
@@ -179,58 +178,15 @@
   {% endif %}
 
     <h3>Findings</h3>
-  {% if corpus.reported_eval_findings %}
+  {% if corpus.reported_groups %}
     <h4>Reported evals <span class="section-note">— datasets this model's paper evaluated on, checked against this training corpus</span></h4>
-    <ul class="findings">
-    {% for f in corpus.reported_eval_findings %}
-      <li id="finding-{{ f.dataset }}-{{ f.stage }}" class="finding">
-        <a href="../datasets/{{ f.dataset }}.html">{{ f.dataset_name }}</a>
-        {{ m.verdict_chip(f.verdict, f.by_design) }}
-        {{ m.reported_eval_marker() }}
-      {% if f.identity == "provisional" %}
-        {{ m.identity_badge(f.identity_basis) }}
-      {% endif %}
-        <div class="finding-detail">
-        {% if f.keys_attempted %}<p>Keys attempted: {{ f.keys_attempted | join(", ") }}</p>{% endif %}
-        {% if f.keys_absent %}<p>None exists (recorded in the catalog, not searched): {{ f.keys_absent | join(", ") }}</p>{% endif %}
-        {% if f.matched_on %}<p>Matched on: {{ f.matched_on | join(", ") }}</p>{% endif %}
-        {% if f.samples is not none or f.cells is not none %}
-          <p>{% if f.samples is not none %}{{ f.samples }} sample(s){% endif %}{% if f.cells is not none %} · {{ "{:,}".format(f.cells) }} cells{% endif %}</p>
-        {% endif %}
-        {% if f.sample_ids %}<p>Sample IDs: {{ f.sample_ids | join(", ") }}</p>{% endif %}
-        {% if f.by_design %}<p>Trained on by design; held out for testing: {{ f.by_design }}.</p>{% elif f.overlap_level %}<p>Overlap level: {{ f.overlap_level }}</p>{% endif %}
-        {% if f.reason %}<p class="reason">{{ f.reason }}</p>{% endif %}
-        {% if f.note %}<p class="note">{{ f.note }}</p>{% endif %}
-        </div>
-      </li>
-    {% endfor %}
-    </ul>
+    {{ m.finding_groups(corpus.reported_groups) }}
   {% endif %}
-  {% if corpus.catalog_findings %}
-    <h4>Other catalog datasets <span class="section-note">— every other dataset in the shared benchmark catalog</span></h4>
-    <ul class="findings">
-    {% for f in corpus.catalog_findings %}
-      <li id="finding-{{ f.dataset }}-{{ f.stage }}" class="finding">
-        <a href="../datasets/{{ f.dataset }}.html">{{ f.dataset_name }}</a>
-        {{ m.verdict_chip(f.verdict, f.by_design) }}
-      {% if f.identity == "provisional" %}
-        {{ m.identity_badge(f.identity_basis) }}
-      {% endif %}
-        <div class="finding-detail">
-        {% if f.keys_attempted %}<p>Keys attempted: {{ f.keys_attempted | join(", ") }}</p>{% endif %}
-        {% if f.keys_absent %}<p>None exists (recorded in the catalog, not searched): {{ f.keys_absent | join(", ") }}</p>{% endif %}
-        {% if f.matched_on %}<p>Matched on: {{ f.matched_on | join(", ") }}</p>{% endif %}
-        {% if f.samples is not none or f.cells is not none %}
-          <p>{% if f.samples is not none %}{{ f.samples }} sample(s){% endif %}{% if f.cells is not none %} · {{ "{:,}".format(f.cells) }} cells{% endif %}</p>
-        {% endif %}
-        {% if f.sample_ids %}<p>Sample IDs: {{ f.sample_ids | join(", ") }}</p>{% endif %}
-        {% if f.by_design %}<p>Trained on by design; held out for testing: {{ f.by_design }}.</p>{% elif f.overlap_level %}<p>Overlap level: {{ f.overlap_level }}</p>{% endif %}
-        {% if f.reason %}<p class="reason">{{ f.reason }}</p>{% endif %}
-        {% if f.note %}<p class="note">{{ f.note }}</p>{% endif %}
-        </div>
-      </li>
-    {% endfor %}
-    </ul>
+  {% if corpus.catalog_groups %}
+    <details class="fold">
+      <summary>Other catalog datasets <span class="section-note">— every other dataset in the shared benchmark catalog</span></summary>
+    {{ m.finding_groups(corpus.catalog_groups) }}
+    </details>
   {% endif %}
   </section>
 {% endfor %}

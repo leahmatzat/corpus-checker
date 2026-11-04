@@ -2,7 +2,7 @@
    keeps the TEXT label as the primary signal — colour is decoration, never the only cue. #}
 
 {% macro verdict_chip(verdict, by_design=None) -%}
-{% if by_design %}<span class="verdict v-by-design" title="Trained on by design; held out for testing: {{ by_design }}. Not exposure.">PRESENT · by design</span>{% else %}<span class="verdict v-{{ verdict|verdictslug }}">{{ verdict }}</span>{% endif %}
+{% if by_design %}<span class="verdict v-by-design" title="Trained on by design{% if by_design is string %}; held out for testing: {{ by_design }}{% endif %}. Not exposure.">PRESENT · by design</span>{% else %}<span class="verdict v-{{ verdict|verdictslug }}">{{ verdict }}</span>{% endif %}
 {%- endmacro %}
 
 {% macro reported_eval_marker() -%}
@@ -28,9 +28,65 @@
 {%- endmacro %}
 
 
+{# One training stage in a sentence or two (site._stage_summary): the reported evals found in its
+   corpus, by name, then the rest in words, never counted. `page` is the model page's href from
+   where this renders ("" on the model page itself). #}
+{% macro stage_summary(s, page) -%}
+<span class="stage-name"><a href="{{ page }}#corpus-{{ s.stage }}">{{ s.stage }}</a></span>
+<span class="manifest-short">{{ s.manifest_short }}</span>
+<span class="stage-sentences">
+{% if s.summary.by_design %}
+  <span class="stage-sentence">By design, it trains on part of its own evaluation datasets and tests on what each holds out. This is not exposure.</span>
+{% else %}
+  {% if s.summary.present %}
+  <span class="stage-sentence">In training corpus: {% for p in s.summary.present %}<a class="eval-chip v-present" data-dataset="{{ p.dataset }}" href="{{ page }}#finding-{{ p.dataset }}-{{ s.stage }}">{{ p.name }}{% if p.provisional %} <span aria-label="provisional identity">◐</span>{% endif %}</a> {% endfor %}</span>
+  {% endif %}
+  {% if s.summary.rest %}
+  <span class="stage-sentence">{{ s.summary.rest }}{% if s.summary.why %} Why: {{ s.summary.why | join("; ") }}.{% endif %}</span>
+  {% endif %}
+{% endif %}
+</span>
+{%- endmacro %}
+
+
+{# A model page's findings, grouped (site._group_findings): one verdict, reason and set of keys per
+   group, said once, with its datasets under it. Every dataset keeps its own anchor. #}
+{% macro finding_groups(groups) -%}
+<ul class="finding-groups">
+{% for g in groups %}
+  <li class="finding-group">
+    <p class="group-head">{{ verdict_chip(g.verdict, g.by_design) }}{% if g.keys_attempted %} <span class="muted">Keys attempted: {{ g.keys_attempted | join(", ") }}</span>{% endif %}</p>
+  {% if g.reason %}
+    <p class="reason">{{ g.reason }}</p>
+  {% endif %}
+    <ul class="group-items{% if not g.detailed %} inline{% endif %}">
+    {% for f in g.members %}
+      <li id="finding-{{ f.dataset }}-{{ f.stage }}" class="finding"><a href="../datasets/{{ f.dataset }}.html">{{ f.dataset_name }}</a>{% if f.identity == "provisional" %} {{ identity_badge(f.identity_basis) }}{% endif %}
+      {% if f.has_detail %}
+        <div class="finding-detail">
+        {% if f.own_keys %}<p>Keys attempted: {{ f.own_keys | join(", ") }}</p>{% endif %}
+        {% if f.keys_absent %}<p>None exists (recorded in the catalog, not searched): {{ f.keys_absent | join(", ") }}</p>{% endif %}
+        {% if f.matched_on %}<p>Matched on: {{ f.matched_on | join(", ") }}</p>{% endif %}
+        {% if f.samples is not none or f.cells is not none %}
+          <p>{% if f.samples is not none %}{{ f.samples }} sample(s){% endif %}{% if f.cells is not none %} · {{ "{:,}".format(f.cells) }} cells{% endif %}</p>
+        {% endif %}
+        {% if f.sample_ids %}<p>Sample IDs: {{ f.sample_ids | join(", ") }}</p>{% endif %}
+        {% if f.by_design %}<p>Trained on by design; held out for testing: {{ f.by_design }}.</p>{% elif f.overlap_level and f.verdict == "PRESENT" %}<p>Overlap level: {{ f.overlap_level }}</p>{% endif %}
+        {% if f.note %}<p class="note">{{ f.note }}</p>{% endif %}
+        </div>
+      {% endif %}
+      </li>
+    {% endfor %}
+    </ul>
+  </li>
+{% endfor %}
+</ul>
+{%- endmacro %}
+
+
 {# One reported eval on the home page. The column it sits in says the answer; the chip keeps its
-   verdict style, spells out "can't tell" / "unknown" / "not checked" in the last column, and
-   carries the full verdict in its title. #}
+   verdict style, spells out "inconclusive" / "not checkable" / "not checked" in the last column,
+   and carries the full verdict in its title. #}
 {% macro eval_chip(chip) -%}
 <a class="eval-chip {% if chip.by_design %}v-by-design{% elif chip.verdict %}v-{{ chip.verdict|verdictslug }}{% else %}v-not-checked{% endif %}" data-dataset="{{ chip.dataset }}" href="{{ chip.href }}" title="{{ chip.name }}: {{ chip.title }}">{{ chip.name }}{% if chip.suffix %} · {{ chip.suffix }}{% endif %}{% if chip.provisional %} <span aria-label="provisional identity">◐</span>{% endif %}</a>
 {%- endmacro %}

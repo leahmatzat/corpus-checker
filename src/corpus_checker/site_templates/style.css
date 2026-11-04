@@ -257,6 +257,8 @@ thead th {
   line-height: 1.5;
   text-decoration: none;
 }
+/* Dataset names can be long; on a narrow screen a chip wraps rather than running off the edge. */
+.eval-chip { white-space: normal; max-width: 100%; }
 .eval-chip.v-present, .grid-chip.v-present { font-weight: 600; }
 .v-not-checked {
   background: var(--bg-alt); color: var(--muted);
@@ -269,13 +271,54 @@ a.v-not-checkable, a.v-not-checkable:visited { color: var(--v-notcheckable-fg); 
 a.v-not-checked, a.v-not-checked:visited { color: var(--muted); }
 a.eval-chip:hover, a.grid-chip:hover { text-decoration: underline; }
 
-.by-model { min-width: 0; table-layout: fixed; }
+.model-group-h { margin-top: 1.6em; }
+.model-cards { display: flex; flex-direction: column; gap: 0.8em; }
+.model-card {
+  border: 1px solid var(--border);
+  border-radius: 0.4em;
+  padding: 0.7em 1em;
+}
+.model-card-name { margin: 0 0 0.4em; font-size: 1.05em; }
+
+/* One line per training stage: its name and list type, then a sentence or two. */
+.stage-summaries { list-style: none; padding: 0; margin: 0; }
+.stage-summaries > li {
+  display: grid;
+  grid-template-columns: 8.5em 1fr;
+  grid-template-areas: "name sentences" "type sentences";
+  grid-template-rows: auto 1fr;
+  column-gap: 0.8em;
+  padding: 0.35em 0;
+}
+.stage-summaries > li + li { border-top: 1px solid var(--border); }
+.stage-name { grid-area: name; font-weight: 600; }
+.stage-summaries .manifest-short { grid-area: type; }
+.stage-sentences { grid-area: sentences; }
+.stage-sentence { display: block; margin-bottom: 0.15em; }
+
+.at-a-glance .stage-summaries {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 0.4em;
+  padding: 0.4em 1em;
+}
+
+/* Folded sections: the summary line is the handle; everything inside is still in the page. */
+details > summary { cursor: pointer; }
+details.all-evals { margin-top: 0.5em; }
+details.all-evals > summary, details.fold > summary { color: var(--link); }
+details.fold {
+  border: 1px solid var(--border);
+  border-radius: 0.4em;
+  padding: 0.5em 0.9em;
+  margin: 0.8em 0;
+}
+details.fold[open] > summary { margin-bottom: 0.5em; }
+details.fold > summary .section-note { color: var(--muted); }
+
+.by-model { min-width: 0; table-layout: fixed; margin-top: 0.5em; }
 .by-model th:nth-child(1) { width: 9em; }
-.by-model th:nth-child(2) { width: 9em; }
-.by-model-group + .by-model-group { border-top: 2px solid var(--border); }
-.by-model-name { font-weight: 600; background: var(--bg); }
-.by-model-name .draft-badge { white-space: normal; margin-top: 0.3em; font-weight: 500; }
-.manifest-short { display: block; font-size: 0.8em; color: var(--muted); }
+.manifest-short { display: block; font-size: 0.8em; color: var(--muted); font-weight: normal; }
 .by-model td.answer { white-space: normal; }
 
 .reuse-table { min-width: 0; }
@@ -364,16 +407,24 @@ a.eval-chip:hover, a.grid-chip:hover { text-decoration: underline; }
 }
 .pointer-info p { margin: 0.3em 0; }
 
-.caveats li, .findings li { margin-bottom: 0.6em; }
-.findings { list-style: none; padding-left: 0; }
-.finding {
+.caveats li { margin-bottom: 0.6em; }
+
+/* Findings that share a verdict and a reason: said once, datasets listed under it. */
+.finding-groups { list-style: none; padding-left: 0; margin: 0.4em 0; }
+.finding-group {
   border: 1px solid var(--border);
   border-radius: 0.4em;
   padding: 0.6em 0.8em;
   margin-bottom: 0.6em;
 }
-.finding-detail p { margin: 0.3em 0; font-size: 0.95em; }
-.finding-detail .reason { color: var(--fg); }
+.group-head { margin: 0 0 0.3em; }
+.finding-group > .reason { margin: 0.2em 0 0.4em; font-size: 0.95em; }
+.group-items { padding-left: 1.1em; margin: 0.3em 0 0; }
+.group-items > li { margin-bottom: 0.35em; }
+.group-items.inline { list-style: none; padding-left: 0; }
+.group-items.inline > li { display: inline; margin: 0; }
+.group-items.inline > li:not(:last-child)::after { content: " · "; color: var(--muted); }
+.finding-detail p { margin: 0.2em 0; font-size: 0.92em; }
 
 .dispute {
   border: 2px solid var(--v-inconclusive-border);
@@ -389,21 +440,33 @@ a.eval-chip:hover, a.grid-chip:hover { text-decoration: underline; }
 
 /* ------------------------------------------------------------------ model page: how this entry was checked */
 
-.how-checked-cols {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 1em;
-}
-.how-checked-cols > div {
+.review-line { margin: 0.4em 0 0.2em; }
+.checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0.6em 0;
   border: 1px solid var(--border);
   border-radius: 0.4em;
-  padding: 0.7em 1em;
-  background: var(--bg);
 }
-.how-checked-cols h3 { margin-top: 0; font-size: 1em; }
-.how-checked-cols ul { padding-left: 1.1em; margin: 0.4em 0; }
-.how-checked-cols li { margin-bottom: 0.35em; }
-.how-checked-cols ul.calls { font-size: 0.92em; color: var(--muted); margin-top: 0.25em; }
+.checklist > li { padding: 0.45em 0.9em; }
+.checklist > li + li { border-top: 1px solid var(--border); }
+.checklist summary { display: flex; align-items: baseline; gap: 0.6em; list-style: none; }
+.checklist summary::-webkit-details-marker { display: none; }
+/* display: flex drops the browser's own triangle, so draw one: it says the row opens. */
+.checklist summary::after { content: "▸"; color: var(--muted); flex: none; }
+.checklist details[open] > summary::after { content: "▾"; }
+.check-mark { width: 1em; flex: none; text-align: center; }
+.check-done .check-mark, .check-tool .check-mark { color: var(--v-present-border); }
+.check-open .check-mark { color: var(--muted); }
+.check-label { font-weight: 600; flex: none; }
+/* Closed, a check shows one line of what it covers; open, the whole of it and its points. */
+.check-desc { color: var(--muted); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.checklist details[open] .check-desc { display: none; }
+.check-status { margin: 0.4em 0 0.2em 1.6em; }
+.checklist details ul { padding-left: 2.7em; margin: 0.3em 0; }
+.checklist details li { margin-bottom: 0.3em; }
+.checklist ul.calls { font-size: 0.92em; color: var(--muted); }
+.not-checked { margin: 0.4em 0; }
 .small { font-size: 0.85em; }
 
 /* ------------------------------------------------------------------ about / rendered markdown */
@@ -570,13 +633,13 @@ a.eval-chip:hover, a.grid-chip:hover { text-decoration: underline; }
   .model-meta { grid-template-columns: 1fr; }
   .model-meta dt { margin-top: 0.4em; }
 
-  /* reported evals by model: each stage row becomes a block, answer cells stack with labels */
-  .by-model-scroll { border: none; overflow: visible; }
+  /* stage summaries: name above the sentences */
+  .stage-summaries > li { grid-template-columns: 1fr; grid-template-areas: "name" "type" "sentences"; }
+
+  /* all reported evals: each stage row becomes a block, answer cells stack with labels */
+  .model-card .table-scroll { border: none; overflow: visible; }
   .by-model, .by-model tbody, .by-model tr, .by-model th, .by-model td { display: block; width: auto !important; }
   .by-model thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-  .by-model-group { border: 1px solid var(--border); border-radius: 0.4em; margin-bottom: 0.8em; }
-  .by-model-group + .by-model-group { border-top: 1px solid var(--border); }
-  .by-model-name { border-bottom: none; background: var(--bg-alt); }
   .by-model tr { border-bottom: 1px solid var(--border); }
   .by-model td { border-bottom: none; padding: 0.3em 0.7em; }
   .by-model td.answer:empty { display: none; }

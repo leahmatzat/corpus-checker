@@ -19,55 +19,63 @@
 
 <section class="by-model-section" aria-labelledby="by-model-h">
   <h2 id="by-model-h">Reported evals by model</h2>
-  <p>Each row is one training stage of one model. Its reported evals — the datasets the model's own paper
-     evaluated on — are sorted by whether they were found in that stage's training corpus. Click a dataset for the
-     full finding and evidence.</p>
+  <p>Each model's reported evals are the datasets its own paper evaluated on. Under each training stage are the
+     ones found in that stage's training corpus. Open “All reported evals” to see every one, sorted by verdict,
+     or click a dataset for its finding and evidence.</p>
   <p class="legend-line muted">
-    <span class="eval-chip v-present">In training corpus</span> PRESENT ·
-    <span class="eval-chip v-not-present">Not in training corpus</span> NOT PRESENT ·
-    <span class="eval-chip v-inconclusive">can't tell</span> INCONCLUSIVE ·
-    <span class="eval-chip v-not-checkable">unknown</span> NOT CHECKABLE ·
-    <span class="eval-chip v-by-design">by design</span> the stage trains on it by design (not exposure) ·
+    <span class="eval-chip v-present">In training corpus</span>
+    <span class="eval-chip v-not-present">Not in training corpus</span>
+    <span class="eval-chip v-inconclusive">Inconclusive</span>
+    <span class="eval-chip v-not-checkable">Not checkable</span>
+    <span class="eval-chip v-by-design">by design</span> trained on by design (not exposure) ·
     ◐ provisional identity ·
     <a href="about.html#howto-h">how to read a verdict</a>
   </p>
-  <div class="table-scroll by-model-scroll">
-    <table class="by-model">
-      <caption class="sr-only">Each model's reported evals, by training stage, sorted by whether they were found in that stage's training corpus. There is no per-model score.</caption>
-      <thead>
-        <tr>
-          <th scope="col">Model</th>
-          <th scope="col">Training stage</th>
-          <th scope="col">In training corpus</th>
-          <th scope="col">Not in training corpus</th>
-          <th scope="col">Can't tell / unknown</th>
-        </tr>
-      </thead>
-    {% for model in model_rows %}
-      <tbody class="by-model-group">
+{% for group in model_groups %}
+  <h3 class="model-group-h">{{ group.title }}</h3>
+  {% if group.note %}<p class="section-note">{{ group.note }}</p>{% endif %}
+  <div class="model-cards">
+  {% for model in group.models %}
+    <article class="model-card" id="model-{{ model.id }}" data-model="{{ model.id }}">
+      <h4 class="model-card-name"><a href="models/{{ model.id }}.html">{{ model.name }}</a>{% if model.draft %} {{ m.draft_badge() }}{% endif %}</h4>
+      <ul class="stage-summaries">
       {% for s in model.stages %}
-        <tr>
-        {% if loop.first %}
-          <th scope="rowgroup" rowspan="{{ model.stages|length }}" class="by-model-name">
-            <a href="models/{{ model.id }}.html">{{ model.name }}</a>
-          {% if model.draft %}
-            <br>{{ m.draft_badge() }}
-          {% endif %}
-          </th>
-        {% endif %}
-          <td class="by-model-stage">
-            <a href="models/{{ model.id }}.html#corpus-{{ s.stage }}">{{ s.stage }}</a>
-            <span class="manifest-short">type {{ s.manifest_type }}{% if s.manifest_short %} · {{ s.manifest_short }}{% endif %}</span>
-          </td>
-          <td class="answer" data-label="In training corpus">{% for chip in s.present %}{{ m.eval_chip(chip) }} {% endfor %}</td>
-          <td class="answer" data-label="Not in training corpus">{% for chip in s.not_present %}{{ m.eval_chip(chip) }} {% endfor %}</td>
-          <td class="answer" data-label="Can't tell / unknown">{% for chip in s.unclear %}{{ m.eval_chip(chip) }} {% endfor %}</td>
-        </tr>
+        <li>{{ m.stage_summary(s, "models/" ~ model.id ~ ".html") }}</li>
       {% endfor %}
-      </tbody>
-    {% endfor %}
-    </table>
+      </ul>
+      <details class="all-evals">
+        <summary>All reported evals</summary>
+        <div class="table-scroll">
+        <table class="by-model">
+          <caption class="sr-only">{{ model.name }}: reported evals by training stage, sorted by whether they were found in that stage's training corpus.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Training stage</th>
+              <th scope="col">In training corpus</th>
+              <th scope="col">Not in training corpus</th>
+              <th scope="col">Inconclusive / not checkable</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for s in model.stages %}
+            <tr>
+              <th scope="row" class="by-model-stage">
+                <a href="models/{{ model.id }}.html#corpus-{{ s.stage }}">{{ s.stage }}</a>
+                <span class="manifest-short">type {{ s.manifest_type }}{% if s.manifest_short %} · {{ s.manifest_short }}{% endif %}</span>
+              </th>
+              <td class="answer" data-label="In training corpus">{% for chip in s.present %}{{ m.eval_chip(chip) }} {% endfor %}</td>
+              <td class="answer" data-label="Not in training corpus">{% for chip in s.not_present %}{{ m.eval_chip(chip) }} {% endfor %}</td>
+              <td class="answer" data-label="Inconclusive / not checkable">{% for chip in s.unclear %}{{ m.eval_chip(chip) }} {% endfor %}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        </div>
+      </details>
+    </article>
+  {% endfor %}
   </div>
+{% endfor %}
   <p class="muted">To compare every model against every dataset in the catalog, see <a href="all-datasets.html">All datasets</a>.</p>
 </section>
 
