@@ -17,6 +17,7 @@ EXPECTED_OPEN_ERRORS = {
     "registry/cellplm.yaml": set(),
     "registry/uce.yaml": set(),
     "registry/cpa.yaml": set(),
+    "registry/cellot.yaml": set(),
 }
 
 
