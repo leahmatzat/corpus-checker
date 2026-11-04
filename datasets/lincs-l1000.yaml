@@ -1,0 +1,14 @@
+schema_version: 1
+id: lincs-l1000
+name: LINCS L1000 (as used by CPA)
+kind: perturbation
+organism: [human]
+identifiers:
+  - type: url
+    value: https://github.com/theislab/cpa-reproducibility
+    confirmed: false
+    via: CPA's data availability statement
+    note: The repository of CPA's analyses, not a record of the data; CPA cites only a review (Musa et al. 2019) for L1000.
+note: >
+  Bulk L1000 perturbation profiles: about 1,000 compounds across 82 cell lines in CPA's release. No archive
+  accession or paper identifier is recorded here, so no manifest can be searched for it exactly.

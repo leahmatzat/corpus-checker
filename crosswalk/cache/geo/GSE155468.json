@@ -1,0 +1,68 @@
+{
+  "accessions": [
+    "GSE155468",
+    "PRJNA649846",
+    "SRP274475"
+  ],
+  "doi": "10.1161/CIRCULATIONAHA.120.046528",
+  "organism": "Homo sapiens",
+  "pmcid": "PMC7539140",
+  "pmids": [
+    "33017217",
+    "37308786"
+  ],
+  "query": "GSE155468",
+  "retrieved": "2026-10-14",
+  "samples": [
+    [
+      "GSM4704931",
+      "Control4"
+    ],
+    [
+      "GSM4704932",
+      "Control6"
+    ],
+    [
+      "GSM4704933",
+      "Control9"
+    ],
+    [
+      "GSM4704934",
+      "ATAA1"
+    ],
+    [
+      "GSM4704935",
+      "ATAA2"
+    ],
+    [
+      "GSM4704936",
+      "ATAA3"
+    ],
+    [
+      "GSM4704937",
+      "ATAA4"
+    ],
+    [
+      "GSM4704938",
+      "ATAA5"
+    ],
+    [
+      "GSM4704939",
+      "ATAA6"
+    ],
+    [
+      "GSM4704940",
+      "ATAA7"
+    ],
+    [
+      "GSM4704941",
+      "ATAA8"
+    ]
+  ],
+  "sources": [
+    "esearch.fcgi?db=gds",
+    "esummary.fcgi?db=gds",
+    "esummary.fcgi?db=pubmed"
+  ],
+  "title": "Single-cell Transcriptome Analysis Reveals Dynamic Cell Populations and Differential Gene Expression Patterns in Control and Aneurysmal Human Aortic Tissue"
+}

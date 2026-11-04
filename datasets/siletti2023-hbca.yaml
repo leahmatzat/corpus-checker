@@ -1,0 +1,13 @@
+schema_version: 1
+id: siletti2023-hbca
+name: Human Brain Cell Atlas v1.0 (whole atlas)
+kind: observational
+organism: [human]
+identifiers:
+  - {type: cellxgene_collection, value: 283d65eb-dd53-496d-adb7-7570c7caa443, confirmed: true, via: "CELLxGENE curation API collections list, matched on the collection's DOI, 2026-10-14"}
+  - {type: pmid, value: "37824663", confirmed: true, via: "esummary db=pubmed — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,  value: 10.1126/science.add7046, confirmed: true, via: "esummary db=pubmed id=37824663 — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,  value: 10.1101/2022.10.12.511898, confirmed: true, via: "collection_doi of this collection in CELLxGENE census 2023-05-15 and 2023-07-25 (snapshots/cellxgene-census/): the bioRxiv preprint of the paper above"}
+note: >-
+  The whole collection (138 datasets in census 2023-05-15). siletti2022-perirhinal is the same
+  collection's perirhinal dissections, kept separately for models that evaluate on those alone.

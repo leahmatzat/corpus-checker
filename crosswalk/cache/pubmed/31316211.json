@@ -1,0 +1,17 @@
+{
+  "accessions": [],
+  "doi": "10.1038/s41586-019-1404-z",
+  "organism": null,
+  "pmcid": "PMC6731122",
+  "pmids": [
+    "31316211"
+  ],
+  "query": "31316211",
+  "retrieved": "2026-10-14",
+  "samples": [],
+  "sources": [
+    "esummary.fcgi?db=pubmed",
+    "elink.fcgi?dbfrom=pubmed&db=gds"
+  ],
+  "title": "Neuronal vulnerability and multilineage diversity in multiple sclerosis."
+}

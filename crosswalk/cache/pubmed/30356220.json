@@ -1,0 +1,17 @@
+{
+  "accessions": [],
+  "doi": "10.1038/s41586-018-0657-2",
+  "organism": null,
+  "pmcid": "PMC6347972",
+  "pmids": [
+    "30356220"
+  ],
+  "query": "30356220",
+  "retrieved": "2026-10-28",
+  "samples": [],
+  "sources": [
+    "esummary.fcgi?db=pubmed",
+    "elink.fcgi?dbfrom=pubmed&db=gds"
+  ],
+  "title": "Gene expression variability across cells and species shapes innate immunity."
+}

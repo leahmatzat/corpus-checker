@@ -1,0 +1,71 @@
+{
+  "accessions": [
+    "GSE159107",
+    "PRJNA667705",
+    "SRP286543"
+  ],
+  "doi": "10.7554/eLife.63907",
+  "organism": "Gallus gallus",
+  "pmcid": "PMC7837701",
+  "pmids": [
+    "33393903"
+  ],
+  "query": "GSE159107",
+  "retrieved": "2026-10-14",
+  "samples": [
+    [
+      "GSM4819625",
+      "E18 chick retina, sample 1"
+    ],
+    [
+      "GSM4819626",
+      "E18 chick retina, sample 2"
+    ],
+    [
+      "GSM4819627",
+      "E18 chick retina, sample 3"
+    ],
+    [
+      "GSM4819628",
+      "E18 chick retina, sample 4"
+    ],
+    [
+      "GSM4819629",
+      "E16 chick retina, sample 1"
+    ],
+    [
+      "GSM4819630",
+      "E16 chick retina, sample 2"
+    ],
+    [
+      "GSM4819631",
+      "E16 chick retina, sample 3"
+    ],
+    [
+      "GSM4819632",
+      "E16 chick retina, sample 4"
+    ],
+    [
+      "GSM4819633",
+      "E12 chick retina, sample 1"
+    ],
+    [
+      "GSM4819634",
+      "E12 chick retina, sample 2"
+    ],
+    [
+      "GSM4819635",
+      "E12 chick retina, sample 3"
+    ],
+    [
+      "GSM4819636",
+      "E12 chick retina, sample 4"
+    ]
+  ],
+  "sources": [
+    "esearch.fcgi?db=gds",
+    "esummary.fcgi?db=gds",
+    "esummary.fcgi?db=pubmed"
+  ],
+  "title": "Cell Atlas Of The Chick Retina: Single Cell Profiling Identifies 150 Cell Types"
+}

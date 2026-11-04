@@ -1,0 +1,11 @@
+schema_version: 1
+id: mantri2021-chick-heart
+name: Developing chicken heart (Mantri 2021)
+kind: observational
+organism: [chicken]
+identifiers:
+  - {type: geo,        value: GSE149457, confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-14"}
+  - {type: pmid,       value: "33741943", confirmed: true, via: "GSE149457 pubmedids (the first of two; 33846360 is a second paper using the series) — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,        value: 10.1038/s41467-021-21892-z, confirmed: true, via: "esummary db=pubmed id=33741943 — NCBI E-utilities, 2026-10-14"}
+  - {type: bioproject, value: PRJNA628708, confirmed: true, via: "esummary db=gds (GSE149457) — NCBI E-utilities, 2026-10-14"}
+note: Spatiotemporal scRNA-seq of developing chicken hearts.

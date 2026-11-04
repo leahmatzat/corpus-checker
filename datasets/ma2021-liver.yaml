@@ -1,0 +1,11 @@
+schema_version: 1
+id: ma2021-liver
+name: Liver cancer (Ma 2021)
+kind: observational
+organism: [human]
+identifiers:
+  - {type: geo,        value: GSE151530,                 confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-14"}
+  - {type: pmid,       value: "34216724",                confirmed: true, via: "GSE151530 pubmedids (the first of two; 31588021 is an earlier paper from the same group) — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,        value: 10.1016/j.jhep.2021.06.028, confirmed: true, via: "esummary db=pubmed id=34216724 — NCBI E-utilities, 2026-10-14"}
+  - {type: bioproject, value: PRJNA636285,               confirmed: true, via: "esummary db=gds (GSE151530) — NCBI E-utilities, 2026-10-14"}
+note: Hepatocellular carcinoma and intrahepatic cholangiocarcinoma, scRNA-seq.

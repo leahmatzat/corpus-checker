@@ -1,0 +1,9 @@
+schema_version: 1
+id: schroeder2025-astrocyte
+name: Astrocyte atlas, developing mouse brain (Schroeder 2025)
+kind: observational
+organism: [mouse, marmoset]
+identifiers:
+  - {type: pmid, value: "41270736", confirmed: true, via: "esummary db=pubmed — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,  value: 10.1016/j.neuron.2025.09.011, confirmed: true, via: "esummary db=pubmed id=41270736 — NCBI E-utilities, 2026-10-14"}
+note: Astrocyte heterogeneity across space and development. GEO lists GSE309702 for the paper; that it holds the 597,668 cells UCE used is not confirmed, so it is not recorded.

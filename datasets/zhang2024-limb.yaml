@@ -1,0 +1,10 @@
+schema_version: 1
+id: zhang2024-limb
+name: Human embryonic limb atlas (Zhang 2024)
+kind: observational
+organism: [human]
+identifiers:
+  - {type: cellxgene_collection, value: 4fefa187-5d14-4f1e-915b-c892ed320aab, confirmed: true, via: "CELLxGENE curation API collections list, matched on the collection's DOI, 2026-10-14"}
+  - {type: pmid, value: "38057666", confirmed: true, via: "esummary db=pubmed — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,  value: 10.1038/s41586-023-06806-x, confirmed: true, via: "esummary db=pubmed id=38057666 — NCBI E-utilities, 2026-10-14"}
+note: Single-cell and spatial atlas of the developing human limb.

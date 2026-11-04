@@ -1,0 +1,18 @@
+schema_version: 1
+id: lotfollahi2022-covid
+name: COVID-19 (scArches reference-mapping benchmark)
+kind: observational
+organism: [human]
+identifiers:
+  - type: url
+    value: https://github.com/theislab/scarches-reproducibility
+    confirmed: true
+    via: scGPT data availability statement (Nat Methods 2024)
+sources:
+  - name: scArches reproducibility repository
+    url: https://github.com/theislab/scarches-reproducibility
+    note: Where scGPT obtained the processed data.
+note: >
+  A composite assembled for scArches (Lotfollahi et al., Nat Biotechnol 2022): 18 batches of lung,
+  PBMC and bone-marrow cells, 274,346 cells before scGPT subsampled it to 20,000. The source studies
+  of its batches are not yet identified here, so no manifest can be searched for it exactly.

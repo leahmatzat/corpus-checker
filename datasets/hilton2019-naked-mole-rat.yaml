@@ -1,0 +1,11 @@
+schema_version: 1
+id: hilton2019-naked-mole-rat
+name: Naked mole-rat spleen and immune cells (Hilton 2019)
+kind: observational
+organism: [naked mole-rat, mouse]
+identifiers:
+  - {type: geo,        value: GSE132642, confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-14"}
+  - {type: pmid,       value: "31751331", confirmed: true, via: "GSE132642 pubmedids — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,        value: 10.1371/journal.pbio.3000528, confirmed: true, via: "esummary db=pubmed id=31751331 — NCBI E-utilities, 2026-10-14"}
+  - {type: bioproject, value: PRJNA548723, confirmed: true, via: "esummary db=gds (GSE132642) — NCBI E-utilities, 2026-10-14"}
+note: Spleen and circulating immune cells of naked mole-rat and mouse, droplet scRNA-seq.

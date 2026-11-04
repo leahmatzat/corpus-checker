@@ -1,0 +1,11 @@
+schema_version: 1
+id: zhao2021-gbm
+name: Glioblastoma slices treated with panobinostat (Zhao 2021)
+kind: perturbation
+organism: [human]
+identifiers:
+  - {type: geo,        value: GSE148842,                 confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-28"}
+  - {type: pmid,       value: "33975634",                confirmed: true, via: "GSE148842 pubmedids (the first of two; 38652658 is a later paper using the series) — NCBI E-utilities, 2026-10-28"}
+  - {type: doi,        value: 10.1186/s13073-021-00894-y, confirmed: true, via: "esummary db=pubmed id=33975634 — NCBI E-utilities, 2026-10-28"}
+  - {type: bioproject, value: PRJNA625951,               confirmed: true, via: "esummary db=gds (GSE148842) — NCBI E-utilities, 2026-10-28"}
+note: Tumour tissue from glioblastoma patients, control and drug-treated, scRNA-seq.

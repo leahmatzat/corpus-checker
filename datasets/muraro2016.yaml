@@ -1,0 +1,10 @@
+schema_version: 1
+id: muraro2016
+name: Muraro 2016
+kind: observational
+organism: [human]
+identifiers:
+  - {type: geo,  value: GSE85241,                  confirmed: true, via: "esummary db=gds (GSE) — NCBI E-utilities, 2026-10-14"}
+  - {type: pmid, value: "27693023",                confirmed: true, via: "GSE85241 pubmedids — NCBI E-utilities, 2026-10-14"}
+  - {type: doi,  value: 10.1016/j.cels.2016.09.002, confirmed: true, via: "esummary db=pubmed id=27693023 — NCBI E-utilities, 2026-10-14"}
+note: Human pancreas, CEL-seq2. One of the five studies in the hPancreas composite (TOSICA's reprocessing).

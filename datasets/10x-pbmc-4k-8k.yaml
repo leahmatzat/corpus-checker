@@ -1,0 +1,21 @@
+schema_version: 1
+id: 10x-pbmc-4k-8k
+name: PBMC 4k + 8k (10x Genomics, via scvi-tools)
+kind: observational
+organism: [human]
+identifiers:
+  - type: url
+    value: https://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc8k/pbmc8k_filtered_gene_bc_matrices.tar.gz
+    confirmed: true
+    via: scvi-tools source, scvi/data/_built_in_data/_pbmc.py and _dataset_10x.py (main branch, 2026-10-14)
+  - type: url
+    value: https://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_filtered_gene_bc_matrices.tar.gz
+    confirmed: true
+    via: scvi-tools source, scvi/data/_built_in_data/_pbmc.py and _dataset_10x.py (main branch, 2026-10-14)
+sources:
+  - name: scvi-tools, scvi.data.pbmc_dataset
+    url: https://scvi-tools.org/
+    note: Joins 10x Genomics' PBMC 8k (batch 0) and PBMC 4k (batch 1) demonstration datasets. scGPT calls it "PBMC 10k".
+note: >
+  10x Genomics demonstration data from one healthy donor. It has no archive accession or paper
+  identifier that a manifest could list, so no manifest can be searched for it exactly.
