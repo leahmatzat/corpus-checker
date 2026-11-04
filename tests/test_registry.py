@@ -14,7 +14,7 @@ from conftest import REPO, TODAY
 
 EXPECTED_OPEN_ERRORS = {
     "registry/scfoundation.yaml": set(),
-    "registry/cellplm.yaml": {"G10"},        # Unreviewed draft
+    "registry/cellplm.yaml": set(),
 }
 
 
