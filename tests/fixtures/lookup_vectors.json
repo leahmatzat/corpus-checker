@@ -536,6 +536,20 @@
       "verdict": "PRESENT"
      },
      {
+      "cells": null,
+      "code": "recorded",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": "dataset",
+      "matched_on": [],
+      "model": "cpa",
+      "recorded": true,
+      "samples": null,
+      "stage": "training",
+      "verdict": "PRESENT"
+     },
+     {
       "cells": 125081,
       "code": "recorded",
       "identity": null,
@@ -628,6 +642,20 @@
       "verdict": "INCONCLUSIVE"
      },
      {
+      "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cpa",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
       "cells": 125081,
       "code": "present",
       "identity": null,
@@ -707,6 +735,20 @@
       "recorded": false,
       "samples": null,
       "stage": "fine-tuning",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cpa",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
       "verdict": "INCONCLUSIVE"
      },
      {
@@ -797,6 +839,20 @@
       "verdict": "INCONCLUSIVE"
      },
      {
+      "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cpa",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
       "cells": 125081,
       "code": "same_publication",
       "identity": null,
@@ -880,6 +936,20 @@
       "recorded": false,
       "samples": null,
       "stage": "fine-tuning",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cpa",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
       "verdict": "INCONCLUSIVE"
      },
      {
@@ -982,6 +1052,20 @@
      },
      {
       "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cpa",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
       "code": "not_present",
       "identity": null,
       "keys_absent": [],
@@ -1066,6 +1150,20 @@
      },
      {
       "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cpa",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
       "code": "missing_required_key",
       "identity": null,
       "keys_absent": [],
@@ -1144,6 +1242,20 @@
       "recorded": false,
       "samples": null,
       "stage": "fine-tuning",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cpa",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
       "verdict": "INCONCLUSIVE"
      },
      {
@@ -1245,6 +1357,20 @@
      },
      {
       "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cpa",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
       "code": "recorded",
       "identity": "provisional",
       "keys_absent": [],
@@ -1342,6 +1468,20 @@
      },
      {
       "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cpa",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
       "code": "recorded",
       "identity": null,
       "keys_absent": [],
@@ -1433,6 +1573,20 @@
      },
      {
       "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cpa",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
       "code": "recorded",
       "identity": null,
       "keys_absent": [
@@ -1510,6 +1664,20 @@
       "recorded": false,
       "samples": null,
       "stage": "fine-tuning",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cpa",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
       "verdict": "INCONCLUSIVE"
      },
      {
