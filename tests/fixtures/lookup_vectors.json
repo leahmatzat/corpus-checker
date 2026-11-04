@@ -554,6 +554,23 @@
       "samples": 8,
       "stage": "pretraining",
       "verdict": "PRESENT"
+     },
+     {
+      "cells": null,
+      "code": "recorded",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [
+       "accession",
+       "doi"
+      ],
+      "match_level": null,
+      "matched_on": [],
+      "model": "uce",
+      "recorded": true,
+      "samples": null,
+      "stage": "pretraining",
+      "verdict": "INCONCLUSIVE"
      }
     ],
     "paper_level_warning": false
@@ -627,6 +644,22 @@
       "samples": 8,
       "stage": "pretraining",
       "verdict": "PRESENT"
+     },
+     {
+      "cells": null,
+      "code": "missing_required_key",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [
+       "accession"
+      ],
+      "match_level": null,
+      "matched_on": [],
+      "model": "uce",
+      "recorded": false,
+      "samples": null,
+      "stage": "pretraining",
+      "verdict": "INCONCLUSIVE"
      }
     ],
     "paper_level_warning": false
@@ -695,6 +728,22 @@
       "samples": 8,
       "stage": "pretraining",
       "verdict": "PRESENT"
+     },
+     {
+      "cells": null,
+      "code": "missing_required_key",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [
+       "accession"
+      ],
+      "match_level": null,
+      "matched_on": [],
+      "model": "uce",
+      "recorded": false,
+      "samples": null,
+      "stage": "pretraining",
+      "verdict": "INCONCLUSIVE"
      }
     ],
     "paper_level_warning": false
@@ -762,6 +811,22 @@
       "model": "scfoundation",
       "recorded": false,
       "samples": 8,
+      "stage": "pretraining",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
+      "code": "missing_required_key",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [
+       "doi"
+      ],
+      "match_level": null,
+      "matched_on": [],
+      "model": "uce",
+      "recorded": false,
+      "samples": null,
       "stage": "pretraining",
       "verdict": "INCONCLUSIVE"
      }
@@ -833,6 +898,23 @@
       "samples": null,
       "stage": "pretraining",
       "verdict": "NOT PRESENT"
+     },
+     {
+      "cells": null,
+      "code": "unresolved_entries",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [
+       "accession",
+       "doi"
+      ],
+      "match_level": null,
+      "matched_on": [],
+      "model": "uce",
+      "recorded": false,
+      "samples": null,
+      "stage": "pretraining",
+      "verdict": "INCONCLUSIVE"
      }
     ],
     "paper_level_warning": false
@@ -914,6 +996,22 @@
       "samples": null,
       "stage": "pretraining",
       "verdict": "NOT PRESENT"
+     },
+     {
+      "cells": null,
+      "code": "missing_required_key",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [
+       "accession"
+      ],
+      "match_level": null,
+      "matched_on": [],
+      "model": "uce",
+      "recorded": false,
+      "samples": null,
+      "stage": "pretraining",
+      "verdict": "INCONCLUSIVE"
      }
     ],
     "paper_level_warning": false
@@ -981,6 +1079,24 @@
       "samples": null,
       "stage": "pretraining",
       "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": 3339439,
+      "code": "present",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [
+       "accession"
+      ],
+      "match_level": "dataset",
+      "matched_on": [
+       "accession"
+      ],
+      "model": "uce",
+      "recorded": false,
+      "samples": 105,
+      "stage": "pretraining",
+      "verdict": "PRESENT"
      }
     ],
     "paper_level_warning": false
@@ -1046,6 +1162,22 @@
       "samples": null,
       "stage": "pretraining",
       "verdict": "NOT PRESENT"
+     },
+     {
+      "cells": null,
+      "code": "missing_required_key",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [
+       "doi"
+      ],
+      "match_level": null,
+      "matched_on": [],
+      "model": "uce",
+      "recorded": false,
+      "samples": null,
+      "stage": "pretraining",
+      "verdict": "INCONCLUSIVE"
      }
     ],
     "paper_level_warning": false
@@ -1127,6 +1259,22 @@
       "samples": null,
       "stage": "pretraining",
       "verdict": "NOT PRESENT"
+     },
+     {
+      "cells": null,
+      "code": "recorded",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [
+       "doi"
+      ],
+      "match_level": null,
+      "matched_on": [],
+      "model": "uce",
+      "recorded": true,
+      "samples": null,
+      "stage": "pretraining",
+      "verdict": "INCONCLUSIVE"
      }
     ],
     "paper_level_warning": false
@@ -1208,6 +1356,23 @@
       "samples": null,
       "stage": "pretraining",
       "verdict": "NOT PRESENT"
+     },
+     {
+      "cells": null,
+      "code": "recorded",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [
+       "accession",
+       "doi"
+      ],
+      "match_level": null,
+      "matched_on": [],
+      "model": "uce",
+      "recorded": true,
+      "samples": null,
+      "stage": "pretraining",
+      "verdict": "INCONCLUSIVE"
      }
     ],
     "paper_level_warning": false
@@ -1283,6 +1448,22 @@
       "samples": null,
       "stage": "pretraining",
       "verdict": "NOT PRESENT"
+     },
+     {
+      "cells": null,
+      "code": "recorded",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [
+       "accession"
+      ],
+      "match_level": null,
+      "matched_on": [],
+      "model": "uce",
+      "recorded": true,
+      "samples": null,
+      "stage": "pretraining",
+      "verdict": "INCONCLUSIVE"
      }
     ],
     "paper_level_warning": false
@@ -1342,6 +1523,22 @@
       "match_level": null,
       "matched_on": [],
       "model": "scfoundation",
+      "recorded": false,
+      "samples": null,
+      "stage": "pretraining",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
+      "code": "missing_required_key",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [
+       "accession"
+      ],
+      "match_level": null,
+      "matched_on": [],
+      "model": "uce",
       "recorded": false,
       "samples": null,
       "stage": "pretraining",
