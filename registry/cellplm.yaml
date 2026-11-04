@@ -1,0 +1,713 @@
+schema_version: 3
+id: cellplm
+model: CellPLM
+version: "20230926 checkpoint (the default in the paper's own scripts), pretrained on the corpus in Table 6"
+model_class: foundation
+
+paper:
+  openreview: BKXvPDekud
+  url: https://proceedings.iclr.cc/paper_files/paper/2024/hash/173bcdbd820edbe43284e0941109ada9-Abstract-Conference.html
+  journal: International Conference on Learning Representations (ICLR 2024)
+  published: 2024-05
+  preprint: 10.1101/2023.10.03.560734
+  absent:
+    - key: doi
+      checked: 2026-10-14
+      basis: >-
+        ICLR proceedings papers are not DOI-registered: the proceedings page and its BibTeX give no DOI,
+        and a Crossref title search returns only the bioRxiv preprint (posted-content).
+    - key: pmid
+      checked: 2026-10-14
+      basis: >-
+        PubMed has no record: esearch for the title "Pre-training of Cell Language Model Beyond Single
+        Cells"[title] and for CellPLM[title] both return 0 (NCBI E-utilities).
+  note: >
+    Scored against the ICLR version. The bioRxiv preprint (one version) has no list of training
+    data; the ICLR version adds Table 6. The OpenReview id is the one the authors give in the
+    repository README; OpenReview itself blocks scripted access, so it was not opened here.
+
+discovery:
+  data_availability:
+    checked: true
+    found: >
+      No section by that name. The Reproducibility Statement (p.10) says all data are public and
+      that "The data sources are specified in the appendix" — Appendix E.2 and Table 6.
+  code_availability:
+    checked: true
+    found: >
+      GitHub OmicsML/CellPLM: fine-tuning and zero-shot code and checkpoints. The pretraining code
+      is not released (author, GitHub issues #2 and #9).
+  supplementary_files:
+    checked: true
+    found: >
+      The proceedings supplement (a zip of 41 files) holds a second copy of the appendix with the
+      same Table 6, and the scripts for the paper's experiments; no separate dataset list.
+  methods:
+    checked: true
+    found: Appendix E.2 describes the corpus and points to Table 6 (p.18); Appendices F and G describe each task's data.
+  github_repo:
+    checked: true
+    found: >
+      No dataset list in any file or commit. The "more detailed list" the paper promises was not
+      published; the first author wrote that the exact data will not be released (issue #18), and
+      that checkpoints trained after September 2023 used CELLxGENE Census 2023-05-15 (issue #5).
+  hf_model_card:
+    checked: true
+    found: None from the authors (search "cellplm", 2026-10-10).
+  hf_dataset_card:
+    checked: true
+    found: None (search "cellplm", 2026-10-10).
+  archive_deposits:
+    checked: true
+    found: >
+      None on Zenodo, figshare, Dryad or OSF. The authors distribute checkpoints and tutorial data
+      from a Dropbox folder linked in the README; it holds no pretraining data or list.
+  preprint_vs_published:
+    checked: true
+    found: >
+      The preprint (2023-10-05, one version) gives the same corpus sizes but no Table 6; it says a
+      more detailed list "will be disclosed" on GitHub.
+
+evaluated_on:
+  - dataset: li2020-aorta
+    task: zero-shot cell embedding (clustering)
+    obtained_from: GEO GSE155468
+  - dataset: 10x-pbmc-5k
+    task: denoising
+    obtained_from: 10x Genomics
+  - dataset: 10x-jurkat
+    task: denoising
+    obtained_from: 10x Genomics
+  - dataset: vizgen-ffpe-lung2
+    task: spatial transcriptomic imputation (query)
+    obtained_from: Vizgen MERSCOPE FFPE showcase
+  - dataset: vizgen-ffpe-liver2
+    task: spatial transcriptomic imputation (query)
+    obtained_from: Vizgen MERSCOPE FFPE showcase
+  - dataset: kim2020-luad
+    task: spatial transcriptomic imputation (reference scRNA-seq for Lung2)
+    obtained_from: GEO GSE131907
+  - dataset: ma2021-liver
+    task: spatial transcriptomic imputation (reference scRNA-seq for Liver2)
+    obtained_from: GEO GSE151530
+  - dataset: baron2016
+    task: cell type annotation
+    obtained_from: hPancreas (five studies, TOSICA's reprocessing)
+  - dataset: muraro2016
+    task: cell type annotation
+    obtained_from: hPancreas (five studies, TOSICA's reprocessing)
+  - dataset: segerstolpe2016
+    task: cell type annotation
+    obtained_from: hPancreas (five studies, TOSICA's reprocessing)
+  - dataset: xin2016
+    task: cell type annotation
+    obtained_from: hPancreas (five studies, TOSICA's reprocessing)
+  - dataset: lawlor2017
+    task: cell type annotation
+    obtained_from: hPancreas (five studies, TOSICA's reprocessing)
+  - dataset: schirmer2019-ms
+    task: cell type annotation
+    obtained_from: EMBL-EBI
+  - dataset: adamson2016
+    task: perturbation prediction
+    obtained_from: GEARS preprocessing pipeline
+  - dataset: norman2019
+    task: perturbation prediction
+    obtained_from: GEARS preprocessing pipeline
+
+corpora:
+  - stage: pretraining
+    name: CellPLM pretraining corpus (Table 6, ~8.7M scRNA-seq cells, plus 2.7M CosMx spatial cells)
+    manifest:
+      type: A
+      identifier_type: mixed
+      quote: >
+        "scRNA-seq data consist of 4.7 million cells from human tumor cell atlas (HTCA,
+        https://humantumoratlas.org/), 1.4 million cells from human cell atlas (HCA,
+        https://www.humancellatlas.org/), and 2.6 million cells from Gene Expression Omnibus (GEO,
+        https://www.ncbi.nlm.nih.gov/geo/). All of them are public available data, elucidated in
+        table 6. A more detailed list and external links will be disclosed in our GitHub repository."
+      as_of: 2026-10-14
+      resolver: table
+      keys_available: [accession, pmid]
+      requires_keys: [accession, pmid]
+      sources:
+        - name: Table 6 (ICLR 2024 proceedings PDF, p.18)
+          url: https://proceedings.iclr.cc/paper_files/paper/2024/file/173bcdbd820edbe43284e0941109ada9-Paper-Conference.pdf
+          extract: extracts/cellplm/table6.csv
+          format: pdf
+          level: study
+          records: 28
+          columns: [group, entry, accession, pmid]
+          roles: {accession: [accession], pmid: pmid}
+          bytes: 6685800
+          sha256: da19b4e51a32b5414c22a7b82776df4f77661fa095d1cabc272746bbceca8ded
+          acquired: fetched
+          confirmation: {method: url_hash, date: 2026-10-14}
+          note: >
+            The list is a table in the paper, so the extract is a transcription: all 28 entries, as
+            printed and in printed order, with the accession or PMID an entry carries.
+      unresolved_entries:
+        - {entry: HTAN_HTAPP, kind: collection, note: a Human Tumor Atlas Network centre}
+        - {entry: HTAN_Stanford, kind: collection, note: a Human Tumor Atlas Network centre}
+        - {entry: HTAN_Vanderbilt, kind: collection, note: a Human Tumor Atlas Network centre}
+        - {entry: HTAN_BU, kind: collection, note: a Human Tumor Atlas Network centre}
+        - {entry: cxg_PBMCs, kind: collection, note: "by its name, a selection from CELLxGENE"}
+        - {entry: cxg_Airways, kind: collection, note: "by its name, a selection from CELLxGENE"}
+        - {entry: MalteEtAl_LungAtlas, kind: collection, note: listed under "Other Atlas"}
+        - {entry: TICAtlas, kind: collection, note: listed under "Other Atlas"}
+        - {entry: eQTLAutoimmune, kind: named_source}
+        - {entry: covid19autoimmunityPBMCs, kind: named_source}
+        - {entry: VanDerWijst-Human-10x5pv1, kind: named_source}
+        - {entry: COMBAT2022, kind: named_source}
+        - {entry: TabulaSapiens, kind: named_source}
+        - {entry: PAN.A01.v01.raw_count.20210429.PFI.embedding, kind: named_source}
+        - {entry: GTEx_8_tissues_snRNAseq_atlas_071421.public_obs, kind: named_source}
+        - {entry: Qian_et_al_2020_LC, kind: named_source}
+        - entry: CosMx NSCLC FFPE (Nanostring)
+          kind: named_source
+          note: The spatial part of the corpus (2.7M cells), named in Appendix E.2 by a vendor URL, not in Table 6.
+
+    result:
+      checked: 2026-10-14
+      sources_searched: ["Table 6 (ICLR 2024 proceedings PDF, p.18)"]
+      findings:
+        - dataset: 10x-jurkat
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest
+            carries'
+          note: The paper says "These two datasets were excluded from pre-training" (PBMC 5K and Jurkat; §4.2,
+            p.8).
+        - dataset: 10x-pbmc-5k
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest
+            carries'
+          note: The paper says "These two datasets were excluded from pre-training" (PBMC 5K and Jurkat; §4.2,
+            p.8).
+        - dataset: adamson2016
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford,
+            HTAN_Vanderbilt and 14 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: baron2016
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford,
+            HTAN_Vanderbilt and 14 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: cheng2021-myeloid
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford,
+            HTAN_Vanderbilt and 14 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: dixit2016
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford,
+            HTAN_Vanderbilt and 14 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: kim2020-luad
+          verdict: PRESENT
+          keys_attempted:
+          - accession
+          - pmid
+          matched_on:
+          - accession
+          match_level: dataset
+          overlap_level: study
+          note: 'Table 6 lists GSE131907 in its GEO group. The spatial imputation task uses this dataset as the
+            reference scRNA-seq for Lung2 (Table 8: all 208,506 cells). The paper makes no statement about the
+            overlap.'
+        - dataset: lawlor2017
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford,
+            HTAN_Vanderbilt and 14 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: li2020-aorta
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford,
+            HTAN_Vanderbilt and 14 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+          note: The paper says this dataset "is not included in pre-train data" (§4.1, p.7).
+        - dataset: luecken2021-bmmc
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          keys_absent:
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford,
+            HTAN_Vanderbilt and 14 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: ma2021-liver
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford,
+            HTAN_Vanderbilt and 14 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: muraro2016
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford,
+            HTAN_Vanderbilt and 14 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: norman2019
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford,
+            HTAN_Vanderbilt and 14 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: replogle2022
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford,
+            HTAN_Vanderbilt and 14 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: schirmer2019-ms
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford,
+            HTAN_Vanderbilt and 14 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: segerstolpe2016
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford,
+            HTAN_Vanderbilt and 14 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: siletti2022-perirhinal
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford,
+            HTAN_Vanderbilt and 14 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: vizgen-ffpe-liver2
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest
+            carries'
+          note: The paper says "the whole study is not included in our pre-train data" (§4.3, p.8).
+        - dataset: vizgen-ffpe-lung2
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest
+            carries'
+          note: The paper says "the whole study is not included in our pre-train data" (§4.3, p.8).
+        - dataset: xin2016
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford,
+            HTAN_Vanderbilt and 14 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+        - dataset: zheng2017-pbmc68k
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          identity: provisional
+          identity_basis: SRA experiment titled "Fresh 68k PBMCs (Donor A)", Homo sapiens, submitted by 10X Genomics
+            with contact Grace Zheng (the paper's first author). NCBI has no link between this record and PMID
+            28091601 in either direction (checked 2026-09-24), so the identification rests on title and submitter.
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford,
+            HTAN_Vanderbilt and 14 more) — collections whose datasets are not listed, or sources named without
+            an identifier; the dataset may be inside one
+
+        - dataset: adams2020-ipf-lung
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: bakken2021-motor-cortex
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: conde2022-immune-cell-atlas
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: hilton2019-naked-mole-rat
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: kragesteen2023-epo-kidney
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: li2022-fly-cell-atlas
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - pmid
+          reason: no match on ['pmid'], but this manifest needs ['accession', 'pmid'] attempted before absence can be claimed;
+            the dataset has no confirmed accession identifier, and none is recorded as not existing
+        - dataset: mantri2021-chick-heart
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: orozco2020-human-retina
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: schroeder2025-astrocyte
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - pmid
+          reason: no match on ['pmid'], but this manifest needs ['accession', 'pmid'] attempted before absence can be claimed;
+            the dataset has no confirmed accession identifier, and none is recorded as not existing
+        - dataset: siletti2023-hbca
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: speranza2021-green-monkey
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: tabulasapiens-v2
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest carries'
+        - dataset: tabulasapiens2022
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: yamagata2021-chick-retina
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: zhang2024-limb
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: 10x-multiome-pbmc-10k
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest carries'
+        - dataset: 10x-pbmc-4k-8k
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest carries'
+        - dataset: lotfollahi2022-covid
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest carries'
+        - dataset: mimitou2021-asap-pbmc
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: bunne2023-4i-melanoma
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - pmid
+          keys_absent:
+          - accession
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: hagai2018-cross-species
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: kang2018-ifnb-pbmc
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: lincs-l1000
+          verdict: INCONCLUSIVE
+          keys_attempted: []
+          reason: 'no exact key could be attempted: the dataset has no confirmed identifier of a kind this manifest carries'
+        - dataset: lotfollahi2023-combosciplex
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: srivatsan2020-sciplex2
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: srivatsan2020-sciplex3
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: weinreb2020-statefate
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+        - dataset: zhao2021-gbm
+          verdict: INCONCLUSIVE
+          keys_attempted:
+          - accession
+          - pmid
+          reason: no match, but 17 entries of this list cannot be searched exactly (HTAN_HTAPP, HTAN_Stanford, HTAN_Vanderbilt
+            and 14 more) — collections whose datasets are not listed, or sources named without an identifier; the dataset
+            may be inside one
+      caveats:
+        - >
+          Table 6 names 28 sources. 12 carry an accession or PMID; the other 16, and the spatial
+          part of the corpus, are collections or sources named without an identifier. Until they
+          are resolved, no dataset can be shown absent from this corpus, only present.
+        - >
+          The authors describe a later corpus. The first author wrote (GitHub issue #5,
+          2024-03-27) that checkpoints trained after September 2023 used CELLxGENE Census
+          2023-05-15. This entry scores the corpus the paper describes; a census-trained
+          checkpoint would be a separate entry.
+        - >
+          The paper states that four of its evaluation datasets were left out of pretraining: Li
+          et al. 2020, PBMC 5K and Jurkat, and the Vizgen study (Lung2 and Liver2).
+        - >
+          Exposure, not effect. Overlap does not by itself mean any reported number is
+          inflated.
+
+  - stage: fine-tuning
+    name: Per-task fine-tuning on each evaluation dataset (Appendices F and G)
+    manifest:
+      type: by-design
+      quote: >
+        "When fine-tuning CellPLM, the model is first initialized with the pre-trained parameters. […]
+        The entire model is then fine-tuned with task-specific loss functions, which helps align the
+        general knowledge of the model to the specific downstream task."
+      as_of: 2026-10-28
+      splits:
+        - {dataset: 10x-pbmc-5k, held_out: "a random subset of non-zero expression values, set to zero to simulate dropout (scGNN's setting)"}
+        - {dataset: 10x-jurkat, held_out: "a random subset of non-zero expression values, set to zero to simulate dropout (scGNN's setting)"}
+        - {dataset: vizgen-ffpe-lung2, held_out: "a test set of genes, chosen by stratified sampling on gene sparsity"}
+        - {dataset: vizgen-ffpe-liver2, held_out: "a test set of genes, chosen by stratified sampling on gene sparsity"}
+        - dataset: kim2020-luad
+          held_out: "nothing: it is the reference scRNA-seq for imputing Lung2's held-out genes"
+          note: §3.3 says imputation fine-tunes on the query spatial data and a reference scRNA-seq dataset; Table 8 uses all 208,506 cells.
+        - dataset: ma2021-liver
+          held_out: "nothing: it is the reference scRNA-seq for imputing Liver2's held-out genes"
+          note: §3.3 says imputation fine-tunes on the query spatial data and a reference scRNA-seq dataset; Table 8 uses all 56,721 cells.
+        - {dataset: baron2016, held_out: "hPancreas's query set (the five studies are split into reference and query sets)"}
+        - {dataset: muraro2016, held_out: "hPancreas's query set (the five studies are split into reference and query sets)"}
+        - {dataset: segerstolpe2016, held_out: "hPancreas's query set (the five studies are split into reference and query sets)"}
+        - {dataset: xin2016, held_out: "hPancreas's query set (the five studies are split into reference and query sets)"}
+        - {dataset: lawlor2017, held_out: "hPancreas's query set (the five studies are split into reference and query sets)"}
+        - dataset: schirmer2019-ms
+          held_out: "a query set, following scGPT's setting"
+          note: The paper doesn't state the split; it uses the setting "suggested by Cui et al." (scGPT), in which the 12 MS samples are the query and the 9 controls the reference.
+        - {dataset: adamson2016, held_out: "25% of the perturbations, chosen at random (GEARS's split)"}
+        - {dataset: norman2019, held_out: "two-gene combinations with one or both genes unseen in training (GEARS's split)"}
+
+    result:
+      checked: 2026-10-28
+      sources_searched: []
+      findings:
+        - dataset: 10x-pbmc-5k
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: a random subset of non-zero expression values, set to zero to simulate dropout (scGNN's setting)
+          overlap_level: study
+        - dataset: 10x-jurkat
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: a random subset of non-zero expression values, set to zero to simulate dropout (scGNN's setting)
+          overlap_level: study
+        - dataset: vizgen-ffpe-lung2
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: a test set of genes, chosen by stratified sampling on gene sparsity
+          overlap_level: study
+        - dataset: vizgen-ffpe-liver2
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: a test set of genes, chosen by stratified sampling on gene sparsity
+          overlap_level: study
+        - dataset: kim2020-luad
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: 'nothing: it is the reference scRNA-seq for imputing Lung2''s held-out genes'
+          overlap_level: study
+        - dataset: ma2021-liver
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: 'nothing: it is the reference scRNA-seq for imputing Liver2''s held-out genes'
+          overlap_level: study
+        - dataset: baron2016
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: hPancreas's query set (the five studies are split into reference and query sets)
+          overlap_level: study
+        - dataset: muraro2016
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: hPancreas's query set (the five studies are split into reference and query sets)
+          overlap_level: study
+        - dataset: segerstolpe2016
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: hPancreas's query set (the five studies are split into reference and query sets)
+          overlap_level: study
+        - dataset: xin2016
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: hPancreas's query set (the five studies are split into reference and query sets)
+          overlap_level: study
+        - dataset: lawlor2017
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: hPancreas's query set (the five studies are split into reference and query sets)
+          overlap_level: study
+        - dataset: schirmer2019-ms
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: a query set, following scGPT's setting
+          overlap_level: study
+        - dataset: adamson2016
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: 25% of the perturbations, chosen at random (GEARS's split)
+          overlap_level: study
+        - dataset: norman2019
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: two-gene combinations with one or both genes unseen in training (GEARS's split)
+          overlap_level: study
+
+      caveats:
+        - >
+          By design, each task fine-tunes on part of its own evaluation dataset and tests on the rest.
+          These findings record the method; they are not exposure. Li et al. 2020 is used zero-shot,
+          with no fine-tuning, so it has no finding here.
+
+review:
+  by: ""
+  date: null
+  checked: []
+
+provenance:
+  method: corpus-checker check cellplm --rerun (table resolver, committed extract of Table 6)
+  reproducible: true
