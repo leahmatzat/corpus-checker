@@ -43,7 +43,7 @@ test("every verdict code is covered by the vectors (sanity)", () => {
   const codes = new Set(vectors.decide.map((c) => c.expected.code));
   const expectedCodes = new Set([
     "no_manifest", "unconfirmed_source", "present", "superset", "same_publication",
-    "weak_only", "unsearched", "no_exact_key", "missing_required_key", "not_present",
+    "weak_only", "unsearched", "no_exact_key", "missing_required_key", "unresolved_entries", "not_present", "by_design_stage",
   ]);
   assert.deepEqual(codes, expectedCodes);
 });

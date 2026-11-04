@@ -17,6 +17,7 @@ import pytest
 
 from corpus_checker.ledger import build_ledger
 from corpus_checker.lookup import build_lookup_index
+from corpus_checker.registry import load_yaml, registry_paths
 from corpus_checker.site import build_site
 from corpus_checker.verdict import PAPER_LEVEL_DISCLAIMER
 
@@ -280,7 +281,11 @@ def test_every_reported_eval_sits_in_exactly_one_answer_column(site_dir, ledger)
             cols = rows[(model_id, c["stage"])]
             for ev in m["evaluated_on"]:
                 where = [label for label, ids in cols.items() if ev["dataset"] in ids]
-                assert where == [expected_col[by_key.get((model_id, c["stage"], ev["dataset"]))]], (model_id, c["stage"], ev["dataset"], where)
+                verdict = by_key.get((model_id, c["stage"], ev["dataset"]))
+                if c["manifest_type"] == "by-design" and verdict is None:
+                    assert where == [], (model_id, c["stage"], ev["dataset"], where)   # only what the stage trains on
+                    continue
+                assert where == [expected_col[verdict]], (model_id, c["stage"], ev["dataset"], where)
 
 
 def test_by_model_covers_all_three_columns_and_not_checked(site_dir):
@@ -439,7 +444,7 @@ def test_lookup_index_content_equals_build_lookup_index(site_dir, root):
     assert on_disk == expected
     # every registered model (including drafts) is in the index — the page searches drafts too,
     # labelled as drafts, same as the rest of the site (only production builds contain none).
-    assert {c["model"] for c in on_disk["corpora"]} == {"scfoundation", "toy-draft"}
+    assert {c["model"] for c in on_disk["corpora"]} == {load_yaml(p)["id"] for p in registry_paths(root)}
 
 
 def test_lookup_index_is_serialized_deterministically(site_dir):
@@ -511,6 +516,17 @@ def test_model_page_says_what_the_tool_checked_what_was_reviewed_and_what_was_no
     assert "Reviewed by LM" in text
     assert "Not checked yet" in text and "the Methods section" in text      # scFoundation's open discovery places
     assert "not an independent replication" in text
+    # under each check, what it covered in this entry, from the entry itself
+    assert "DOI 10.1038/s41592-024-02305-7 · PMID 38844628" in text
+    assert "Supplementary Data 1 (10,747 entries)" in text
+    assert "PRESENT: Norman 2019" in text
+
+
+def test_a_draft_lists_all_five_checks_as_not_done_with_what_each_covers(site_dir):
+    html = _read(site_dir, "models/toy-draft.html")
+    panel = _visible_text(re.search(r'<section class="how-checked".*?</section>', html, re.DOTALL).group(0))
+    assert "Nothing outstanding" not in panel
+    assert "DOI 10.1000/toy-draft" in panel and "a superset of what the model used" in panel
 
 
 def test_a_draft_model_page_says_nobody_has_reviewed_it(site_dir):
@@ -521,3 +537,53 @@ def test_a_draft_model_page_says_nobody_has_reviewed_it(site_dir):
 def test_no_page_says_verified(site_dir):
     for f in sorted(site_dir.rglob("*.html")):
         assert not re.search(r"\bverif", _visible_text(f.read_text(encoding="utf-8")).lower()), f
+
+
+# --------------------------------------------------------------------------------- by-design stages
+
+TOY_TASK = {
+    "schema_version": 3, "id": "toy-task", "model": "Toy Task", "model_class": "task-specific",
+    "paper": {"doi": "10.1000/toy-task"},
+    "discovery": {k: {"checked": True, "found": "none"} for k in (
+        "data_availability", "code_availability", "supplementary_files", "methods", "github_repo",
+        "hf_model_card", "hf_dataset_card", "archive_deposits", "preprint_vs_published")},
+    "evaluated_on": [{"dataset": "norman2019", "task": "perturbation prediction"}],
+    "corpora": [{
+        "stage": "training",
+        "manifest": {"type": "by-design", "quote": "Each model is trained on the training split.", "as_of": "2026-10-28",
+                     "splits": [{"dataset": "norman2019", "held_out": "two-gene combinations"}]},
+        "result": {"checked": "2026-10-28", "sources_searched": [], "findings": [
+            {"dataset": "norman2019", "verdict": "PRESENT", "keys_attempted": [], "matched_on": [],
+             "match_level": "dataset", "overlap_level": "study", "by_design": "two-gene combinations"}]}}],
+    "review": {"by": "", "date": None, "checked": []},
+    "provenance": {"method": "test"},
+}
+
+
+@pytest.fixture(scope="module")
+def task_site(tmp_path_factory):
+    from conftest import write_yaml
+    root = repo_copy(tmp_path_factory.mktemp("repo-task"))
+    write_yaml(root / "registry" / "toy-task.yaml", TOY_TASK)
+    out = tmp_path_factory.mktemp("site-task")
+    build_site(root, out, FAKE_REPO_URL)
+    return root, out
+
+
+def test_a_by_design_finding_is_never_exposure(task_site):
+    root, _ = task_site
+    norman = build_ledger(root)["datasets"]["norman2019"]
+    assert not any(x["model"] == "toy-task" for x in norman["exposure"])
+    assert not any(x["in_training_of"] == "toy-task" for x in norman["reuse"])
+
+
+def test_a_by_design_finding_reads_as_by_design(task_site):
+    _, out = task_site
+    page = _read(out, "models/toy-task.html")
+    assert "PRESENT · by design" in page and "v-by-design" in page
+    assert "held out for testing: two-gene combinations" in page
+    assert "What this stage trains on" in page
+    assert "Sources searched" not in page
+    index = _read(out, "index.html")
+    chip = re.search(r'<a class="eval-chip ([^"]+)"[^>]*href="models/toy-task\.html[^"]*"', index)
+    assert chip and chip.group(1) == "v-by-design"

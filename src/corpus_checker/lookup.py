@@ -24,7 +24,8 @@ from .check import SourceError, locate_committed
 from .crosswalk import CrosswalkError, resolve
 from .ledger import build_ledger
 from .match import RecordIndex, match
-from .registry import EXACT_KEYS, confirmed_keys, identity_of, load_catalog, load_yaml, registry_paths, review_of
+from .registry import (EXACT_KEYS, confirmed_keys, identity_of, load_catalog, load_yaml, registry_paths, review_of,
+                       unresolved_entries)
 from .resolvers import get_resolver
 from .verdict import PAPER_LEVEL_DISCLAIMER, decide
 
@@ -83,6 +84,7 @@ class Answer:
     reviewed_date: str | None
     draft: bool
     keys_absent: tuple[str, ...] = ()      # recorded findings only: keys the catalog records as not existing
+    by_design: str | None = None           # recorded findings only: trained on by design; what was held out for testing
 
 
 @dataclass(frozen=True)
@@ -195,7 +197,7 @@ class _Corpus:
 
 def load_corpora(root: Path, *, include_drafts: bool = False, models: list[str] | None = None,
                  manifests_dir: Path | None = None) -> list[_Corpus]:
-    from .check import locate_in_dir
+    from .check import load_join, locate_in_dir
 
     fallback = locate_in_dir(manifests_dir) if manifests_dir else None
     out = []
@@ -209,7 +211,7 @@ def load_corpora(root: Path, *, include_drafts: bool = False, models: list[str] 
             m = c["manifest"]
             corpus = _Corpus(e["id"], e["model"], c["stage"], m, tuple(c["result"]["sources_searched"]),
                              reviewer or None, review_date, draft)
-            if m["type"] in ("C-vague", "D"):
+            if m["type"] in ("C-vague", "D", "by-design"):   # nothing to index
                 out.append(corpus)
                 continue
             try:
@@ -220,7 +222,7 @@ def load_corpora(root: Path, *, include_drafts: bool = False, models: list[str] 
                 continue
             locate = locate_committed(root, fallback)
             try:
-                records = [r for s in m.get("sources", []) for r in resolver.records(s, locate(s))]
+                records = [r for s in m.get("sources", []) for r in resolver.records(s, locate(s), load_join(s, locate))]
             except SourceError as exc:
                 corpus.unavailable = str(exc)
             else:
@@ -237,7 +239,7 @@ def _answer(corpus: _Corpus, query: Query) -> Answer:
                 reviewed_date=corpus.reviewed_date, draft=corpus.draft, recorded=False)
     unknown_identity = dict(identity=None, identity_basis=None)
     m = corpus.manifest
-    if m["type"] in ("C-vague", "D"):
+    if m["type"] in ("C-vague", "D", "by-design"):
         d = decide(manifest_type=m["type"], can_prove_presence=False, match=None)
         return Answer(**base, **unknown_identity, verdict=d.verdict, code=d.code, reason=d.reason, match_level=None,
                       keys_attempted=(), matched_on=(), samples=None, cells=None, sample_ids=(), listed_accessions=())
@@ -260,7 +262,8 @@ def _answer(corpus: _Corpus, query: Query) -> Answer:
     keys = sorted(confirmed_keys(dataset, accession_types) & set(m.get("keys_available", [])) & EXACT_KEYS)
     mt = match(corpus.index, dataset, keys, accession_types)
     d = decide(manifest_type=m["type"], can_prove_presence=corpus.can_prove_presence, match=mt,
-               requires_keys=frozenset(m.get("requires_keys", [])), unconfirmed_sources=corpus.unconfirmed)
+               requires_keys=frozenset(m.get("requires_keys", [])), unconfirmed_sources=corpus.unconfirmed,
+               unresolved_entries=unresolved_entries(m))
     identity, basis = identity_of(dataset, keys, accession_types)
     return Answer(**base, verdict=d.verdict, code=d.code, reason=d.reason, match_level=mt.match_level,
                   identity=identity, identity_basis=basis,
@@ -279,7 +282,7 @@ def _recorded(corpus: _Corpus, finding: dict) -> Answer:
                   sources_searched=corpus.sources_searched, recorded=True,
                   identity=finding.get("identity"), identity_basis=finding.get("identity_basis"),
                   reviewed_by=corpus.reviewed_by, reviewed_date=corpus.reviewed_date, draft=corpus.draft,
-                  keys_absent=tuple(finding.get("keys_absent", [])))
+                  keys_absent=tuple(finding.get("keys_absent", [])), by_design=finding.get("by_design"))
 
 
 def search(query: Query, corpora: list[_Corpus], recorded_rows: list[dict]) -> LookupResult:
@@ -315,7 +318,10 @@ def answer_text(a: Answer, *, lead: bool = True) -> str:
     """One plain sentence per answer. lead=False drops the leading Yes/No/… for tables that show it."""
     where = f"{a.model_name}'s {a.stage} data"
     name = lambda k: k.upper() if k in ("pmid", "doi") else k
-    if a.verdict == "PRESENT":
+    if a.verdict == "PRESENT" and a.by_design:
+        body = (f"{a.model_name} trains on this dataset in its {a.stage} stage, by design "
+                f"(held out for testing: {a.by_design.rstrip('.')}). This is not exposure.")
+    elif a.verdict == "PRESENT":
         size = ", ".join(x for x in (f"{a.samples} samples" if a.samples else "",
                                      f"{a.cells:,} cells" if a.cells is not None else "") if x)
         keys = " and ".join(name(k) for k in a.matched_on)
@@ -369,13 +375,14 @@ def build_lookup_index(root: Path, *, include_drafts: bool = False) -> dict:
                              r.cells, list(r.accessions), list(r.pmids), list(r.dois)])
         corpora_out.append({
             "model": c.model, "model_name": c.model_name, "stage": c.stage,
-            "manifest_type": m["type"], "checkable": m["type"] not in ("C-vague", "D"),
+            "manifest_type": m["type"], "checkable": m["type"] not in ("C-vague", "D", "by-design"),
             "indexed": c.index is not None, "unavailable": c.unavailable,
             "can_prove_presence": c.can_prove_presence,
             "keys_available": sorted(m.get("keys_available", [])), "requires_keys": sorted(m.get("requires_keys", [])),
             "accession_types": m.get("accession_types"),
             "sources": sources, "sources_searched": list(c.sources_searched),
             "unconfirmed_sources": list(c.unconfirmed),
+            "unresolved_entries": list(unresolved_entries(m)),
             "reviewed_by": c.reviewed_by, "reviewed_date": c.reviewed_date, "draft": c.draft,
             "rows": rows,
         })

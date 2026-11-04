@@ -181,6 +181,8 @@ h4 { font-size: 1em; margin-top: 1em; }
 .v-not-present   { background: var(--v-notpresent-bg);     color: var(--v-notpresent-fg);     border-color: transparent; }
 .v-inconclusive  { background: var(--v-inconclusive-bg);   color: var(--v-inconclusive-fg);   border-color: transparent; }
 .v-not-checkable { background: var(--v-notcheckable-bg);   color: var(--v-notcheckable-fg);   border-color: transparent; font-weight: 500; }
+/* Trained on its own evaluation dataset on purpose: not exposure, so never coloured like PRESENT. */
+.v-by-design     { background: var(--v-notcheckable-bg);   color: var(--v-notpresent-fg);     border-color: transparent; font-style: italic; }
 
 .reported-eval-marker {
   background: var(--reported-bg); color: var(--reported-fg); border-color: var(--reported-border);

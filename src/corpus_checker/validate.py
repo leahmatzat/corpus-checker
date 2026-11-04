@@ -23,7 +23,7 @@ tests, so a guard cannot be dropped without a visible diff.
     G17  a reported-eval dataset has no finding in any corpus                  [warning]
     G18  NOT PRESENT while discovery is incomplete                             [warning]
     G19  a manifest source's roles name a column not in its `columns`
-    G20  a committed snapshot is missing or no longer matches its sha256
+    G20  a committed snapshot (a source, or a join table) is missing or no longer matches its sha256
     G21  PRESENT on a publication-level match (PMID/DOI only) without a reviewer's identity_note
     G22  a committed extract is missing or does not declare its source's sha256
     G23  a finding's identity (provisional or not) disagrees with the catalog identifiers it attempted
@@ -31,6 +31,9 @@ tests, so a guard cannot be dropped without a visible diff.
          recorded as not existing also has a usable identifier
     G25  the review did not cover all five human-only checks                     [warning]
     G26  a recorded finding no longer matches a re-run of its committed manifest
+    G27  the paper records a DOI or PMID as not existing and also gives one
+    G28  NOT PRESENT from a list with unresolved entries (collections or sources it cannot search exactly)
+    G29  a by-design finding that doesn't match its stage's splits, or sits outside a by-design stage
 """
 from __future__ import annotations
 
@@ -60,6 +63,7 @@ from .registry import (
     load_yaml,
     load_yaml_text,
     review_of,
+    unresolved_entries,
 )
 from .resolvers import get_resolver
 
@@ -156,6 +160,11 @@ def check_entry(path: Path, doc: object, root: Path, catalog: dict[str, dict],
         add("G25", "review.checked", f"this review did not cover: {', '.join(missing_checks)} "
                                      f"(record a review with corpus-checker review {doc['id']})", WARNING)
 
+    # G27 — "no DOI exists" cannot stand beside a DOI
+    paper = doc["paper"]
+    for key in sorted({a["key"] for a in paper.get("absent", [])} & set(paper)):
+        add("G27", f"paper.{key}", f"the paper gives a {key.upper()} and also records that none exists")
+
     discovery = doc["discovery"]
     unchecked = sorted(k for k, item in discovery.items() if not item["checked"])
 
@@ -191,6 +200,14 @@ def check_entry(path: Path, doc: object, root: Path, catalog: dict[str, dict],
                     add("G20", f"corpora[{ci}].manifest.sources[{si}].snapshot",
                         f"{snap} has sha256 {digest[:12]}…, the registry recorded {src['sha256'][:12]}…")
 
+            for ti, table in enumerate((src.get("join") or {}).get("tables", [])):
+                where_t = f"corpora[{ci}].manifest.sources[{si}].join.tables[{ti}].snapshot"
+                table_path = root / table["snapshot"]
+                if not table_path.is_file():
+                    add("G20", where_t, f"{table['snapshot']} does not exist")
+                elif (digest := hashlib.sha256(table_path.read_bytes()).hexdigest()) != table["sha256"]:
+                    add("G20", where_t, f"{table['snapshot']} has sha256 {digest[:12]}…, the registry recorded {table['sha256'][:12]}…")
+
         # G22 — an extract stands in for a publisher file only if it says which one
         for si, src in enumerate(sources):
             if ext := src.get("extract"):
@@ -208,6 +225,9 @@ def check_entry(path: Path, doc: object, root: Path, catalog: dict[str, dict],
                 if missing_cols := [c for c in named if c not in src["columns"]]:
                     add("G19", f"corpora[{ci}].manifest.sources[{si}].roles",
                         f"roles name columns {missing_cols} that are not in columns {src['columns']}")
+            if src.get("join") and src["join"]["column"] not in src.get("columns", []):
+                add("G19", f"corpora[{ci}].manifest.sources[{si}].join.column",
+                    f"the join column {src['join']['column']!r} is not in columns {src.get('columns', [])}")
 
         # G07 — every searched source must be a real source (A / A+ list their files)
         if mtype in ("A", "A+"):
@@ -215,6 +235,16 @@ def check_entry(path: Path, doc: object, root: Path, catalog: dict[str, dict],
                 if name not in source_names:
                     add("G07", f"corpora[{ci}].result.sources_searched",
                         f"{name!r} is not one of manifest.sources: {source_names}")
+
+        # G29 — a by-design stage trains on part of the model's OWN evaluation datasets, so each split must be
+        # an evaluated dataset with exactly one finding that says what was held out
+        splits = {s["dataset"]: s["held_out"] for s in manifest.get("splits", [])}
+        evaluated = {ev["dataset"] for ev in doc["evaluated_on"]}
+        for ds in splits:
+            if ds not in evaluated:
+                add("G29", f"corpora[{ci}].manifest.splits", f"{ds!r} is not in evaluated_on: a by-design split must be one of the model's own evaluations")
+            if not any(f["dataset"] == ds for f in result["findings"]):
+                add("G29", f"corpora[{ci}].result.findings", f"the split of {ds!r} has no finding")
 
         seen: set[str] = set()
         for fi, f in enumerate(result["findings"]):
@@ -231,6 +261,14 @@ def check_entry(path: Path, doc: object, root: Path, catalog: dict[str, dict],
             if ds not in catalog:
                 add("G02", where, f"{ds!r} is not in datasets/")
                 continue
+
+            if "by_design" in f or mtype == "by-design":
+                if mtype != "by-design":
+                    add("G29", where, "by_design is only for findings of a by-design stage")
+                elif f.get("by_design") != splits.get(ds):
+                    add("G29", where, f"by_design should be {splits.get(ds)!r}, as the manifest's splits record; "
+                                      f"recorded {f.get('by_design')!r}")
+                continue   # the rest of the rules are about searching a list; a by-design stage has none
 
             # G01 — exact-key rule
             if verdict == "PRESENT" and not matched & EXACT_KEYS:
@@ -290,6 +328,11 @@ def check_entry(path: Path, doc: object, root: Path, catalog: dict[str, dict],
             # is in a confirmed file; `check --rerun` and the canary confirm where it matched.)
             if unconfirmed and verdict == "NOT PRESENT":
                 add("G09", where, f"NOT PRESENT rests on unconfirmed manifest source(s) {unconfirmed}; cap at INCONCLUSIVE")
+
+            # G28 — absence from a list that names collections without their datasets is not absence
+            if verdict == "NOT PRESENT" and (unresolved := unresolved_entries(manifest)):
+                add("G28", where, f"NOT PRESENT, but {len(unresolved)} entries of this list cannot be searched exactly "
+                                  f"(e.g. {', '.join(unresolved[:3])}); cap at INCONCLUSIVE until they are resolved")
             if unconfirmed and verdict == "PRESENT" and set(unconfirmed) >= set(source_names):
                 add("G09", where, f"PRESENT needs a match in a confirmed source; every source is unconfirmed {unconfirmed}")
 

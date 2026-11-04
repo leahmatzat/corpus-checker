@@ -31,6 +31,10 @@ How corpus-checker decides what it can claim, how those rules are enforced, and 
 - **Identity can be provisional.** Some datasets live outside GEO, and no primary source links their accession to the paper; the link rests on metadata such as a title and a submitter. Zheng68K's SRA experiment is an example. Such an identifier is searched, but any finding that relies on it carries the qualifier **provisional identity**, with the basis stated, e.g. `NOT PRESENT · provisional identity`. The verdict describes the search; the qualifier describes how sure we are which dataset was searched for.
 - **A supplied file has to be confirmed.** A manifest file that was handed to us, rather than downloaded from the publisher, has to be confirmed as the paper's file. Confirmation can come from matching the publisher's download, from its contents adding up to totals printed in the paper, or from the authors. Until then, it can't support `NOT PRESENT`, because the real file might list the dataset. A match found inside a file that *is* confirmed counts as `PRESENT`, whatever the other files' status.
 - **Every manifest file must be searched.** A `NOT PRESENT` from one of two files is not allowed.
+- **A list that names collections can't show absence.** Some training lists name an atlas, a portal or a data centre (CellPLM's lists "TabulaSapiens" and four HTAN centres) without naming the datasets inside it, or name a source with no identifier at all. A dataset missing from such a list could still be inside one of those entries. So while any entry is unresolved, a dataset that isn't found is `INCONCLUSIVE`, not `NOT PRESENT`. A match on an identifier the list does give still counts as `PRESENT`. An entry is resolved by recording its member datasets, or its identifiers, with where they came from; it then becomes searchable like any other row.
+- **Training on part of the evaluation data, by design, is recorded but is not exposure.** Some models train on one part of a dataset and test on another: a task-specific model like CellOT trains on each dataset's training split, and many foundation models fine-tune on part of each evaluation dataset. That stage is recorded with what the paper held out for testing, and its finding reads `PRESENT · by design`. It is shown so nothing is hidden, but it is left out of exposure counts and of the reuse map: it describes the method, not leakage. A model's class says whether it has pretraining at all: `foundation` (a pretraining corpus distinct from its evaluation data) or `task-specific` (trains directly on task data).
+- **Identifiers can be added from a dated snapshot.** UCE's list names CELLxGENE datasets by id only, so a dataset known by its paper's DOI could never be found in it. Each id is joined to its collection and the collection's DOI through committed census snapshots, so the added identifiers come from a fixed, re-checkable release, not from today's portal. A DOI names a paper, so a match on it alone stays a paper-level match.
+- **A paper without a DOI or PMID is identified by its link.** Conference proceedings (ICLR, NeurIPS) often have neither. Such a paper is identified by its OpenReview id or proceedings page, and the entry records that no DOI and no PMID exist, with the evidence, in the same way as a dataset's recorded absence.
 
 ## Guard codes
 
@@ -58,13 +62,16 @@ How corpus-checker decides what it can claim, how those rules are enforced, and 
 | G17 | *(warning)* a model's own evaluation dataset has no finding |
 | G18 | *(warning)* `NOT PRESENT` while some discovery locations are unchecked |
 | G19 | a manifest file's column roles name a column that doesn't exist |
-| G20 | a committed corpus snapshot is missing or has changed |
+| G20 | a committed corpus snapshot, or a snapshot a list is joined through, is missing or has changed |
 | G21 | `PRESENT` rests on a paper-level match (PMID or DOI only) without a reviewer's `identity_note` |
 | G22 | a committed manifest extract is missing, or doesn't name the publisher file it was derived from |
 | G23 | a finding's identity (provisional or not) disagrees with the catalog identifiers it searched |
 | G24 | a recorded absence disagrees with the catalog: a finding's "none exists" keys don't match the dataset's recorded absences, or a key recorded as not existing also has an identifier |
 | G25 | *(warning)* the review didn't cover all five checks only a person can do; the model's page lists what wasn't checked |
 | G26 | a recorded finding no longer comes out of a re-run of its manifest (every corpus whose manifest is stored in the repo is re-run on every change) |
+| G27 | the paper records a DOI or PMID as not existing, and also gives one |
+| G28 | `NOT PRESENT` from a list with unresolved entries: collections whose datasets it doesn't name, or sources named without an identifier |
+| G29 | a by-design finding doesn't match its stage's held-out splits, a split isn't one of the model's own evaluations, or a by-design label appears outside a by-design stage |
 
 Exit codes never encode verdicts: `0` means the check ran, `1` a tool error, `2` a rule violation and `3` bad usage.
 

@@ -33,8 +33,9 @@ class Resolver(Protocol):
     manifest_type: ClassVar[str]         # "A" | "A+" | "B" | "C-named"
     can_prove_presence: ClassVar[bool]   # False for B — a superset cannot prove presence
 
-    def records(self, source: dict, path: Path) -> Iterator[CanonicalRecord]:
-        """Stream the source's rows as canonical records."""
+    def records(self, source: dict, path: Path,
+                join: dict[str, tuple[str, str]] | None = None) -> Iterator[CanonicalRecord]:
+        """Stream the source's rows as canonical records, with identifiers added from `join` if given."""
 
 
 def get_resolver(name: str) -> Resolver:

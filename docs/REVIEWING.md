@@ -21,7 +21,7 @@ What only a person can do are these five checks. A review records which of them 
 
 | Check | What you look at |
 |---|---|
-| `paper` | The paper is the published version, with the right DOI and PMID. |
+| `paper` | The paper is the published version, with the right DOI and PMID (or its proceedings link, when it has neither). |
 | `manifest` | For each training stage, the listed file or statement is the paper's training-data list, and the quote matches the paper. |
 | `evaluated_on` | The reported evals match what the paper evaluates on. |
 | `judgment_calls` | Each judgment call reads right: provisional identities, recorded absences, identity notes and caveat wording. |
@@ -49,6 +49,9 @@ This compares the branch with `main`. Each error names a guard code, a file and 
 | **G21** | `PRESENT` on a paper-level match (PMID/DOI only) | Add an `identity_note` saying why it is the same dataset, or accept `INCONCLUSIVE` |
 | **G23** | A finding's provisional identity disagrees with the catalog | Make `identity` / `identity_basis` match the dataset's identifiers |
 | **G24** | A finding's "none exists" keys disagree with the catalog, or a key recorded as not existing also has an identifier | Re-run `check <model> --rerun` and copy its `keys_absent`; if an identifier has turned up, remove the absence from `datasets/` |
+| **G28** | `NOT PRESENT` from a list that names collections or sources it can't search | Leave it `INCONCLUSIVE` (the engine does), or resolve the entries: record each collection's members, or the source's identifiers, with where they came from |
+| **G27** | The paper records a DOI or PMID as not existing and also gives one | Remove whichever is wrong: the absence, if the identifier is real |
+| **G29** | A by-design finding disagrees with its stage's splits | Make `by_design` say what the stage's `splits` say is held out, and list only the model's own evaluation datasets there |
 | **G04** | A manifest re-downloaded from its URL no longer matches its hash | Download it, find out what changed, and re-check the entry |
 | G05 *(warning)* | A manifest was last checked over a year ago | Re-check when convenient |
 | G18 *(warning)* | `NOT PRESENT` while some places a manifest could live are unchecked | Check them, or accept the risk knowingly |

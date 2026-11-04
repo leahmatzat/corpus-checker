@@ -11,6 +11,9 @@
     <div><dt>Paper</dt><dd>
     {% if model.paper.doi %}<a href="https://doi.org/{{ model.paper.doi }}">DOI {{ model.paper.doi }}</a>{% endif %}
     {% if model.paper.pmid %} · <a href="https://pubmed.ncbi.nlm.nih.gov/{{ model.paper.pmid }}/">PMID {{ model.paper.pmid }}</a>{% endif %}
+    {% if model.paper.openreview %}<a href="https://openreview.net/forum?id={{ model.paper.openreview }}">OpenReview {{ model.paper.openreview }}</a>{% endif %}
+    {% if model.paper.url %}{% if model.paper.openreview %} · {% endif %}<a href="{{ model.paper.url }}">Proceedings</a>{% endif %}
+    {% if model.paper.absent %}<span class="muted"> (no {{ model.paper.absent | map(attribute="key") | map("upper") | join(" or ") }} exists)</span>{% endif %}
     {% if model.paper.journal %} · {{ model.paper.journal }}{% endif %}
     {% if model.paper.published %} · {{ model.paper.published }}{% endif %}
     </dd></div>
@@ -44,9 +47,9 @@
         <ul>
           {% for item in model.how_checked.reviewed %}
           <li>{{ item.text }}
-            {% if item.calls %}
+            {% if item.points %}
             <ul class="calls">
-              {% for c in item.calls %}<li>{{ c }}</li>{% endfor %}
+              {% for c in item.points %}<li>{{ c }}</li>{% endfor %}
             </ul>
             {% endif %}
           </li>
@@ -62,8 +65,14 @@
         <h3>Not checked yet</h3>
       {% if model.how_checked.not_checked %}
         <ul>
-        {% for line in model.how_checked.not_checked %}
-          <li>{{ line }}</li>
+        {% for item in model.how_checked.not_checked %}
+          <li>{{ item.text }}
+            {% if item.points %}
+            <ul class="calls">
+              {% for c in item.points %}<li>{{ c }}</li>{% endfor %}
+            </ul>
+            {% endif %}
+          </li>
         {% endfor %}
         </ul>
       {% else %}
@@ -130,6 +139,7 @@
     </div>
   {% endif %}
 
+  {% if corpus.manifest_type != "by-design" %}
     <p class="sources-searched"><strong>Sources searched:</strong>
     {% if corpus.sources_searched %}
       {{ corpus.sources_searched | join(", ") }}
@@ -137,6 +147,27 @@
       (nothing to search — no manifest was published)
     {% endif %}
     </p>
+  {% endif %}
+
+  {% if corpus.splits %}
+    <h3>What this stage trains on</h3>
+    <p class="section-note">By design, this stage trains on these evaluation datasets and tests on what each holds out. These findings are not counted as exposure.</p>
+    <ul class="splits">
+    {% for s in corpus.splits %}
+      <li><a href="../datasets/{{ s.dataset }}.html">{{ s.name }}</a> — held out: {{ s.held_out }}{% if s.note %} ({{ s.note }}){% endif %}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if corpus.unresolved_entries %}
+    <h3>Entries this list can't search exactly</h3>
+    <p class="section-note">A dataset missing from the list could be inside one of these, so no finding against this list can be NOT PRESENT until they are resolved.</p>
+    <ul class="unresolved">
+    {% for u in corpus.unresolved_entries %}
+      <li><code>{{ u.entry }}</code> — {{ "a collection whose datasets aren't listed" if u.kind == "collection" else "named without an identifier" }}{% if u.note %}: {{ u.note }}{% endif %}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
 
   {% if corpus.caveats %}
     <h3>Caveats</h3>
@@ -154,7 +185,7 @@
     {% for f in corpus.reported_eval_findings %}
       <li id="finding-{{ f.dataset }}-{{ f.stage }}" class="finding">
         <a href="../datasets/{{ f.dataset }}.html">{{ f.dataset_name }}</a>
-        {{ m.verdict_chip(f.verdict) }}
+        {{ m.verdict_chip(f.verdict, f.by_design) }}
         {{ m.reported_eval_marker() }}
       {% if f.identity == "provisional" %}
         {{ m.identity_badge(f.identity_basis) }}
@@ -167,7 +198,7 @@
           <p>{% if f.samples is not none %}{{ f.samples }} sample(s){% endif %}{% if f.cells is not none %} · {{ "{:,}".format(f.cells) }} cells{% endif %}</p>
         {% endif %}
         {% if f.sample_ids %}<p>Sample IDs: {{ f.sample_ids | join(", ") }}</p>{% endif %}
-        {% if f.overlap_level %}<p>Overlap level: {{ f.overlap_level }}</p>{% endif %}
+        {% if f.by_design %}<p>Trained on by design; held out for testing: {{ f.by_design }}.</p>{% elif f.overlap_level %}<p>Overlap level: {{ f.overlap_level }}</p>{% endif %}
         {% if f.reason %}<p class="reason">{{ f.reason }}</p>{% endif %}
         {% if f.note %}<p class="note">{{ f.note }}</p>{% endif %}
         </div>
@@ -181,7 +212,7 @@
     {% for f in corpus.catalog_findings %}
       <li id="finding-{{ f.dataset }}-{{ f.stage }}" class="finding">
         <a href="../datasets/{{ f.dataset }}.html">{{ f.dataset_name }}</a>
-        {{ m.verdict_chip(f.verdict) }}
+        {{ m.verdict_chip(f.verdict, f.by_design) }}
       {% if f.identity == "provisional" %}
         {{ m.identity_badge(f.identity_basis) }}
       {% endif %}
@@ -193,7 +224,7 @@
           <p>{% if f.samples is not none %}{{ f.samples }} sample(s){% endif %}{% if f.cells is not none %} · {{ "{:,}".format(f.cells) }} cells{% endif %}</p>
         {% endif %}
         {% if f.sample_ids %}<p>Sample IDs: {{ f.sample_ids | join(", ") }}</p>{% endif %}
-        {% if f.overlap_level %}<p>Overlap level: {{ f.overlap_level }}</p>{% endif %}
+        {% if f.by_design %}<p>Trained on by design; held out for testing: {{ f.by_design }}.</p>{% elif f.overlap_level %}<p>Overlap level: {{ f.overlap_level }}</p>{% endif %}
         {% if f.reason %}<p class="reason">{{ f.reason }}</p>{% endif %}
         {% if f.note %}<p class="note">{{ f.note }}</p>{% endif %}
         </div>

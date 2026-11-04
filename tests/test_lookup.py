@@ -8,7 +8,7 @@ import pytest
 from corpus_checker.cli import main
 from corpus_checker.crosswalk import CrosswalkRecord, _write_cache
 from corpus_checker.lookup import answer_text, build_lookup_index, interpret, lookup
-from corpus_checker.registry import load_catalog
+from corpus_checker.registry import is_unreviewed, load_catalog, load_yaml, registry_paths
 from corpus_checker.verdict import PAPER_LEVEL_DISCLAIMER
 
 from conftest import REPO, repo_copy
@@ -28,13 +28,19 @@ def by_model(result):
     return {a.model: a for a in result.answers}
 
 
+def reviewed_ids(root=REPO) -> tuple[str, ...]:
+    """The registry's reviewed entries, sorted: what a lookup searches by default."""
+    return tuple(sorted(load_yaml(p)["id"] for p in registry_paths(root) if not is_unreviewed(load_yaml(p))))
+
+
 def test_norman_is_in_scfoundation_and_the_answer_is_its_recorded_finding():
     res = one(lookup(["GSE133344"], REPO, network=False), "GSE133344")
     assert res.query.catalog_id == "norman2019"
     a = by_model(res)["scfoundation"]
     assert (a.verdict, a.recorded, a.samples, a.cells) == ("PRESENT", True, 8, 125_081)
     assert a.reviewed_by == "LM"
-    assert res.searched == ("scfoundation",)           # drafts are not searched by default
+    assert res.searched == reviewed_ids()               # drafts are not searched by default
+    assert "scfoundation" in res.searched
 
 
 def test_drafts_only_when_asked_and_marked(tmp_path):
@@ -109,7 +115,8 @@ def test_answer_text_reads_cleanly():
 def test_cli_prints_the_coverage_line_and_the_disclaimer_only_when_needed(capsys):
     assert main(["lookup", "GSE93421", "--no-network"]) == 0
     out = capsys.readouterr().out
-    assert "Searched 1 entry: scfoundation (reviewed only)" in out
+    ids = reviewed_ids()
+    assert f"Searched {len(ids)} {'entry' if len(ids) == 1 else 'entries'}: {', '.join(ids)} (reviewed only)" in out
     assert PAPER_LEVEL_DISCLAIMER not in out
     assert main(["lookup", "31395745", "--no-network"]) == 0
     out = capsys.readouterr().out
@@ -131,11 +138,13 @@ def test_cli_batch_file_and_usage_errors(tmp_path, capsys):
 def test_web_index_holds_only_reviewed_entries_and_is_deterministic(tmp_path):
     a, b = build_lookup_index(REPO), build_lookup_index(REPO)
     assert json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True)
-    assert {c["model"] for c in a["corpora"]} == {"scfoundation"}
+    assert {c["model"] for c in a["corpora"]} == set(reviewed_ids())
     assert a["disclaimer"] == PAPER_LEVEL_DISCLAIMER
     root = repo_copy(tmp_path)
-    assert {c["model"] for c in build_lookup_index(root)["corpora"]} == {"scfoundation"}
-    assert {c["model"] for c in build_lookup_index(root, include_drafts=True)["corpora"]} == {"scfoundation", "toy-draft"}
+    drafts = {load_yaml(p)["id"] for p in registry_paths(root) if is_unreviewed(load_yaml(p))}
+    assert "toy-draft" in drafts
+    assert {c["model"] for c in build_lookup_index(root)["corpora"]} == set(reviewed_ids(root))
+    assert {c["model"] for c in build_lookup_index(root, include_drafts=True)["corpora"]} == set(reviewed_ids(root)) | drafts
 
 
 def test_parity_vectors_are_current():
@@ -148,4 +157,5 @@ def test_vectors_cover_every_verdict_code():
     vectors = json.loads((REPO / "tests" / "fixtures" / "lookup_vectors.json").read_text(encoding="utf-8"))
     codes = {c["expected"]["code"] for c in vectors["decide"]}
     assert codes == {"no_manifest", "unconfirmed_source", "present", "superset", "same_publication",
-                     "weak_only", "unsearched", "no_exact_key", "missing_required_key", "not_present"}
+                     "weak_only", "unsearched", "no_exact_key", "missing_required_key", "unresolved_entries",
+                     "not_present", "by_design_stage"}

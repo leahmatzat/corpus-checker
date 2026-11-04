@@ -61,6 +61,20 @@ def _supplied(e, method="none"):
     src.update(acquired="supplied", supplied_by="LM", confirmation={"method": method})
 
 
+def _by_design(e, held_out="half of each perturbation's cells"):
+    """Add a by-design stage: the toy model also trains on part of alpha2020, its own evaluation dataset."""
+    e["corpora"].append({
+        "stage": "fine-tuning",
+        "manifest": {"type": "by-design", "quote": "We fine-tuned on the training split of each dataset.",
+                     "as_of": "2026-10-28", "splits": [{"dataset": "alpha2020", "held_out": "half of each perturbation's cells"}]},
+        "result": {"checked": "2026-10-28", "sources_searched": [], "findings": [
+            {"dataset": "alpha2020", "verdict": "PRESENT", "keys_attempted": [], "matched_on": [],
+             "match_level": "dataset", "overlap_level": "study", "by_design": held_out}]}})
+    return e
+
+_NO_DOI = {"key": "doi", "checked": "2026-10-01", "basis": "Crossref has no record for the proceedings paper."}
+_NO_PMID = {"key": "pmid", "checked": "2026-10-01", "basis": "PubMed returns no record for the paper's title."}
+
 CASES = [
     # --- G00: rules enforced by the JSON Schema itself
     ("G00", "type-B manifest returns PRESENT (superset rule)", _type_b_present),
@@ -157,6 +171,34 @@ CASES = [
     # --- G15 via accession_types: a GEO accession is not an attempt against a UUID-keyed manifest
     ("G15", "accession attempt with the wrong kind of accession",
      lambda e: corpus(e)["manifest"].update(accession_types=["cellxgene_collection"], requires_keys=["pmid"])),
+    # --- a paper with no DOI or PMID: identified by link, with both absences recorded
+    ("G27", "the paper gives a DOI and records that none exists",
+     lambda e: e["paper"].update(absent=[_NO_DOI])),
+    ("G00", "paper with neither DOI nor PMID and no recorded absence",
+     lambda e: (e["paper"].pop("doi"), e["paper"].update(openreview="BKXvPDekud"))),
+    ("G00", "paper identified by link records only the missing DOI",
+     lambda e: (e["paper"].pop("doi"), e["paper"].update(openreview="BKXvPDekud", absent=[_NO_DOI]))),
+    # --- a by-design stage: findings come from its splits, about the model's own evaluations only
+    ("G29", "by_design text differs from the split", lambda e: _by_design(e, held_out="all of it")),
+    ("G29", "a split that is not one of the model's evaluations",
+     lambda e: _by_design(e)["corpora"][1]["manifest"]["splits"].append({"dataset": "gamma2022", "held_out": "x"})),
+    ("G29", "by_design on a finding of a list stage", lambda e: finding(e, 0).update(by_design="half")),
+    ("G00", "a by-design stage with a NOT PRESENT finding",
+     lambda e: _by_design(e)["corpora"][1]["result"]["findings"].append(
+         {"dataset": "gamma2022", "verdict": "NOT PRESENT", "keys_attempted": ["accession"]})),
+    # --- a join table is a committed snapshot like any other
+    ("G20", "join table missing",
+     lambda e: corpus(e)["manifest"]["sources"][0].update(
+         columns=["id"], join={"column": "id", "tables": [
+             {"name": "census", "snapshot": "snapshots/nope/datasets.csv", "sha256": "0" * 64}]})),
+    ("G19", "join column not in columns",
+     lambda e: corpus(e)["manifest"]["sources"][0].update(
+         columns=["id"], join={"column": "dataset", "tables": [
+             {"name": "census", "snapshot": "snapshots/cellxgene-census/2023-05-15/datasets.csv",
+              "sha256": "a30061e7323850768883c0528428478a8001d0c4414c8ec256defa389350607c"}]})),
+    # --- a list that names collections without their datasets cannot show absence
+    ("G28", "NOT PRESENT from a list with an unresolved collection",
+     lambda e: corpus(e)["manifest"].update(unresolved_entries=[{"entry": "TabulaSapiens", "kind": "collection"}])),
 ]
 
 WARNING_CASES = [
@@ -187,6 +229,28 @@ def test_every_documented_guard_has_a_case():
     documented = {line.split()[0] for line in v.__doc__.splitlines() if line.strip().startswith("G")}
     covered = {c for c, _, _ in CASES + WARNING_CASES} | {"G03", "G04", "G06", "G26"}   # G03/G04/G26 below; G06 is the canary
     assert documented <= covered, f"guards with no test: {sorted(documented - covered)}"
+
+
+def test_a_paper_with_no_doi_or_pmid_is_identified_by_its_link(toy_repo, entry):
+    entry["paper"] = {"openreview": "BKXvPDekud", "journal": "ICLR 2024", "absent": [_NO_DOI, _NO_PMID]}
+    assert codes(run(toy_repo, entry)) == set()
+
+
+def test_unresolved_entries_still_allow_present_on_a_listed_accession(toy_repo, entry):
+    corpus(entry)["manifest"]["unresolved_entries"] = [{"entry": "TabulaSapiens", "kind": "collection"}]
+    corpus(entry)["result"]["findings"] = [finding(entry, 0)]   # keep the PRESENT, drop the NOT PRESENT
+    assert "G28" not in codes(run(toy_repo, entry))
+
+
+def test_a_study_level_present_names_no_samples(toy_repo, entry):
+    """A list with no sample rows (CellPLM's Table 6) can only show the study."""
+    finding(entry, 0).update(overlap_level="study")
+    finding(entry, 0).pop("samples")
+    assert "G00" not in codes(run(toy_repo, entry))
+
+
+def test_a_by_design_stage_validates_and_reruns(toy_repo, entry):
+    assert codes(run(toy_repo, _by_design(entry))) == set()
 
 
 def test_allow_draft_downgrades_empty_signer(toy_repo, entry):

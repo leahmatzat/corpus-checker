@@ -43,7 +43,7 @@
     },
     "paper": {
       "type": "object",
-      "description": "The PUBLISHED version when one exists. Preprint-vs-published drift is real: Geneformer's corpus, parameter count, input window and vocabulary all differ.",
+      "description": "The PUBLISHED version when one exists. Preprint-vs-published drift is real: Geneformer's corpus, parameter count, input window and vocabulary all differ. Identified by DOI or PMID; a published version with neither (an ICLR or NeurIPS proceedings paper) is identified by its OpenReview id or proceedings URL, with the absence of both recorded and evidenced (G27).",
       "anyOf": [
         {
           "required": [
@@ -54,6 +54,53 @@
           "required": [
             "pmid"
           ]
+        },
+        {
+          "required": [
+            "absent"
+          ],
+          "anyOf": [
+            {
+              "required": [
+                "openreview"
+              ]
+            },
+            {
+              "required": [
+                "url"
+              ]
+            }
+          ],
+          "properties": {
+            "absent": {
+              "allOf": [
+                {
+                  "contains": {
+                    "properties": {
+                      "key": {
+                        "const": "doi"
+                      }
+                    },
+                    "required": [
+                      "key"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "properties": {
+                      "key": {
+                        "const": "pmid"
+                      }
+                    },
+                    "required": [
+                      "key"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
         }
       ],
       "additionalProperties": false,
@@ -67,6 +114,48 @@
             "string",
             "integer"
           ]
+        },
+        "openreview": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "description": "OpenReview forum id, for a paper with no DOI or PMID (https://openreview.net/forum?id=…)."
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://",
+          "description": "The published version's proceedings page, for a paper with no DOI or PMID."
+        },
+        "absent": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Paper identifiers that do not exist for the published version, with the evidence — the same form as a dataset's absent: list. Required, for both doi and pmid, when the paper is identified by openreview or url.",
+          "items": {
+            "type": "object",
+            "required": [
+              "key",
+              "basis",
+              "checked"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "enum": [
+                  "doi",
+                  "pmid"
+                ]
+              },
+              "basis": {
+                "type": "string",
+                "minLength": 20,
+                "description": "The evidence that no such identifier exists, specific enough to recheck."
+              },
+              "checked": {
+                "type": "string",
+                "format": "date"
+              }
+            }
+          }
         },
         "journal": {
           "type": "string"
@@ -471,6 +560,46 @@
               }
             }
           }
+        },
+        {
+          "$comment": "A by-design stage records only what the paper states it trained on part of: every finding is a by-design PRESENT.",
+          "if": {
+            "properties": {
+              "manifest": {
+                "properties": {
+                  "type": {
+                    "const": "by-design"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "manifest"
+            ]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "properties": {
+                  "findings": {
+                    "items": {
+                      "required": [
+                        "by_design"
+                      ],
+                      "properties": {
+                        "verdict": {
+                          "const": "PRESENT"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       ]
     },
@@ -490,9 +619,10 @@
             "B",
             "C-named",
             "C-vague",
-            "D"
+            "D",
+            "by-design"
           ],
-          "description": "A static list | A+ corpus published | B versioned pointer | C-named prose but resolvable | C-vague/D not checkable"
+          "description": "A static list | A+ corpus published | B versioned pointer | C-named prose but resolvable | C-vague/D not checkable | by-design: the stage trains on part of each of the model's own evaluation datasets, named in `splits`, and tests on the rest; there is no list to search"
         },
         "quote": {
           "type": "string",
@@ -528,6 +658,61 @@
             "$ref": "#/$defs/matchKey"
           },
           "description": "Keys that must ALL be attempted before NOT PRESENT is allowed against this manifest (G14). scFoundation: [accession, pmid] — 161/522 blank PMIDs and 134/656 projects with no title or PMID make either key alone unsafe."
+        },
+        "unresolved_entries": {
+          "type": "array",
+          "description": "Entries of this list that cannot be searched exactly: a COLLECTION (an atlas, portal or centre) whose member datasets the list does not name, or a NAMED SOURCE given without an identifier. A dataset missing from the list could be inside one, so while any entry is unresolved, absence is capped at INCONCLUSIVE (G28); PRESENT on a listed identifier still stands. An entry is resolved by recording its members or identifiers with their source, and is then removed from this list.",
+          "items": {
+            "type": "object",
+            "required": [
+              "entry",
+              "kind"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "entry": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The entry as the list prints it."
+              },
+              "kind": {
+                "enum": [
+                  "collection",
+                  "named_source"
+                ]
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "splits": {
+          "type": "array",
+          "minItems": 1,
+          "description": "by-design stages only: each evaluation dataset this stage trains on part of, and what the paper holds out for testing. Findings are derived from it (PRESENT, by design) and never count as exposure (G29).",
+          "items": {
+            "type": "object",
+            "required": [
+              "dataset",
+              "held_out"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "dataset": {
+                "$ref": "#/$defs/slug",
+                "description": "A datasets/ catalog id in evaluated_on (G29)."
+              },
+              "held_out": {
+                "type": "string",
+                "minLength": 1,
+                "description": "What is held out for testing, in the paper's terms: perturbations, patients, cell types, a split."
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
         },
         "accession_types": {
           "type": "array",
@@ -674,6 +859,47 @@
                 {
                   "required": [
                     "keys_available"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "by-design"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "splits"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "sources"
+                  ]
+                },
+                {
+                  "required": [
+                    "pointer"
+                  ]
+                },
+                {
+                  "required": [
+                    "keys_available"
+                  ]
+                },
+                {
+                  "required": [
+                    "unresolved_entries"
                   ]
                 }
               ]
@@ -832,6 +1058,46 @@
             },
             "cells": {
               "type": "string"
+            }
+          }
+        },
+        "join": {
+          "type": "object",
+          "required": [
+            "column",
+            "tables"
+          ],
+          "additionalProperties": false,
+          "description": "Identifiers the list does not carry, added from committed snapshots. Each row whose `column` holds a CELLxGENE dataset id gains that dataset's collection id (an accession) and collection DOI, from the first table that lists the id. UCE's list names only dataset ids, so without this a dataset known by its paper could never be searched. Each table is a committed census snapshot fixed by sha256 (G20); `column` must be in `columns` (G19).",
+          "properties": {
+            "column": {
+              "type": "string"
+            },
+            "tables": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "snapshot",
+                  "sha256"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "snapshot": {
+                    "type": "string",
+                    "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9._/-]+$"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                }
+              }
             }
           }
         },
@@ -1059,7 +1325,7 @@
             "sample",
             "cell"
           ],
-          "description": "How fine-grained the overlap is. Study-level PRESENT does not mean the evaluated samples are in the corpus."
+          "description": "How fine-grained the overlap is. Study-level PRESENT does not mean the evaluated samples are in the corpus. study = the list names the study and has no sample rows to compare; sample/cell = it names the samples or cells, which the finding lists."
         },
         "match_level": {
           "enum": [
@@ -1081,6 +1347,11 @@
           "type": "string",
           "minLength": 1,
           "description": "The basis of the provisional identification, copied from the catalog identifier."
+        },
+        "by_design": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Set on findings of a by-design stage: the model trained on part of this evaluation dataset on purpose, and this says what was held out. Shown as PRESENT · by design, and never counted as exposure or reuse. Derived from the manifest's splits (G29)."
         },
         "samples": {
           "type": "integer",
@@ -1106,7 +1377,7 @@
       },
       "allOf": [
         {
-          "$comment": "A PRESENT verdict must carry the evidence that produced it.",
+          "$comment": "A PRESENT verdict must carry the evidence that produced it. A sample- or cell-level overlap names its samples or cells; a study-level one (a list with no sample rows) is the study.",
           "if": {
             "properties": {
               "verdict": {
@@ -1124,23 +1395,38 @@
               "overlap_level",
               "match_level"
             ],
-            "anyOf": [
-              {
-                "required": [
-                  "sample_ids"
-                ]
+            "if": {
+              "properties": {
+                "overlap_level": {
+                  "enum": [
+                    "sample",
+                    "cell"
+                  ]
+                }
               },
-              {
-                "required": [
-                  "samples"
-                ]
-              },
-              {
-                "required": [
-                  "cells"
-                ]
-              }
-            ]
+              "required": [
+                "overlap_level"
+              ]
+            },
+            "then": {
+              "anyOf": [
+                {
+                  "required": [
+                    "sample_ids"
+                  ]
+                },
+                {
+                  "required": [
+                    "samples"
+                  ]
+                },
+                {
+                  "required": [
+                    "cells"
+                  ]
+                }
+              ]
+            }
           }
         },
         {

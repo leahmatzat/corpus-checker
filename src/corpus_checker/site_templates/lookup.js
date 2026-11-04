@@ -311,8 +311,12 @@ function el(tag, attrs = {}, children = []) {
 }
 
 function verdictChip(a) {
-  const chip = el("span", { class: `verdict v-${verdictSlug(a.verdict)}` }, short(a.verdict));
+  const slug = a.by_design ? "by-design" : verdictSlug(a.verdict);
+  const chip = el("span", { class: `verdict v-${slug}` }, a.by_design ? "By design" : short(a.verdict));
   const wrap = el("span", { class: "lookup-verdict" }, [chip]);
+  if (a.by_design) {
+    chip.setAttribute("title", `Trained on by design; held out for testing: ${a.by_design}. Not exposure.`);
+  }
   if (a.identity === "provisional") {
     const basis = a.identity_basis ? a.identity_basis.trim() : "basis not recorded";
     wrap.appendChild(el("span", {
@@ -462,7 +466,9 @@ function renderListResult(container, queries, results, loaded) {
       const byModel = new Map(result.answers.map((a) => [a.model, a]));
       return [query.raw, ...models.map((m) => {
         const a = byModel.get(m.id);
-        return a ? `${short(a.verdict)}${a.identity === "provisional" ? " (provisional identity)" : ""}` : "";
+        if (!a) return "";
+        if (a.by_design) return `${short(a.verdict)} (by design)`;
+        return `${short(a.verdict)}${a.identity === "provisional" ? " (provisional identity)" : ""}`;
       })];
     }),
   ];

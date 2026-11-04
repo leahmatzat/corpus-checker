@@ -142,3 +142,41 @@ def test_a_match_only_in_the_unconfirmed_file_is_not_presence():
     m = match(index, _dataset(("geo", "GSE1", True)), ["accession"])
     d = decide(manifest_type="A", can_prove_presence=True, match=m, unconfirmed_sources=("S2",))
     assert (d.verdict, d.code) == ("INCONCLUSIVE", "unconfirmed_source")
+
+
+def test_unresolved_collections_cap_absence_but_not_presence():
+    """CellPLM's Table 6 lists TabulaSapiens and HTAN centres without their datasets."""
+    index = RecordIndex([CanonicalRecord(accessions=("GSE1",), pmids=("7",), project="GSE1", source="T6", row=1)])
+    unresolved = ("TabulaSapiens", "HTAN_BU")
+    empty = match(index, _dataset(("geo", "GSE2", True), ("pmid", "8", True)), ["accession", "pmid"])
+    d = decide(manifest_type="A", can_prove_presence=True, match=empty, unresolved_entries=unresolved)
+    assert (d.verdict, d.code) == ("INCONCLUSIVE", "unresolved_entries")
+    assert "TabulaSapiens" in d.reason
+    hit = match(index, _dataset(("geo", "GSE1", True), ("pmid", "7", True)), ["accession", "pmid"])
+    assert decide(manifest_type="A", can_prove_presence=True, match=hit, unresolved_entries=unresolved).verdict == "PRESENT"
+
+
+def test_a_by_design_stage_has_nothing_to_search():
+    d = decide(manifest_type="by-design", can_prove_presence=False, match=None)
+    assert (d.verdict, d.code) == ("INCONCLUSIVE", "by_design_stage")
+
+
+def test_a_join_adds_the_collection_and_its_doi(tmp_path):
+    """UCE lists only CELLxGENE dataset ids; the census snapshot supplies collection id and DOI."""
+    from corpus_checker.check import load_join
+    from corpus_checker.resolvers.table import TableResolver
+
+    snap = tmp_path / "datasets.csv"
+    snap.write_text("# census\ndataset_id,collection_id,collection_doi\n"
+                    "AAAAAAAA-0000-0000-0000-000000000001,bbbbbbbb-0000-0000-0000-000000000002,10.1000/PAPER\n")
+    listing = tmp_path / "list.csv"
+    listing.write_text("id,cells\naaaaaaaa-0000-0000-0000-000000000001,10\ncccccccc-0000-0000-0000-000000000003,5\n")
+    source = {"name": "T16", "roles": {"accession": ["id"], "sample": "id", "cells": "cells"},
+              "join": {"column": "id", "tables": [{"name": "census", "snapshot": "x", "sha256": "0" * 64}]}}
+    join = load_join(source, lambda table: snap)
+    rows = list(TableResolver().records(source, listing, join))
+    assert rows[0].accessions == ("aaaaaaaa-0000-0000-0000-000000000001", "bbbbbbbb-0000-0000-0000-000000000002")
+    assert rows[0].dois == ("10.1000/paper",)
+    assert rows[1].dois == () and len(rows[1].accessions) == 1   # not in the snapshot: nothing added
+    m = match(RecordIndex(rows), _dataset(("doi", "10.1000/paper", True)), ["doi"])
+    assert m.keys_hit == ("doi",) and m.sample_ids == ("aaaaaaaa-0000-0000-0000-000000000001",)

@@ -12,7 +12,7 @@ from typing import Callable
 from urllib.parse import unquote, urlparse
 
 from .match import RecordIndex, match
-from .registry import EXACT_KEYS, absent_keys, confirmed_keys, identity_of, relation
+from .registry import EXACT_KEYS, absent_keys, confirmed_keys, identity_of, relation, unresolved_entries
 from .resolvers import get_resolver
 from .verdict import Decision, decide
 
@@ -84,6 +84,26 @@ def locate_committed(root: Path, fallback: Locator | None = None) -> Locator:
     return locate
 
 
+def load_join(source: dict, locate: Locator) -> dict[str, tuple[str, str]] | None:
+    """CELLxGENE dataset id -> (collection id, collection DOI), from the source's join tables in order.
+
+    A dataset id in more than one table takes the first table's answer, so the tables are
+    listed nearest the model's own census build first.
+    """
+    from . import normalize
+    from .resolvers.table import read_rows
+
+    spec = source.get("join")
+    if not spec:
+        return None
+    out: dict[str, tuple[str, str]] = {}
+    for table in spec["tables"]:
+        for row in read_rows(locate(table)):   # raises SourceError if missing or changed
+            key = normalize.accession(str(row["dataset_id"]))
+            out.setdefault(key, (normalize.accession(str(row["collection_id"])), str(row["collection_doi"] or "")))
+    return out
+
+
 @dataclass(frozen=True)
 class FindingResult:
     dataset: str
@@ -98,6 +118,7 @@ class FindingResult:
     identity: str | None = None           # "provisional" when an attempted key rests only on provisional identifiers
     identity_basis: str | None = None
     keys_absent: tuple[str, ...] = ()     # keys the catalog records as not existing for this dataset
+    by_design: str | None = None          # a by-design stage trained on this dataset; what was held out for testing
 
     @property
     def verdict(self) -> str:
@@ -110,17 +131,20 @@ class FindingResult:
             f["keys_attempted"] = list(self.keys_attempted)
             if self.keys_absent:
                 f["keys_absent"] = list(self.keys_absent)
-        if self.matched_on:
+        if self.matched_on or self.by_design:
             f["matched_on"] = list(self.matched_on)
         if self.match_level:
             f["match_level"] = self.match_level
         if self.identity:
             f["identity"] = self.identity
             f["identity_basis"] = self.identity_basis
+        if self.by_design:
+            f["by_design"] = self.by_design
         if self.verdict == "PRESENT":
             f["overlap_level"] = self.overlap_level
-            f["samples"] = len(self.sample_ids)
-            f["sample_ids"] = list(self.sample_ids)
+            if self.sample_ids:   # a study-level hit on a list with no sample rows has none to name
+                f["samples"] = len(self.sample_ids)
+                f["sample_ids"] = list(self.sample_ids)
             if self.cells is not None:
                 f["cells"] = self.cells
         if self.decision.reason:
@@ -146,11 +170,19 @@ def check_corpus(entry: dict, corpus: dict, catalog: dict[str, dict], locate: Lo
                                       (), (), None, (), None) for d in ids)
         return CorpusCheck(corpus["stage"], (), None, results)
 
+    if manifest["type"] == "by-design":
+        # Nothing to search: the paper says this stage trains on part of each of these evaluation datasets.
+        present = Decision("PRESENT", None, "by_design")
+        results = tuple(FindingResult(s["dataset"], relation(entry, s["dataset"]), present, (), (), "study", (), None,
+                                      match_level="dataset", by_design=s["held_out"])
+                        for s in manifest["splits"] if s["dataset"] in ids)
+        return CorpusCheck(corpus["stage"], (), None, results)
+
     resolver = get_resolver(manifest["resolver"])
     sources = manifest.get("sources", [])
     records, searched = [], []
     for source in sources:
-        records.extend(resolver.records(source, locate(source)))   # raises SourceError: never a silent partial search
+        records.extend(resolver.records(source, locate(source), load_join(source, locate)))   # raises SourceError: never a silent partial search
         searched.append(source["name"])
     index = RecordIndex(records)
 
@@ -158,6 +190,7 @@ def check_corpus(entry: dict, corpus: dict, catalog: dict[str, dict], locate: Lo
     exact_available = set(manifest.get("keys_available", [])) & EXACT_KEYS
     requires = frozenset(manifest.get("requires_keys", []))
     accession_types = manifest.get("accession_types")
+    unresolved = unresolved_entries(manifest)
 
     results = []
     for d in ids:
@@ -167,7 +200,7 @@ def check_corpus(entry: dict, corpus: dict, catalog: dict[str, dict], locate: Lo
         m = match(index, dataset, keys, accession_types)
         decision = decide(manifest_type=manifest["type"], can_prove_presence=resolver.can_prove_presence,
                           match=m, requires_keys=requires, unconfirmed_sources=unconfirmed,
-                          keys_absent=frozenset(absent))
+                          keys_absent=frozenset(absent), unresolved_entries=unresolved)
         identity, basis = identity_of(dataset, keys, accession_types)
         results.append(FindingResult(
             dataset=d, relation=relation(entry, d), decision=decision,
@@ -197,7 +230,8 @@ def compare(corpus: dict, check: CorpusCheck) -> list[Discrepancy]:
         pairs = [("verdict", f["verdict"], r.verdict),
                  ("keys_attempted", sorted(f.get("keys_attempted", [])), sorted(r.keys_attempted)),
                  ("keys_absent", sorted(f.get("keys_absent", [])), sorted(r.keys_absent)),
-                 ("identity", f.get("identity"), r.identity)]
+                 ("identity", f.get("identity"), r.identity),
+                 ("by_design", f.get("by_design"), r.by_design)]
         if f["verdict"] == "PRESENT" or r.verdict == "PRESENT":
             pairs += [("matched_on", sorted(f.get("matched_on", [])), sorted(r.matched_on)),
                       ("cells", f.get("cells"), r.cells),

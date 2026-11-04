@@ -110,7 +110,7 @@ export function decideFrom({
   manifest_type, can_prove_presence, checkable = true,
   keys_attempted = [], keys_hit = [], listed_accessions = [], requires_keys = [],
   unconfirmed_sources = [], unsearched_sources = [],
-  keys_absent = [], keys_hit_confirmed = null,
+  keys_absent = [], keys_hit_confirmed = null, unresolved_entries = [],
 } = {}) {
   const attempted = new Set(keys_attempted);
   let hit = new Set(keys_hit);
@@ -119,7 +119,16 @@ export function decideFrom({
   const unconfirmed = [...unconfirmed_sources];
   const unsearched = [...unsearched_sources];
   const absent = new Set([...keys_absent].filter((k) => !attempted.has(k)));
+  const unresolved = [...unresolved_entries];
 
+  if (manifest_type === "by-design") {
+    return {
+      verdict: INCONCLUSIVE,
+      reason: "this stage trains on parts of the model's own evaluation datasets, by design; it has no list to search "
+        + "for other datasets",
+      code: "by_design_stage",
+    };
+  }
   if (manifest_type === "C-vague" || manifest_type === "D" || !checkable) {
     return { verdict: NOT_CHECKABLE, reason: "no manifest was published to search", code: "no_manifest" };
   }
@@ -195,6 +204,18 @@ export function decideFrom({
         + `attempted before absence can be claimed; the dataset has no confirmed ${missing.join("/")} identifier, `
         + "and none is recorded as not existing",
       code: "missing_required_key",
+    };
+  }
+  if (unresolved.length) {
+    // A dataset missing from the list can still be inside a collection the list names without its members.
+    const more = unresolved.length - 3;
+    const examples = unresolved.slice(0, 3).join(", ") + (more > 0 ? ` and ${more} more` : "");
+    return {
+      verdict: INCONCLUSIVE,
+      reason: `no match, but ${unresolved.length} ${unresolved.length === 1 ? "entry" : "entries"} of this list cannot `
+        + `be searched exactly (${examples}) — collections whose datasets are not listed, or sources named without an `
+        + "identifier; the dataset may be inside one",
+      code: "unresolved_entries",
     };
   }
   return { verdict: NOT_PRESENT, reason: null, code: "not_present" };
@@ -373,6 +394,7 @@ function buildCorpus(c) {
     sources: c.sources || [],
     sources_searched: c.sources_searched || [],
     unconfirmed_sources: c.unconfirmed_sources || [],
+    unresolved_entries: c.unresolved_entries || [],
     reviewed_by: c.reviewed_by,
     reviewed_date: c.reviewed_date,
     draft: c.draft,
@@ -482,6 +504,7 @@ function answerFor(corpus, query) {
     keys_attempted: keys, keys_hit: hit, listed_accessions: listedAccessions,
     requires_keys: corpus.requires_keys, unconfirmed_sources: corpus.unconfirmed_sources,
     keys_hit_confirmed: keysHitOutside(mr, corpus.unconfirmed_sources),
+    unresolved_entries: corpus.unresolved_entries,
   });
   const { identity, identity_basis } = identityOf(dataset, keys, accessionTypes);
   return {
@@ -504,6 +527,7 @@ function recordedAnswer(corpus, finding) {
     identity: finding.identity ?? null, identity_basis: finding.identity_basis ?? null,
     reviewed_by: corpus.reviewed_by, reviewed_date: corpus.reviewed_date, draft: corpus.draft,
     keys_absent: finding.keys_absent ?? [],
+    by_design: finding.by_design ?? null,
   };
 }
 
@@ -549,7 +573,10 @@ export function answerText(a, { lead = true } = {}) {
   const where = `${a.model_name}'s ${a.stage} data`;
   const name = (k) => (k === "pmid" || k === "doi" ? k.toUpperCase() : k);
   let body;
-  if (a.verdict === "PRESENT") {
+  if (a.verdict === "PRESENT" && a.by_design) {
+    body = `${a.model_name} trains on this dataset in its ${a.stage} stage, by design `
+      + `(held out for testing: ${a.by_design.replace(/\.+$/, "")}). This is not exposure.`;
+  } else if (a.verdict === "PRESENT") {
     const parts = [];
     if (a.samples) parts.push(`${a.samples} samples`);
     if (a.cells !== null && a.cells !== undefined) parts.push(`${fmtInt(a.cells)} cells`);

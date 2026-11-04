@@ -92,7 +92,7 @@ def load_reviewers(root: Path) -> set[str]:
 # every finding, the rules) on every change, so a review never has to redo those.
 # Order and wording are shared by the review command, the site and docs/REVIEWING.md.
 REVIEW_CHECKS = {
-    "paper": "The paper is the published version, with the right DOI and PMID.",
+    "paper": "The paper is the published version, with the right DOI and PMID (or its proceedings link, when it has neither).",
     "manifest": "For each training stage, the listed file or statement is the paper's training-data list, "
                 "and the quote matches the paper.",
     "evaluated_on": "The reported evals match what the paper evaluates on.",
@@ -155,6 +155,11 @@ def absent_keys(dataset: dict) -> set[str]:
     G24 rejects an absence that contradicts a usable identifier of the same key.
     """
     return {a["key"] for a in dataset.get("absent", []) if a.get("key") in EXACT_KEYS}
+
+
+def unresolved_entries(manifest: dict) -> tuple[str, ...]:
+    """Entries of a manifest's list that cannot be searched exactly; while any remain, absence is capped."""
+    return tuple(u["entry"] for u in manifest.get("unresolved_entries", []))
 
 
 def provisional_keys(dataset: dict, accession_types: list[str] | None = None) -> tuple[set[str], tuple[str, ...]]:

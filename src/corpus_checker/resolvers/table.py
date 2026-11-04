@@ -46,8 +46,11 @@ class TableResolver:
     manifest_type: ClassVar[str] = "A"
     can_prove_presence: ClassVar[bool] = True
 
-    def records(self, source: dict, path: Path) -> Iterator[CanonicalRecord]:
+    def records(self, source: dict, path: Path,
+                join: dict[str, tuple[str, str]] | None = None) -> Iterator[CanonicalRecord]:
+        """`join` maps a CELLxGENE dataset id to (collection id, collection DOI); see check.load_join."""
         roles = source.get("roles") or {}
+        join_column = (source.get("join") or {}).get("column")
         if not roles:
             raise ValueError(f"manifest source {source['name']!r} declares no column roles")
 
@@ -59,10 +62,17 @@ class TableResolver:
             for column in roles.get("accession", []):
                 accs.extend(normalize.accessions(row.get(column)))
             pmid_cell, doi_cell = col(row, "pmid"), col(row, "doi")
+            joined_dois: tuple[str, ...] = ()
+            if join is not None and join_column:
+                for key in normalize.accessions(row.get(join_column)):
+                    if key in join:
+                        collection, doi = join[key]
+                        accs.append(collection)
+                        joined_dois += normalize.dois(doi)
             yield CanonicalRecord(
                 accessions=tuple(dict.fromkeys(accs)),
                 pmids=normalize.pmids(pmid_cell),
-                dois=tuple(dict.fromkeys(normalize.dois(doi_cell) + normalize.dois(pmid_cell))),
+                dois=tuple(dict.fromkeys(normalize.dois(doi_cell) + normalize.dois(pmid_cell) + joined_dois)),
                 title=normalize.text(col(row, "title")) or None,
                 citation=normalize.text(col(row, "citation")) or None,
                 project=normalize.text(col(row, "project")) or None,

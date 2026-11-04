@@ -38,6 +38,8 @@ Does the paper point to a file listing its training data?
                                                                  ★ This is a finding, not a failure.
 ```
 
+**4a. A stage that trains on the model's own evaluation data is recorded too, as `by-design`.** Many models fine-tune on part of each evaluation dataset and test on the rest; task-specific models (CPA, CellOT) do nothing else. Record that stage with `type: by-design` and one `splits` entry per evaluation dataset, saying what the paper holds out (perturbations, patients, cell types). Its findings are `PRESENT · by design`: shown, never counted as exposure. If the stage trains on a public dataset *other* than the held-out part (e.g. all of Replogle's K562 cells, tested on HepG2), that part is ordinary training data and gets an ordinary manifest.
+
 > ⚠ **Read the whole availability statement before classifying.** scFoundation's manifest pointer is **one clause** inside a long sentence: *"…and the detailed dataset list we used is in Supplementary Data 1 and 2."* Miss it and the model looks like Type C-vague. **It is the single easiest error in this workflow.**
 
 ---
