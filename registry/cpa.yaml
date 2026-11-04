@@ -1,0 +1,179 @@
+schema_version: 3
+id: cpa
+model: CPA (Compositional Perturbation Autoencoder)
+version: "the method as published; a separate model is trained for each dataset and split, and no shared checkpoint exists"
+model_class: task-specific
+
+paper:
+  doi: 10.15252/msb.202211517
+  pmid: "37154091"
+  journal: Molecular Systems Biology
+  published: 2023-05
+  preprint: 10.1101/2021.04.14.439903
+  note: >
+    Scored against the published version. The preprint's datasets differ: it includes Gehring's
+    96-plex data and lacks Kang 2018, the new drug-combination data and the chemCPA analyses.
+
+discovery:
+  data_availability:
+    checked: true
+    found: >
+      Two sentences: the datasets are public and "made available" in the cpa-reproducibility
+      repository's notebooks folder, which holds figure notebooks only, with no data or list.
+  code_availability:
+    checked: true
+    found: No separate section; the code (theislab/cpa) is named in the data availability statement.
+  supplementary_files:
+    checked: true
+    files: [Appendix PDF, Review Process File PDF]
+    found: Two files; neither lists datasets or splits.
+  methods:
+    checked: true
+    found: >
+      "Datasets" names each dataset, with accessions for five; the Results describe the
+      train / test / OOD split for each.
+  github_repo:
+    checked: true
+    found: >
+      theislab/cpa and theislab/cpa-reproducibility: one preprocessing notebook per dataset, with the
+      split code; no list. Splits are columns inside the released data files.
+  hf_model_card:
+    checked: true
+    found: None.
+  hf_dataset_card:
+    checked: true
+    found: None.
+  archive_deposits:
+    checked: true
+    found: >
+      None in Zenodo, figshare, Dryad or OSF. The released data sit on a Meta S3 tarball (16.3 GB)
+      and a Google Drive folder.
+  preprint_vs_published:
+    checked: true
+    found: Different datasets (see the paper note); neither version has a list file.
+
+evaluated_on:
+  - dataset: kang2018-ifnb-pbmc
+    task: cell-type-specific response to IFN-β
+    obtained_from: the Seurat tutorial (Stuart et al. 2019)
+  - dataset: srivatsan2020-sciplex2
+    task: response to an unseen dose
+    obtained_from: GEO GSM4150377
+  - dataset: srivatsan2020-sciplex3
+    task: response to unseen doses and drugs
+    obtained_from: GEO GSM4150378
+    note: Subset to half its cells.
+  - dataset: hagai2018-cross-species
+    task: response at an unseen time point
+    obtained_from: ArrayExpress E-MTAB-6754
+  - dataset: norman2019
+    task: response to unseen gene-pair combinations
+    obtained_from: GEO GSE133344
+  - dataset: lotfollahi2023-combosciplex
+    task: response to unseen drug combinations
+    obtained_from: GEO GSE206741 (generated for this paper)
+  - dataset: lincs-l1000
+    task: compound and cell-line embeddings (no held-out prediction reported)
+
+corpora:
+  - stage: training
+    name: Each dataset's own training split (one model per dataset and split)
+    manifest:
+      type: by-design
+      quote: >
+        "We split each dataset into three groups: train (used for model training), test (used for
+        tuning the model parameters), and OOD (never seen during training or parameter setting, and
+        intended to measure the generalization properties of the model)."
+      as_of: 2026-10-28
+      splits:
+        - {dataset: kang2018-ifnb-pbmc, held_out: "the stimulated cells of one cell type at a time (one model per cell type)"}
+        - {dataset: srivatsan2020-sciplex2, held_out: "all four drugs at the second-highest dose"}
+        - dataset: srivatsan2020-sciplex3
+          held_out: "the highest dose (10 µM) of 36 drugs; also 28 round-robin splits"
+          note: The released split files hold out 18 or 19 drugs, not 36.
+        - {dataset: hagai2018-cross-species, held_out: "rat cells at 6 hours of LPS"}
+        - dataset: norman2019
+          held_out: "gene-pair combinations: 13 models each leave out a different set"
+          note: A 14th model, trained on every measured combination, predicts the 5,329 unmeasured ones.
+        - {dataset: lotfollahi2023-combosciplex, held_out: "5 drug combinations (Fig. 3B)"}
+        - dataset: lincs-l1000
+          held_out: "none reported: CPA is trained on it for its compound and cell-line embeddings"
+          note: The released file holds out a random 10% of samples from the 49 most frequent perturbations.
+
+    result:
+      checked: 2026-10-28
+      sources_searched: []
+      findings:
+        - dataset: kang2018-ifnb-pbmc
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: the stimulated cells of one cell type at a time (one model per cell type)
+          overlap_level: study
+        - dataset: srivatsan2020-sciplex2
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: all four drugs at the second-highest dose
+          overlap_level: study
+        - dataset: srivatsan2020-sciplex3
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: the highest dose (10 µM) of 36 drugs; also 28 round-robin splits
+          overlap_level: study
+        - dataset: hagai2018-cross-species
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: rat cells at 6 hours of LPS
+          overlap_level: study
+        - dataset: norman2019
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: 'gene-pair combinations: 13 models each leave out a different set'
+          overlap_level: study
+        - dataset: lotfollahi2023-combosciplex
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: 5 drug combinations (Fig. 3B)
+          overlap_level: study
+        - dataset: lincs-l1000
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: 'none reported: CPA is trained on it for its compound and cell-line embeddings'
+          overlap_level: study
+
+      caveats:
+        - >
+          CPA has no pretraining: each model is trained on part of one evaluation dataset and tested on
+          the rest. These findings record the method; they are not exposure.
+        - >
+          The test split is used for tuning, and in the released code for early stopping; the OOD split
+          is the reported evaluation. A random search of 100 hyperparameter settings was run per dataset.
+        - >
+          The released data differ from the paper in places: sci-Plex 3's split holds out 18 or 19 drugs,
+          not 36; the Norman file has 111,122 cells against the paper's 108,497.
+        - >
+          Dixit 2016 appears in the references as background only; it is not an evaluation dataset.
+        - >
+          Exposure, not effect. Overlap does not by itself mean any reported number is inflated.
+
+review:
+  by: ""
+  date: null
+  checked: []
+
+provenance:
+  method: "corpus-checker check cpa --rerun (by-design stage: findings come from its splits)"
+  reproducible: true
