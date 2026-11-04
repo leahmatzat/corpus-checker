@@ -1731,6 +1731,20 @@
     "answers": [
      {
       "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cellot",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
       "code": "recorded",
       "identity": null,
       "keys_absent": [],
@@ -1838,6 +1852,20 @@
     "answers": [
      {
       "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cellot",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
       "code": "missing_required_key",
       "identity": null,
       "keys_absent": [],
@@ -1931,6 +1959,20 @@
    "catalog_id": null,
    "expected": {
     "answers": [
+     {
+      "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cellot",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
      {
       "cells": null,
       "code": "unresolved_entries",
@@ -2035,6 +2077,20 @@
     "answers": [
      {
       "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cellot",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
       "code": "missing_required_key",
       "identity": null,
       "keys_absent": [],
@@ -2132,6 +2188,20 @@
    "catalog_id": null,
    "expected": {
     "answers": [
+     {
+      "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cellot",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
      {
       "cells": null,
       "code": "unresolved_entries",
@@ -2246,6 +2316,20 @@
     "answers": [
      {
       "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cellot",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
       "code": "unresolved_entries",
       "identity": null,
       "keys_absent": [],
@@ -2345,6 +2429,20 @@
     "answers": [
      {
       "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cellot",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
       "code": "missing_required_key",
       "identity": null,
       "keys_absent": [],
@@ -2438,6 +2536,20 @@
    "catalog_id": null,
    "expected": {
     "answers": [
+     {
+      "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cellot",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
      {
       "cells": null,
       "code": "unresolved_entries",
@@ -2551,6 +2663,20 @@
     "answers": [
      {
       "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cellot",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
       "code": "recorded",
       "identity": "provisional",
       "keys_absent": [],
@@ -2662,6 +2788,20 @@
     "answers": [
      {
       "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cellot",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
       "code": "recorded",
       "identity": null,
       "keys_absent": [],
@@ -2766,6 +2906,20 @@
     "answers": [
      {
       "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cellot",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
+     {
+      "cells": null,
       "code": "recorded",
       "identity": null,
       "keys_absent": [
@@ -2861,6 +3015,20 @@
    "catalog_id": null,
    "expected": {
     "answers": [
+     {
+      "cells": null,
+      "code": "by_design_stage",
+      "identity": null,
+      "keys_absent": [],
+      "keys_attempted": [],
+      "match_level": null,
+      "matched_on": [],
+      "model": "cellot",
+      "recorded": false,
+      "samples": null,
+      "stage": "training",
+      "verdict": "INCONCLUSIVE"
+     },
      {
       "cells": null,
       "code": "missing_required_key",

@@ -1,0 +1,161 @@
+schema_version: 3
+id: cellot
+model: CellOT
+version: "the method as published (code bunnech/cellot, training and data code unchanged since 2023-02-17); one model per perturbation and setting; no released checkpoints"
+model_class: task-specific
+
+paper:
+  doi: 10.1038/s41592-023-01969-x
+  pmid: "37770709"
+  journal: Nature Methods
+  published: 2023-09
+  preprint: 10.1101/2021.12.15.472775
+  note: >
+    Scored against the corrected published version: the Methods were missing from the first online
+    version and restored by an Author Correction (10.1038/s41592-023-02073-w, 2023-10-30). The bioRxiv
+    preprint covers the 4i data only.
+
+discovery:
+  data_availability:
+    checked: true
+    found: >
+      Names accessions for five datasets (GSM4150378, GSE96583, GSE148842, GSE140802, E-MTAB-6754) and
+      an ETH deposit of "the processed datasets of all tasks" (10.3929/ethz-b-000609681), which lacks
+      the glioblastoma and cross-species data.
+  code_availability:
+    checked: true
+    found: An ETH item (10.3929/ethz-b-000612005) holding only a README that links the GitHub repository.
+  supplementary_files:
+    checked: true
+    found: Nine files (SI, Reporting Summary, Peer Review File, Supplementary Table 2, Source Data for Extended Data Figs 1–5); no list of training data or splits.
+  methods:
+    checked: true
+    found: '"Training and technical details" describes the splits; "Datasets and preprocessing" names the datasets.'
+  github_repo:
+    checked: true
+    found: >
+      bunnech/cellot: split recipes in configs/tasks/*.yaml and cellot/data/cell.py (seeded at run time);
+      no split files, no releases.
+  hf_model_card:
+    checked: true
+    found: None.
+  hf_dataset_card:
+    checked: true
+    found: None.
+  archive_deposits:
+    checked: true
+    found: >
+      The ETH deposit above (one zip of processed data for four of the six datasets). An earlier
+      polybox link with all six now returns 404.
+  preprint_vs_published:
+    checked: true
+    found: The bioRxiv preprint (one version) has the 4i data only and no data or code statement.
+
+evaluated_on:
+  - dataset: bunne2023-4i-melanoma
+    task: response to 34 drugs (imaging)
+    obtained_from: generated for this paper
+  - dataset: srivatsan2020-sciplex3
+    task: response to drugs, held-out cells
+    obtained_from: GEO GSM4150378
+  - dataset: kang2018-ifnb-pbmc
+    task: response to IFN-β in a held-out patient
+    obtained_from: GEO GSE96583
+  - dataset: zhao2021-gbm
+    task: response to panobinostat in a held-out patient
+    obtained_from: GEO GSE148842
+  - dataset: hagai2018-cross-species
+    task: LPS response in a held-out species
+    obtained_from: ArrayExpress E-MTAB-6754
+  - dataset: weinreb2020-statefate
+    task: fate of a held-out progenitor subpopulation
+    obtained_from: GEO GSE140802
+
+corpora:
+  - stage: training
+    name: Each dataset's own training split (one model per perturbation and setting)
+    manifest:
+      type: by-design
+      quote: >
+        "In the i.i.d. setting, we split all cell datasets into train, test, and evaluation set, where
+        the test and evaluation set consists of 500 to 1, 000 cells, dependent on the size of the
+        original dataset. The split is performed on each drug and control condition independently. In
+        the o.o.d. setting, the model does not have access to cells of the holdout condition."
+      as_of: 2026-10-28
+      splits:
+        - {dataset: bunne2023-4i-melanoma, held_out: "a random test and evaluation set of cells for each drug and the control"}
+        - {dataset: srivatsan2020-sciplex3, held_out: "a random test and evaluation set of 500–1,000 cells for each drug and the control"}
+        - {dataset: kang2018-ifnb-pbmc, held_out: "one patient at a time (8 models); the i.i.d. variant also trains on half of that patient's cells"}
+        - {dataset: zhao2021-gbm, held_out: "one patient at a time; the i.i.d. variant also trains on half of that patient's cells"}
+        - {dataset: hagai2018-cross-species, held_out: "one species at a time (rat and mouse reported); its LPS response is not seen in training"}
+        - {dataset: weinreb2020-statefate, held_out: "one progenitor subpopulation; the i.i.d. variant also trains on half of it"}
+
+    result:
+      checked: 2026-10-28
+      sources_searched: []
+      findings:
+        - dataset: bunne2023-4i-melanoma
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: a random test and evaluation set of cells for each drug and the control
+          overlap_level: study
+        - dataset: srivatsan2020-sciplex3
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: a random test and evaluation set of 500–1,000 cells for each drug and the control
+          overlap_level: study
+        - dataset: kang2018-ifnb-pbmc
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: one patient at a time (8 models); the i.i.d. variant also trains on half of that patient's cells
+          overlap_level: study
+        - dataset: zhao2021-gbm
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: one patient at a time; the i.i.d. variant also trains on half of that patient's cells
+          overlap_level: study
+        - dataset: hagai2018-cross-species
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: one species at a time (rat and mouse reported); its LPS response is not seen in training
+          overlap_level: study
+        - dataset: weinreb2020-statefate
+          verdict: PRESENT
+          keys_attempted: []
+          matched_on: []
+          match_level: dataset
+          by_design: one progenitor subpopulation; the i.i.d. variant also trains on half of it
+          overlap_level: study
+
+      caveats:
+        - >
+          CellOT has no pretraining: each model is trained on part of one evaluation dataset and tested
+          on the rest. These findings record the method; they are not exposure.
+        - >
+          No split file is published; splits are drawn at run time by seeded code. In the released code
+          the checkpoint with the lowest error on the test split is kept, and the i.i.d. evaluation reads
+          that same split; the paper's Methods describe a separate evaluation set.
+        - >
+          Counts differ between the paper, its Source Data and the code (for example 34 or 35 4i drugs,
+          9, 6 or 19 sci-Plex 3 drugs, 7 or 5 glioblastoma patients); recorded as found.
+        - >
+          Exposure, not effect. Overlap does not by itself mean any reported number is inflated.
+
+review:
+  by: ""
+  date: null
+  checked: []
+
+provenance:
+  method: "corpus-checker check cellot --rerun (by-design stage: findings come from its splits)"
+  reproducible: true
